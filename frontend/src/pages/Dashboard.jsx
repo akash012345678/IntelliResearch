@@ -1,228 +1,269 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import SearchBar from '../components/SearchBar';
 import PaperCard from '../components/PaperCard';
 import PaperViewModal from '../components/PaperViewModal';
+import NextResearchStepCard from '../components/NextResearchStepCard';
+import ResearchProjectHealth from '../components/ResearchProjectHealth';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
+  const [projects, setProjects] = useState([]);
+  const [activeProjectAggregate, setActiveProjectAggregate] = useState(null);
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchMode, setSearchMode] = useState('semantic');
+  const [semanticResults, setSemanticResults] = useState([]);
+  const [semanticLoading, setSemanticLoading] = useState(false);
+  const [semanticError, setSemanticError] = useState('');
+
   const [viewingPaperId, setViewingPaperId] = useState(null);
-  const [deletingPaperId, setDeletingPaperId] = useState(null);
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState('success'); // success or error
 
-  // Load papers (debounced for search query)
   useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  useEffect(() => {
+    const cleanQuery = searchQuery.trim();
+    if (!cleanQuery) {
+      setSemanticResults([]);
+      setSemanticError('');
+      fetchPapers('');
+      return;
+    }
     const handler = setTimeout(() => {
-      fetchPapers(searchQuery);
-    }, 250); // 250ms debounce
-
+      if (searchMode === 'semantic') {
+        executeSemanticSearch(cleanQuery);
+      } else {
+        fetchPapers(cleanQuery);
+      }
+    }, 300);
     return () => clearTimeout(handler);
-  }, [searchQuery]);
+  }, [searchQuery, searchMode]);
 
-  const fetchPapers = async (query = '') => {
+  const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const response = await apiService.getPapers(query);
-      setPapers(response.data);
+      const [projRes, papRes] = await Promise.all([
+        apiService.getProjects(),
+        apiService.getPapers('')
+      ]);
+      setProjects(projRes.data || []);
+      setPapers(papRes.data || []);
+
+      if (projRes.data && projRes.data.length > 0) {
+        const activeP = projRes.data[0];
+        const aggRes = await apiService.getProjectDashboardAggregate(activeP.id);
+        setActiveProjectAggregate(aggRes.data);
+      }
     } catch (err) {
-      console.error(err);
-      showToast('Failed to fetch research papers. Check connection.', 'error');
+      console.error('Failed to load dashboard data:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const showToast = (message, type = 'success') => {
-    setToastMessage(message);
-    setToastType(type);
-    setTimeout(() => {
-      setToastMessage('');
-    }, 4000);
-  };
-
-  // Trigger paper view modal
-  const handleViewPaper = (id) => {
-    setViewingPaperId(id);
-  };
-
-  // Open delete confirmation modal
-  const handleConfirmDelete = (id) => {
-    setDeletingPaperId(id);
-  };
-
-  // Execute paper deletion
-  const handleDeletePaper = async () => {
-    if (!deletingPaperId) return;
-    
+  const fetchPapers = async (query = '') => {
     try {
-      await apiService.deletePaper(deletingPaperId);
-      // Remove from local state list
-      setPapers(prev => prev.filter(p => p.id !== deletingPaperId));
-      showToast('Research paper and associated text files removed successfully.');
+      const response = await apiService.getPapers(query);
+      setPapers(response.data);
     } catch (err) {
       console.error(err);
-      showToast('Failed to delete paper. Please try again.', 'error');
+    }
+  };
+
+  const executeSemanticSearch = async (query) => {
+    setSemanticLoading(true);
+    setSemanticError('');
+    try {
+      const response = await apiService.semanticSearch(query, 10);
+      setSemanticResults(response.data);
+    } catch (err) {
+      console.error(err);
+      setSemanticError('Semantic search failed.');
     } finally {
-      setDeletingPaperId(null);
+      setSemanticLoading(false);
+    }
+  };
+
+  const handleTakeAction = (tab) => {
+    if (activeProjectAggregate) {
+      navigate(`/research-projects/${activeProjectAggregate.project_id}?tab=${tab}`);
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
-      
-      {/* Toast Alert overlay */}
-      {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 animate-slide-up">
-          <div className={`px-5 py-3.5 rounded-2xl shadow-2xl border flex items-center gap-3 text-sm font-medium ${
-            toastType === 'success' 
-              ? 'bg-emerald-950/90 border-emerald-500/30 text-emerald-350' 
-              : 'bg-rose-950/90 border-rose-500/30 text-rose-350'
-          }`}>
-            <span className={`w-2 h-2 rounded-full ${toastType === 'success' ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
-            {toastMessage}
-          </div>
-        </div>
-      )}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in text-xs text-slate-300">
 
-      {/* Header controls section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 border-b border-slate-800/80 pb-6">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
-            Research Repository
-          </h2>
-          <p className="text-sm text-slate-450 mt-1">
-            Analyze, query, and browse uploaded manuscripts ({papers.length} indexing records found)
+      {/* HERO BANNER */}
+      <div className="glass-card rounded-3xl p-8 border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/60 flex flex-wrap items-center justify-between gap-6 shadow-2xl">
+        <div className="space-y-2 max-w-2xl">
+          <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-bold text-[11px] uppercase tracking-wider">
+            IntelliResearch Student Workspace
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-100 tracking-tight">
+            From Research Papers to a Complete Research Project.
+          </h1>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            IntelliResearch helps students discover research opportunities, validate ideas, plan experiments, analyze evidence, and prepare academic documents.
           </p>
         </div>
-        
-        {/* Search */}
-        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+
+        <div className="flex flex-wrap gap-3">
+          <Link to="/research-projects" className="btn-primary py-3 px-6 font-bold text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+            <span>🗂</span> My Projects ({projects.length})
+          </Link>
+          <Link to="/papers" className="btn-secondary py-3 px-5 font-bold text-xs flex items-center gap-2">
+            <span>📤</span> Upload Papers
+          </Link>
+        </div>
       </div>
 
-      {/* Main Grid View */}
-      {loading && papers.length === 0 ? (
-        // Skeletal loading indicators
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((idx) => (
-            <div key={idx} className="glass-card rounded-2xl p-6 h-[230px] flex flex-col justify-between border border-slate-900 animate-pulse">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="h-4 bg-slate-800 rounded w-5/6"></div>
-                  <div className="h-4 bg-slate-800 rounded w-2/3"></div>
+      {/* ACTIVE PROJECT & SMART NEXT STEP */}
+      {activeProjectAggregate && (
+        <div className="space-y-6">
+          <div className="glass-card rounded-3xl p-6 border border-slate-800 space-y-4 bg-slate-900/60">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-[10px]">
+                    ● ACTIVE PROJECT
+                  </span>
+                  <span className="text-xs text-slate-400">STAGE: <strong>{activeProjectAggregate.current_stage_title}</strong></span>
                 </div>
-                <div className="space-y-1.5 pt-2">
-                  <div className="h-3 bg-slate-900 rounded w-1/2"></div>
-                  <div className="h-3 bg-slate-900 rounded w-1/3"></div>
-                </div>
+                <h2 className="text-xl font-black text-slate-100">{activeProjectAggregate.project_title}</h2>
               </div>
-              <div className="flex justify-between items-center border-t border-slate-900 pt-4 mt-4">
-                <div className="h-4 bg-slate-800 rounded w-24"></div>
-                <div className="h-4 bg-slate-900 rounded w-12"></div>
+
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block">Research Progress</span>
+                  <span className="text-2xl font-black text-indigo-400">{activeProjectAggregate.progress_percentage}%</span>
+                </div>
+                <button
+                  onClick={() => navigate(`/research-projects/${activeProjectAggregate.project_id}?tab=journey`)}
+                  className="btn-primary py-2.5 px-5 font-bold text-xs shadow-md"
+                >
+                  Continue Research →
+                </button>
               </div>
             </div>
-          ))}
-        </div>
-      ) : papers.length > 0 ? (
-        // List cards
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {papers.map((paper) => (
-            <PaperCard
-              key={paper.id}
-              paper={paper}
-              onView={handleViewPaper}
-              onDelete={handleConfirmDelete}
-            />
-          ))}
-        </div>
-      ) : (
-        // Empty State Banner
-        <div className="glass-card rounded-3xl p-12 text-center max-w-xl mx-auto space-y-6 border border-slate-900 animate-slide-up">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20 text-indigo-400 mx-auto">
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
+
+            {/* HEALTH METERS */}
+            <ResearchProjectHealth health={activeProjectAggregate.health} />
           </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-bold text-slate-100">No Publications Indexed</h3>
-            <p className="text-sm text-slate-450 max-w-sm mx-auto leading-relaxed">
-              {searchQuery 
-                ? `No results match your search term "${searchQuery}". Clear query to view all items.`
-                : "Your digital paper collection is empty. Start by uploading files into the gap engine."}
-            </p>
-          </div>
-          <div>
-            {searchQuery ? (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="btn-secondary py-2 text-xs"
-              >
-                Clear Search Filter
-              </button>
-            ) : (
-              <Link
-                to="/"
-                className="btn-primary inline-flex items-center gap-2 py-2.5 text-xs font-semibold"
-              >
-                Upload Research Paper
-              </Link>
-            )}
-          </div>
+
+          {/* NEXT STEP GUIDANCE CARD */}
+          <NextResearchStepCard nextStep={activeProjectAggregate.next_step} onTakeAction={handleTakeAction} />
         </div>
       )}
 
-      {/* Viewing Paper Detail Modal overlay */}
+      {/* RECENT PROJECTS SECTION */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-extrabold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+            <span>🗂</span> Recent Research Projects ({projects.length})
+          </h3>
+          <Link to="/research-projects" className="text-xs text-indigo-400 font-bold hover:underline">
+            View All Projects →
+          </Link>
+        </div>
+
+        {projects.length === 0 ? (
+          <div className="glass-card rounded-3xl p-8 border border-slate-800 text-center space-y-3 bg-slate-900/40">
+            <span className="text-3xl">📁</span>
+            <h4 className="text-sm font-bold text-slate-200">No Research Projects Created Yet</h4>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              Create your first research project to organize papers, discover gaps, plan experiments, and write academic papers.
+            </p>
+            <Link to="/research-projects" className="btn-primary py-2.5 px-5 text-xs font-bold inline-block">
+              + Create Research Project
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projects.slice(0, 3).map((proj) => (
+              <div key={proj.id} className="glass-card rounded-3xl p-5 border border-slate-800 space-y-3 hover:border-indigo-500/40 transition-all bg-slate-900/60">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-950 border border-slate-800 text-slate-300 font-bold text-[10px]">
+                    {proj.status}
+                  </span>
+                  <span className="text-[10px] text-slate-500 font-mono">ID #{proj.id}</span>
+                </div>
+
+                <h4 className="text-sm font-bold text-slate-100 truncate">{proj.name}</h4>
+                <p className="text-xs text-slate-400 line-clamp-2">{proj.description || 'No description provided.'}</p>
+
+                <div className="flex items-center justify-between border-t border-slate-800/80 pt-3 text-[11px]">
+                  <span className="text-slate-400 font-medium">📄 {proj.papers ? proj.papers.length : 0} Papers</span>
+                  <button
+                    onClick={() => navigate(`/research-projects/${proj.id}?tab=journey`)}
+                    className="text-indigo-400 font-bold hover:underline"
+                  >
+                    Open Project →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* GLOBAL RESEARCH LIBRARY SECTION */}
+      <div className="space-y-4 pt-4 border-t border-slate-800">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <h3 className="text-sm font-extrabold text-slate-100 uppercase tracking-wider flex items-center gap-2">
+              <span>📚</span> Global Research Paper Collection ({papers.length})
+            </h3>
+            <p className="text-[11px] text-slate-400">Search and analyze indexed literature papers in your repository.</p>
+          </div>
+
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            searchMode={searchMode}
+            setSearchMode={setSearchMode}
+          />
+        </div>
+
+        {/* PAPER CARDS GRID */}
+        {searchMode === 'semantic' && searchQuery.trim() ? (
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-indigo-300">Semantic Relevance Search Results ({semanticResults.length})</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {semanticResults.map((item) => (
+                <PaperCard
+                  key={item.paper_id}
+                  paper={item}
+                  isSemantic={true}
+                  onView={() => setViewingPaperId(item.paper_id)}
+                />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {papers.map((paper) => (
+              <PaperCard
+                key={paper.id}
+                paper={paper}
+                onView={() => setViewingPaperId(paper.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* PAPER VIEW MODAL */}
       {viewingPaperId && (
         <PaperViewModal
           paperId={viewingPaperId}
           onClose={() => setViewingPaperId(null)}
         />
-      )}
-
-      {/* Delete Confirmation Modal Overlay */}
-      {deletingPaperId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md glass-card rounded-3xl p-6 border border-slate-800 shadow-2xl space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-100 text-lg leading-snug">Confirm Deletion</h3>
-                <p className="text-xs text-slate-400 mt-1">This operation is destructive and cannot be undone.</p>
-              </div>
-            </div>
-            
-            <p className="text-sm text-slate-300 leading-relaxed bg-slate-950/40 p-4 rounded-2xl border border-slate-900 select-all font-mono break-all">
-              {papers.find(p => p.id === deletingPaperId)?.filename}
-            </p>
-            
-            <p className="text-xs text-slate-450 leading-relaxed">
-              This will remove the publication metadata from the database, delete the original PDF from uploads/original_papers, and delete the extracted text file.
-            </p>
-            
-            <div className="flex items-center justify-end gap-3 border-t border-slate-850 pt-4">
-              <button
-                onClick={() => setDeletingPaperId(null)}
-                className="btn-secondary py-2 text-xs px-4"
-              >
-                Keep File
-              </button>
-              
-              <button
-                onClick={handleDeletePaper}
-                className="btn-danger py-2 text-xs px-4 bg-rose-600 hover:bg-rose-500 hover:text-white border-0"
-              >
-                Yes, Delete Paper
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
     </div>

@@ -1,0 +1,21 @@
+# Environment files
+.env
+*.env
+backend/.env
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+backend/venv/
+
+# Local databases
+*.db
+*.sqlite3
+
+# Node modules & build outputs
+node_modules/
+dist/
+build/

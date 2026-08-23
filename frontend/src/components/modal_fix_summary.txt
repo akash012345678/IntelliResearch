@@ -1,0 +1,17 @@
+# Modal Z-Index and Layout Positioning Fix Summary
+
+## 1. Problem Diagnosis
+In modal views (such as `ProposalWorkspaceModal.jsx`, `OpportunityExplorerModal.jsx`, `ResearchMethodologyPlannerModal.jsx`), the top sticky navigation header (`Header.jsx`) has `sticky top-0 z-40` with an 80px height (`h-20`).
+When modals were rendered with `fixed inset-0 z-50 flex items-center justify-center p-4`, vertical centering (`items-center`) pushed the modal card's top section up into the top 80px region of the screen, causing the top navigation bar to overlap and obscure the modal's header title and action buttons.
+
+## 2. Changes Applied
+Updated all modal component containers across the application:
+1. Backdrop overlay z-index & positioning:
+   `fixed inset-0 z-[100] overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-start justify-center pt-20 sm:pt-24 pb-6 px-4 sm:px-6 animate-fade-in`
+2. Inner modal card height:
+   `max-h-[calc(100vh-7rem)] overflow-y-auto`
+
+## 3. Benefits
+- `z-[100]` ensures all modal overlays sit strictly above the sticky app header (`z-40`).
+- `items-start` + `pt-20 sm:pt-24` ensures every modal container starts cleanly **below** the 80px sticky top navigation bar with breathing room.
+- Modal titles, action buttons (`Save to Project`, `Edit`, `Export`, `Close`), badges, and internal headers are now 100% visible and accessible.

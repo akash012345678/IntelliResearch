@@ -1,0 +1,311 @@
+Traffic Congestion Prediction Using Machine Learning Techniques
+Rafed Muhammad Yasir, Moumita Asad, Dr. Naushin Nower, Dr. Mohammad Shoyaib
+Abstract— The prediction of traffic congestion can serve a
+crucial role in making future decisions. Although many studies
+have been conducted regarding congestion, most of these could
+not cover all the important factors (e.g., weather conditions).
+We proposed a prediction model for the traffic congestion that
+can predict congestion based on day, time and several weather
+data (e.g., temperature, humidity). To evaluate our model, it
+has been tested against the traffic data of New Delhi. With this
+model, congestion of a road can be predicted one week ahead
+with an average RMSE of 1.12. Therefore, this model can be
+used to take preventive measure beforehand.
+I. INTRODUCTION
+Traffic congestion refers to a condition when travel de-
+mand exceeds the existing road system capacity [1]. It has
+become a major urban transportation problem [2], [3]. It
+results in waste of valuable time, more fuel consumption,
+emission of pollutant gas, health hazards (lung diseases, high
+blood pressure) and low productivity at the workplace. World
+Bank’s study revealed that around 8 billion USD are wasted
+every year in the Greater Cairo Metropolitan Area(GCMA)
+due to traffic congestion [4]. Drivers in Los Angeles spent
+more than 100 hours in traffic [5]. City dwellers in rich
+countries (e.g., New York, Los Angeles) lose approximately
+$1,000 a year while sitting in traffic [5]. Therefore, a traffic
+prediction model is needed to take preventive measures to
+avoid it [6].
+Predicting traffic congestion is a challenging task since it
+shows nonlinear, time-varying characteristics [7]. In addition,
+many uncertain factors such as weather, time and day have
+an impact on traffic congestion, which makes it difficult to
+predict. Therefore, a model is required that incorporates all
+of these factors for predicting traffic congestion. Although
+a number of traffic prediction models have been proposed,
+most of the models could not cover all these factors. Further-
+more, some of the models are only suitable for short-term
+prediction (e.g., 15 minutes). In this paper, we proposed a
+model by combining time, day and weather factors (e.g.,
+temperature, rainfall) for long-term (one week ahead) traffic
+prediction. We validated the model using traffic data of New
+Delhi, India. The proposed model yielded an average RMSE
+of 1.12.
+The rest of the paper is organized into different sections
+as follows. Section II presents on literature review. Section
+III discusses the methodology. Evaluation of the approach is
+discussed in section IV. Section V presents the concluding
+remarks.
+II. LITERATURE REVIEW
+Due to the increasing necessity for traffic predictive tools,
+various approaches have been proposed to predict traffic
+congestion [8]. Yisheng et al. proposed a deep-learning-
+based traffic flow prediction method by incorporating spatio-
+temporal relations (dependencies among traffic flows in space
+and time) [9]. They used a stacked autoencoder (SAE) model
+to learn traffic flow patterns. The model was compared
+with four other models- back propagation neural network,
+random walk forecast method, support vector machine, and
+RBF neural network. To evaluate the effectiveness of each
+model, three performance indexes were used- MAE, RMSE,
+and MRE. Their proposed model achieved an RMSE of 50
+for a 15-minute traffic flow prediction. However, the model
+yielded higher errors (e.g., RMSE=138.1) for longer time
+intervals (e.g., 45 mins).
+Lee et al. incorporated weather data (e.g., rainfall, hu-
+midity, temperature) to predict traffic congestion [10]. At
+first, they developed a multiple linear regression (MLR)
+model using 54 variables. Next, they filtered-out unimportant
+variables. The final model consists of 10 variables among
+which, 6 variables represent the days of the week and 4
+are weather factors. Their approach yielded an accuracy of
+75.5%. However, they did not consider the time of the day,
+which is an important factor for predicting traffic congestion
+[7].
+Akbar et al. combined Complex Event Processing (CEP)
+with Machine Learning (ML) to predict traffic congestion
+[6]. They proposed an algorithm named Adaptive Moving
+Window Regression (AMWR) which uses SVR with radial
+based kernel function to predict intensity (number of vehicles
+per hour) and speed based on real-time and historical data.
+It uses Lomb Scargle method to find the optimum training
+window size. For ensuring a certain level of accuracy (80%-
+95%), AMWR adjusts the prediction window size. If the ac-
+curacy of the model is high (95%>), the prediction window
+size is increased. On the other hand, the prediction window
+size is decreased when the accuracy of the model is low
+(<80%). Lastly, the proposed technique uses CEP rules to
+predict traffic congestion based on the predicted intensity and
+speed. Although this technique achieved 96% accuracy, the
+model mainly focuses on short-term traffic prediction.
+III. METHODOLOGY
+In this paper, an approach was developed to predict traffic
+congestion one week ahead, based on the traffic and weather
+data of the previous week. For this purpose, the traffic and
+weather data of New Delhi, India, collected from the HERE
+API were used [11]. To train the model, Support Vector
+Regressor (SVR) algorithm was used since SVR achieved
+superior performance in traffic prediction than other methods
+[7], [12].
+arXiv:2206.10983v5  [cs.LG]  19 Apr 2025
+
+A. Data Collection
+To predict traffic congestion, traffic data of New Delhi
+was collected using the HERE API [11]. The bounding box
+coordinates of the area, whose traffic data were collected, are
+(28.747193,77.091064) and (28.495247,77.304611). HERE
+also provides a weather api [13], through which weather
+data of the selected region was collected. Following existing
+literature [6], [8], traffic and weather data was collected at
+an interval of 5 minutes. Table I summarizes the features
+present in the dataset.
+TABLE I: Predictor and Response Classes, Names and
+Description
+Type
+Name
+Description
+Predictor
+Source
+Road from where the traffic is mea-
+sured
+Destination
+Road upto where traffic is measured
+Time of a day
+Time of the day when the data was
+collected
+Day of the week
+Represents weekday
+Temperature
+Temperature in degree celsius
+Daylight
+Whether daylight existed or not
+Humidity
+Humidity in percentage
+Wind speed
+Wind Speed in Km/h
+Speed ratio
+Ratio of current speed and average
+speed without traffic
+Response
+Jam factor
+A number between 0.0 and 10.0 indi-
+cating the traffic level. As the number
+approaches 10.0 the quality of travel
+is getting worse.
+B. Development of Prediction Model
+In this paper, an approach was developed to predict traffic
+congestion one week ahead, based on the traffic and weather
+data of the previous week. Several algorithms (e.g., LSTM,
+Random Forest Regressor, Gradient Boosting Regressor [14])
+can be used for time series regression. We used support
+vector regression (SVR) since SVR achieved superior perfor-
+mance in traffic prediction than other methods [7], [12]. SVR
+is a supervised learning algorithm based on the computation
+of a linear regression function in a high dimensional feature
+[15]. The input data is mapped to a higher dimension via a
+nonlinear function called kernel [16]. Following an existing
+approach [6], we used the radial basis function kernel (rbf)
+for data transformation.
+IV. EXPERIMENTAL EVALUATION
+For evaluating our model, we collected traffic data of two
+consecutive weeks at an interval 5 minutes each day. The
+data of the first week (15.4.2019 to 21.4.2019) was used as
+training data and the second week (22.4.2019 to 28.4.2019)
+was used as testing data. To evaluate the performance of
+the proposed approach, four roads were selected randomly
+to measure Root Mean Square Error (RMSE), based on
+equation (1).
+RMSE =
+h 1
+n
+n
+X
+i=1
+
+|fi −ˆfi|
+2i 1
+2
+(1)
+where,
+fi = the actual traffic congestion
+ˆfi = the predicted traffic congestion
+The predicted traffic congestion and the actual traffic
+congestion of the four roads are shown in Fig.1. Since we
+incorporated important factors (e.g.,weather, time and day)
+that have an impact on traffic congestion, it was expected that
+our model would yield low RMSE. However, the proposed
+approach could not achieve satisfactory result due to small
+dataset (1-week training data and 1-week testing data).
+(a) Location 1 (RMSE=0.893)
+(b) Location 2 (RMSE=1.120)
+(c) Location 3 (RMSE=1.234)
+(d) Location 4 (RMSE=1.233)
+Fig. 1: Prediction result on different roads
+
+To compare performance of the proposed approach with
+existing approaches, we implemented AMWR, which also
+uses SVR as its underlying method [6]. The results are shown
+in Fig.2 and Table II. Although AMWR achieved better result
+than our approach in most of the cases, it can predict short-
+term traffic only (utmost next 15 minutes). On the other hand,
+the proposed technique can forecast traffic upto one week
+ahead.
+Fig. 2: Comparison between Proposed Approach and AMWR
+TABLE II: Comparison between Proposed Approach and
+AMWR
+Location
+RMSE of Proposed Approach
+RMSE of AMWR
+Location 1
+0.893
+0.521
+Location 2
+1.120
+0.541
+Location 3
+1.234
+0.735
+Location 4
+1.233
+1.939
+V. CONCLUSION
+In this paper, a traffic prediction model based on sup-
+port vector regression with a radial basis kernel has been
+proposed. Apart from using features like road name, time
+and weekday, weather factors were also used for training the
+model as they are important factors that contribute to traffic
+congestion. The model was evaluated on four randomly
+selected road. It yielded an average RMSE of 1.12.
+Due to small dataset, the model could not achieve expected
+accuracy. In future, accuracy of the model will be improved
+by increasing the size of the dataset. In addition, real time
+and historical data will be combined to further improve the
+accuracy.
+REFERENCES
+[1] S. Rosenbloom, “Peak-period traffic congestion: A state-of-the-art
+analysis and evaluation of effective solutions,” Transportation, vol. 7,
+no. 2, pp. 167–191, 1978.
+[2] A. Downs, Stuck in traffic: Coping with peak-hour traffic congestion.
+Brookings Institution Press, 2000.
+[3] T. Litman, “Transportation cost and benefit analysis,” Victoria Trans-
+port Policy Institute, vol. 31, 2009.
+[4] “World
+bank.
+2013.
+cairo
+traffic
+congestion
+study
+:
+Final
+report.
+washington,
+dc.
+©
+world
+bank.”
+https://
+openknowledge.worldbank.org/handle/10986/18735.
+Accessed on: 2018-12-25.
+[5] “The hidden cost of congestion.” https://www.economist.com/
+graphic-detail/2018/02/28/the-hidden-cost-of-
+congestion. Accessed on: 2018-10-26.
+[6] A. Akbar, A. Khan, F. Carrez, and K. Moessner, “Predictive analytics
+for complex iot data streams,” IEEE Internet of Things Journal, vol. 4,
+no. 5, pp. 1571–1582, 2017.
+[7] M. Deshpande and P. Bajaj, “Performance improvement of traffic flow
+prediction model using combination of support vector machine and
+rough set,” International Journal of Computer Applications, vol. 163,
+no. 2, pp. 31–35, 2017.
+[8] W. Min, L. Wynter, and Y. Amemiya, “Road traffic prediction with
+spatio-temporal correlations,” in Proceedings of the Sixth Triennial
+Symposium on Transportation Analysis, Phuket Island, Thailand (June
+2007), vol. 65, p. 85, 2007.
+[9] Y. Lv, Y. Duan, W. Kang, Z. Li, F.-Y. Wang, et al., “Traffic flow
+prediction with big data: A deep learning approach.,” IEEE Trans.
+Intelligent Transportation Systems, vol. 16, no. 2, pp. 865–873, 2015.
+[10] J. Lee, B. Hong, K. Lee, and Y.-J. Jang, “A prediction model of
+traffic congestion using weather data,” in 2015 IEEE International
+Conference on Data Science and Data Intensive Systems, pp. 81–88,
+IEEE, 2015.
+[11] “What is the traffic api?.” https://developer.here.com/
+documentation/traffic/topics/what-is.html.
+Ac-
+cessed on: 2018-10-27.
+[12] J. Ahn, E. Ko, and E. Y. Kim, “Highway traffic flow prediction using
+support vector regression and bayesian classifier,” in 2016 Interna-
+tional Conference on Big Data and Smart Computing (BigComp),
+pp. 239–244, IEEE, 2016.
+[13] “Overview
+-
+destination
+weather
+api.”
+https://
+developer.here.com/documentation/weather/topics/
+overview.html. Accessed on: 2018-10-27.
+[14] “How to not use machine learning for time series forecasting.”
+https://towardsdatascience.com/how-not-to-use-
+machine-learning-for-time-series-forecasting-
+avoiding-the-pitfalls-19f9d7adf424.
+Accessed on:
+2019-05-09.
+[15] D. Basak, S. Pal, and D. C. Patranabis, “Support vector regression,”
+Neural Information Processing-Letters and Reviews, vol. 11, no. 10,
+pp. 203–224, 2007.
+[16] “Support
+vector
+regression.”
+https://medium.com/
+coinmonks/support-vector-regression-or-svr-
+8eb3acf6d0ff. Accessed on: 2019-05-09.

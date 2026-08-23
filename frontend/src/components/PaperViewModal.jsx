@@ -1,33 +1,74 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { apiService } from '../services/api';
 
 export default function PaperViewModal({ paperId, onClose }) {
+  const [currentPaperId, setCurrentPaperId] = useState(paperId);
   const [paper, setPaper] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchText, setSearchText] = useState('');
   const [matchCount, setMatchCount] = useState(0);
 
-  // Fetch paper details on mount or ID change
+  // Related Papers state
+  const [relatedPapers, setRelatedPapers] = useState([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
+  const [relatedError, setRelatedError] = useState('');
+
+  // Sync internal currentPaperId if prop changes
   useEffect(() => {
-    if (!paperId) return;
-    
-    const fetchPaperDetail = async () => {
+    if (paperId) {
+      setCurrentPaperId(paperId);
+    }
+  }, [paperId]);
+
+  // Lock body scroll when modal is active
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  // Fetch paper details and related papers on currentPaperId change
+  useEffect(() => {
+    if (!currentPaperId) return;
+
+    const fetchPaperDetailAndRelated = async () => {
       setLoading(true);
       setError('');
+      setRelatedLoading(true);
+      setRelatedError('');
+      setSearchText('');
+
       try {
-        const response = await apiService.getPaper(paperId);
+        // 1. Fetch paper details
+        const response = await apiService.getPaper(currentPaperId);
         setPaper(response.data);
       } catch (err) {
         console.error(err);
         setError('Failed to load paper details. The file or metadata may have been removed.');
+        setPaper(null);
       } finally {
         setLoading(false);
       }
+
+      try {
+        // 2. Fetch related papers
+        const relatedResp = await apiService.getRelatedPapers(currentPaperId, 5);
+        setRelatedPapers(relatedResp.data.related_papers || []);
+      } catch (err) {
+        console.error(err);
+        setRelatedError('Related papers could not be loaded.');
+        setRelatedPapers([]);
+      } finally {
+        setRelatedLoading(false);
+      }
     };
 
-    fetchPaperDetail();
-  }, [paperId]);
+    fetchPaperDetailAndRelated();
+  }, [currentPaperId]);
 
   // Update match count when search text or paper changes
   useEffect(() => {
@@ -47,13 +88,14 @@ export default function PaperViewModal({ paperId, onClose }) {
 
   // Escape HTML and wrap matches in <mark> tags
   const getHighlightedText = (text, search) => {
+    if (!text) return '';
     if (!search.trim()) return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    
+
     const escapedText = text
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;");
-    
+
     try {
       const escapedSearch = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       const regex = new RegExp(`(${escapedSearch})`, 'gi');
@@ -63,42 +105,59 @@ export default function PaperViewModal({ paperId, onClose }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-      <div className="relative w-full max-w-5xl h-[85vh] flex flex-col glass-card rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
-        
-        {/* Modal Header */}
-        <div className="px-6 py-5 bg-slate-900/80 border-b border-slate-800 flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            {loading ? (
-              <div className="h-6 w-48 bg-slate-800 rounded animate-pulse"></div>
-            ) : paper ? (
-              <>
-                <h3 className="text-lg font-bold text-slate-100 leading-snug line-clamp-1 pr-6" title={paper.title}>
-                  {paper.title}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 truncate">
-                  Filename: <span className="font-mono text-indigo-400">{paper.filename}</span>
-                </p>
-              </>
-            ) : (
-              <h3 className="text-lg font-bold text-slate-100">Error Loading Details</h3>
-            )}
-          </div>
-          
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-450 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] overflow-y-auto">
+      {/* Backdrop overlay */}
+      <div 
+        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm animate-fade-in"
+        onClick={onClose} 
+      />
 
-        {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+      {/* Positioning wrapper: clear sticky navbar with breathing room */}
+      <div className="relative flex min-h-screen items-start justify-center pt-20 sm:pt-24 pb-6 px-4 sm:px-6 pointer-events-none">
+        {/* Outer Modal Frame */}
+        <div className="relative flex h-[calc(100vh-7rem)] max-h-[calc(100vh-7rem)] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-slate-800 glass-card shadow-2xl pointer-events-auto z-10">
+          
+          {/* 1. FIXED HEADER (Never scrolls, never squishes, wraps title naturally) */}
+          <header className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-800/80 bg-slate-900/95 backdrop-blur-md px-6 py-4 relative z-10">
+            <div className="min-w-0 flex-1 pr-2">
+              {loading ? (
+                <div className="space-y-2">
+                  <div className="h-6 w-3/4 bg-slate-800 rounded animate-pulse"></div>
+                  <div className="h-4 w-1/2 bg-slate-850 rounded animate-pulse"></div>
+                </div>
+              ) : paper ? (
+                <>
+                  <h3 
+                    className="m-0 block w-full text-[20px] font-bold leading-[1.35] text-slate-100 whitespace-normal break-words [overflow-wrap:anywhere]"
+                    style={{ wordBreak: 'break-word' }}
+                    title={paper.title}
+                  >
+                    {paper.title}
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-400 truncate">
+                    Filename: <span className="font-mono text-indigo-400">{paper.filename}</span>
+                  </p>
+                </>
+              ) : (
+                <h3 className="text-[20px] font-bold text-slate-100">Error Loading Details</h3>
+              )}
+            </div>
+            
+            {/* Close button (Fixed top-right, never squishes or overlaps title) */}
+            <button
+              onClick={onClose}
+              className="shrink-0 p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-colors focus:outline-none"
+              title="Close Viewer"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </header>
+
+          {/* 2. SCROLLABLE CONTENT AREA (Only this area scrolls) */}
+          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-6 space-y-6">
           {loading ? (
             <div className="space-y-6">
               <div className="space-y-2">
@@ -130,23 +189,23 @@ export default function PaperViewModal({ paperId, onClose }) {
                     </svg>
                     Abstract
                   </h4>
-                  <div className="p-5 rounded-2xl bg-indigo-950/20 border border-indigo-900/30 text-slate-300 text-sm leading-relaxed select-text italic">
+                  <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-900/30 text-slate-300 text-sm leading-relaxed select-text italic">
                     {paper.abstract}
                   </div>
                 </div>
               )}
 
               {/* Extracted Metadata Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-900/40 p-5 rounded-3xl border border-slate-850/80">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/40 p-4 rounded-3xl border border-slate-850/80">
                 {/* Keywords */}
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <h5 className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
                     Keywords
                   </h5>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {paper.keywords && paper.keywords.length > 0 ? (
                       paper.keywords.map((kw, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold tracking-wide">
+                        <span key={i} className="px-2 py-0.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
                           {kw}
                         </span>
                       ))
@@ -157,14 +216,14 @@ export default function PaperViewModal({ paperId, onClose }) {
                 </div>
 
                 {/* Algorithms */}
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <h5 className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
                     Algorithms
                   </h5>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {paper.algorithms && paper.algorithms.length > 0 ? (
                       paper.algorithms.map((algo, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-semibold tracking-wide">
+                        <span key={i} className="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
                           {algo}
                         </span>
                       ))
@@ -175,14 +234,14 @@ export default function PaperViewModal({ paperId, onClose }) {
                 </div>
 
                 {/* Datasets */}
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <h5 className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
                     Datasets
                   </h5>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {paper.datasets && paper.datasets.length > 0 ? (
                       paper.datasets.map((ds, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold tracking-wide">
+                        <span key={i} className="px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium">
                           {ds}
                         </span>
                       ))
@@ -193,33 +252,15 @@ export default function PaperViewModal({ paperId, onClose }) {
                 </div>
 
                 {/* Methodologies */}
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   <h5 className="text-[11px] font-bold uppercase tracking-wider text-rose-400">
                     Methodologies
                   </h5>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     {paper.methodologies && paper.methodologies.length > 0 ? (
                       paper.methodologies.map((method, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold tracking-wide">
+                        <span key={i} className="px-2 py-0.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium">
                           {method}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500 italic">None extracted</span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Application Domains */}
-                <div className="space-y-2.5 md:col-span-2">
-                  <h5 className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
-                    Application Domains
-                  </h5>
-                  <div className="flex flex-wrap gap-2">
-                    {paper.application_domains && paper.application_domains.length > 0 ? (
-                      paper.application_domains.map((domain, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs font-semibold tracking-wide">
-                          {domain}
                         </span>
                       ))
                     ) : (
@@ -229,8 +270,75 @@ export default function PaperViewModal({ paperId, onClose }) {
                 </div>
               </div>
 
+              {/* --- RELATED RESEARCH PAPERS SECTION --- */}
+              <div className="space-y-3 pt-2">
+                <h4 className="text-sm font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  Related Research Papers
+                </h4>
+
+                {relatedLoading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[1, 2].map((idx) => (
+                      <div key={idx} className="p-4 rounded-2xl bg-slate-900/60 border border-slate-850 animate-pulse space-y-2">
+                        <div className="h-4 bg-slate-800 rounded w-3/4"></div>
+                        <div className="h-8 bg-slate-850 rounded"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : relatedError ? (
+                  <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-850 text-xs text-slate-400 italic">
+                    {relatedError}
+                  </div>
+                ) : relatedPapers.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {relatedPapers.map((relItem) => (
+                      <div
+                        key={relItem.paper_id}
+                        onClick={() => setCurrentPaperId(relItem.paper_id)}
+                        className="p-4 rounded-2xl bg-slate-900/70 hover:bg-slate-850 border border-indigo-900/30 hover:border-indigo-500/50 cursor-pointer transition-all duration-300 space-y-2 group shadow-md"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <h5 className="text-xs font-bold text-slate-100 group-hover:text-indigo-300 line-clamp-1 leading-snug">
+                            {relItem.title}
+                          </h5>
+                          <span className="px-2 py-0.5 rounded-md bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-[10px] font-bold flex-shrink-0">
+                            Semantic Similarity: {(relItem.similarity_score * 100).toFixed(1)}%
+                          </span>
+                        </div>
+
+                        {relItem.abstract && (
+                          <p className="text-[11px] text-slate-400 line-clamp-2 italic leading-tight">
+                            "{relItem.abstract}"
+                          </p>
+                        )}
+
+                        <div className="flex flex-wrap gap-1 pt-1">
+                          {relItem.algorithms && relItem.algorithms.slice(0, 2).map((algo, i) => (
+                            <span key={i} className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 text-[9px]">
+                              {algo}
+                            </span>
+                          ))}
+                          {relItem.keywords && relItem.keywords.slice(0, 2).map((kw, i) => (
+                            <span key={i} className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 text-[9px]">
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-850 text-xs text-slate-450 italic">
+                    No related research papers found in vector index.
+                  </div>
+                )}
+              </div>
+
               {/* Full Text Section */}
-              <div className="space-y-3 flex flex-col h-full">
+              <div className="space-y-3 flex flex-col h-full pt-2">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-850 pb-3">
                   <h4 className="text-sm font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -261,7 +369,7 @@ export default function PaperViewModal({ paperId, onClose }) {
 
                 {/* Preformatted text display box */}
                 <div 
-                  className="p-5 rounded-2xl bg-slate-950/60 border border-slate-850/80 text-slate-300 text-sm font-sans leading-relaxed select-text overflow-y-auto h-[40vh] custom-scrollbar whitespace-pre-wrap"
+                  className="p-5 rounded-2xl bg-slate-950/60 border border-slate-850/80 text-slate-300 text-sm font-sans leading-relaxed select-text overflow-y-auto h-[35vh] custom-scrollbar whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{ 
                     __html: getHighlightedText(paper.full_text, searchText) 
                   }}
@@ -271,17 +379,19 @@ export default function PaperViewModal({ paperId, onClose }) {
           ) : null}
         </div>
 
-        {/* Modal Footer */}
-        <div className="px-6 py-4 bg-slate-900/50 border-t border-slate-800/80 flex items-center justify-end gap-3">
+        {/* 3. FIXED FOOTER (Stationary bottom) */}
+        <footer className="shrink-0 px-6 py-4 bg-slate-900/60 border-t border-slate-800/80 flex items-center justify-end gap-3">
           <button
             onClick={onClose}
-            className="btn-secondary py-2 text-sm px-6"
+            className="btn-secondary py-1.5 text-xs px-5"
           >
             Close Viewer
           </button>
-        </div>
+        </footer>
 
       </div>
     </div>
-  );
+  </div>,
+  document.body
+);
 }

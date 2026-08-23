@@ -1,5 +1,7 @@
 import os
+from typing import Optional
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
 
@@ -25,7 +27,14 @@ class Settings(BaseSettings):
     EXTRACTED_TEXT_DIR: Path = BASE_DIR / "app" / "uploads" / "extracted_text"
     EMBEDDINGS_DIR: Path = BASE_DIR / "app" / "uploads" / "embeddings"
 
+    # LLM Settings (Optional)
+    LLM_PROVIDER: Optional[str] = Field(default=None)
+    LLM_API_KEY: Optional[str] = Field(default=None)
+    LLM_MODEL: Optional[str] = Field(default=None)
+
+
     model_config = SettingsConfigDict(
+
         env_file=str(BASE_DIR / ".env"),
         env_file_encoding="utf-8",
         extra="ignore"

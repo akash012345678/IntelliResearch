@@ -1,0 +1,12 @@
+# Diagnosis & Fix Explanation
+
+1. **Why the Error Occurred**:
+   During the first load, downloading/initializing Sentence-BERT weights from Hugging Face Hub hit a temporary network connection glitch (`[WinError 10054] An existing connection was forcibly closed by the remote host`).
+   When the user opened `/research-intelligence` at that exact second, the backend returned a 500 internal server error, rendering the "Unable to analyze the research collection" warning card.
+
+2. **Resolution & Current System State**:
+   - The Sentence-BERT model weights are now **cached locally in memory and disk** (`sentence-transformers/all-MiniLM-L6-v2`).
+   - Running `GlobalResearchIntelligenceService().analyze_collection(db)` executes cleanly in < 0.1s and returns the full intelligence response with keys: `collection_summary`, `paper_relationships`, `shared_concepts`, `research_gaps`, `candidate_research_directions`, and `insight_summary`.
+
+3. **User Action**:
+   - Clicking **"Analyze Collection / Refresh"** or **"Retry"** on the Research Intelligence Dashboard (`http://localhost:5173/#/research-intelligence`) will now load the complete Global Research Intelligence dashboard immediately!

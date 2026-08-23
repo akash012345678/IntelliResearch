@@ -1,11 +1,13 @@
 import React, { useState, useRef } from 'react';
 import { apiService } from '../services/api';
+import PaperViewModal from './PaperViewModal';
 
 export default function DragDropUpload() {
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [globalError, setGlobalError] = useState('');
   const [globalSuccess, setGlobalSuccess] = useState('');
+  const [activePaperId, setActivePaperId] = useState(null);
   const fileInputRef = useRef(null);
 
   // Constants
@@ -55,6 +57,8 @@ export default function DragDropUpload() {
           progress: 0,
           status: status,
           errorMsg: errorMsg,
+          dbId: null,
+          extractedTitle: null
         });
       }
     }
@@ -99,6 +103,9 @@ export default function DragDropUpload() {
     setGlobalError('');
     setGlobalSuccess('');
 
+    const isSingleUpload = pendingFiles.length === 1;
+    let singleCreatedPaperId = null;
+
     // Mark current pending files as uploading
     setFiles(prev => prev.map(f => f.status === 'pending' ? { ...f, status: 'uploading', progress: 0 } : f));
 
@@ -110,17 +117,25 @@ export default function DragDropUpload() {
           setFiles(prev => prev.map(f => f.id === fileObj.id ? { ...f, progress: percent } : f));
         });
 
+        const createdId = response.data.paper_id;
+        if (isSingleUpload) {
+          singleCreatedPaperId = createdId;
+        }
+
         // Set status to success
         setFiles(prev => prev.map(f => f.id === fileObj.id ? { 
           ...f, 
           status: 'success', 
           progress: 100,
-          dbId: response.data.paper_id,
+          dbId: createdId,
           extractedTitle: response.data.title
         } : f));
       } catch (err) {
-        logger_error(err);
-        const errMsg = err.response?.data?.detail || 'Server upload failed.';
+        console.error("Upload error details:", err);
+        const detail = err.response?.data?.detail;
+        const errMsg = typeof detail === 'string'
+          ? detail
+          : (Array.isArray(detail) ? detail.map(d => d.msg || JSON.stringify(d)).join(', ') : (err.message || 'Server upload failed.'));
         setFiles(prev => prev.map(f => f.id === fileObj.id ? { 
           ...f, 
           status: 'error', 
@@ -131,13 +146,12 @@ export default function DragDropUpload() {
 
     await Promise.all(uploadPromises);
 
-    // Calculate results count
-    const updatedFiles = files; // reference values will be read in subsequent render
     setGlobalSuccess(`Successfully processed upload batch.`);
-  };
 
-  const logger_error = (err) => {
-    console.error("Upload error details:", err);
+    // Automatically open PaperViewModal if a single PDF was uploaded and succeeded
+    if (isSingleUpload && singleCreatedPaperId) {
+      setActivePaperId(singleCreatedPaperId);
+    }
   };
 
   const clickInput = () => {
@@ -243,11 +257,29 @@ export default function DragDropUpload() {
 
                   {/* Success notification */}
                   {fileObj.status === 'success' && (
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span className="text-xs text-emerald-400">
-                        Saved: {fileObj.extractedTitle ? `"${fileObj.extractedTitle}"` : 'Extracted details saved'}
-                      </span>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-2 pt-1 border-t border-slate-900">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="text-xs text-emerald-400 font-medium">
+                          ✓ Research paper indexed successfully
+                        </span>
+                      </div>
+
+                      {fileObj.dbId && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActivePaperId(fileObj.dbId);
+                          }}
+                          className="btn-primary py-1 px-3 text-xs font-semibold flex items-center gap-1.5 self-start sm:self-auto shadow-md shadow-indigo-500/20"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          View Paper
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -285,6 +317,15 @@ export default function DragDropUpload() {
           </div>
         </div>
       )}
+
+      {/* Viewing Paper Detail Modal overlay */}
+      {activePaperId && (
+        <PaperViewModal
+          paperId={activePaperId}
+          onClose={() => setActivePaperId(null)}
+        />
+      )}
+
     </div>
   );
 }

@@ -1,119 +1,105 @@
-# IntelliResearch
+# IntelliResearch — AI-Based Research Gap Discovery & Recommendation Platform
 
-**IntelliResearch** is a production-quality Full-Stack AI application designed for AI-Based Research Gap Discovery and Research Recommendation.
-
-This repository contains **Milestone 1**: The foundational framework that handles multi-document uploads, PyMuPDF text/metadata parsing (extracting titles and abstracts using layout heuristics), structured disk and SQL database storage, and a responsive glassmorphic dashboard interface.
+IntelliResearch is an end-to-end AI-powered academic platform designed to guide undergraduate and graduate students through the entire research journey—from research paper collection to paper landscape exploration, research gap discovery, opportunity validation, 24-section methodology planning, empirical experiment tracking, results analysis, proposal drafting, academic manuscript synthesis, citation quality auditing, document formatting, and ZIP submission packaging.
 
 ---
 
-## Technical Stack
+## 🌟 Key Features & Capabilities
 
-* **Frontend**: React.js (Vite), Tailwind CSS v4 (native compiler), React Router, Axios
-* **Backend**: Python 3.13, FastAPI, SQLAlchemy ORM, Pydantic v2, PyMuPDF (fitz), Uvicorn
-* **Database**: PostgreSQL (Primary) / SQLite (Development Fallback)
+### 1. Research Discovery & Landscape Exploration
+- **Student-Friendly Research Map**: Visually explains paper-to-paper relationships, shared concepts, underrepresented concept overlaps, and research gaps.
+- **Global & Project Intelligence**: Dual-scoped research intelligence engine separating global repository literature from project-assigned paper collections.
+- **Semantic Search**: Vector similarity search over indexed paper abstracts and full text powered by Sentence-BERT embeddings.
+
+### 2. Opportunity Discovery & Literature Validation
+- **Evidence-Grounded Opportunities**: Recommends candidate algorithms, datasets, and methodologies grounded in paper concept graphs.
+- **Broader Literature Validation**: Validates research opportunities against indexed collections to verify external support without claiming global academic novelty.
+
+### 3. Methodology & Experiment Workspace
+- **24-Section Methodology Blueprint**: Structured research plan builder covering RQs, hypotheses, baseline algorithms, proposed architectures, hardware setup, and evaluation metrics.
+- **Controlled Experiment Tracking**: Configures datasets, baseline methods, proposed models, execution parameters, and multi-run metric logging.
+- **Statistical Results Analysis**: Analyzes recorded empirical results, computes mean/std dev/ranges, evaluates ablation studies, and generates cautious academic conclusions.
+
+### 4. Writing, Quality Audit & Submission Package
+- **29-Section Academic Manuscript Generator**: Synthesizes structured academic paper drafts with 4-level evidence classification badges (🟢 RECORDED, 🟡 DERIVED, 🔵 PROPOSED, 🔴 MISSING).
+- **Citation Intelligence & Reference Manager**: Verified IEEE, APA, and Harvard reference formatting without metadata fabrication.
+- **Academic Quality Audit**: Automatically detects result metric mismatches against database records, unsupported absolute claims (*"superior"*, *"guarantees"*), and dangerous novelty warnings (*"first"*, *"unprecedented"*).
+- **Document Formatting & Preview**: Supports College Project Report, Research Paper, and Thesis formatting profiles with live page-by-page rendering (TOC, List of Figures, List of Tables, Appendices A/B/C).
+- **ZIP Submission Package Generator**: Exports a single `.zip` containing `/paper/`, `/evidence/`, `/references/`, and `/report/` deliverables.
 
 ---
 
-## Directory Structure
+## 🚀 Complete Research Workflow
+
+$$\text{PAPERS} \rightarrow \text{MAP} \rightarrow \text{GAP} \rightarrow \text{OPPORTUNITY} \rightarrow \text{VALIDATE} \rightarrow \text{PLAN} \rightarrow \text{🧪 EXPERIMENTS} \rightarrow \text{📊 RESULTS} \rightarrow \text{PROPOSAL} \rightarrow \text{📄 ACADEMIC PAPER} \rightarrow \text{📐 FORMATTING} \rightarrow \text{📦 SUBMISSION PACKAGE (.ZIP)}$$
+
+---
+
+## 🛠️ Technology Stack
+
+- **Frontend**: React (Vite), TailwindCSS, Lucide-React, React-Router-DOM, Axios
+- **Backend**: Python 3.11/3.13, FastAPI, SQLAlchemy ORM, Pydantic V2, Pytest
+- **AI & NLP**: Sentence-Transformers (Sentence-BERT), FAISS (Facebook AI Similarity Search), NetworkX, PyPDF2
+- **Database**: SQLite / PostgreSQL (Relational persistence for projects, experiments, proposals, manuscripts)
+
+---
+
+## 📂 Project Structure
 
 ```
 IntelliResearch/
 ├── backend/
 │   ├── app/
-│   │   ├── api/            # Route controllers (upload, paper CRUD)
-│   │   ├── config/         # Pydantic env config loader
-│   │   ├── database/       # Engine connection & session generators
-│   │   ├── models/         # SQLAlchemy paper schema
-│   │   ├── schemas/        # Pydantic input/output schemas
-│   │   ├── services/       # fitz PDF parsing & heuristic processors
-│   │   ├── uploads/        # Local disk storage directories
-│   │   │   ├── original_papers/ # Uploaded raw PDF copies
-│   │   │   ├── extracted_text/  # Extracted text outputs (.txt)
-│   │   │   └── embeddings/      # (Placeholder for Milestone 2)
-│   │   ├── utils/          # System logging & utilities
-│   │   └── main.py         # App routers & CORS configurations
-│   ├── .env                # App environmental secrets
-│   ├── requirements.txt    # Python library requirements
-│   └── run.py              # Backend entry runner
+│   │   ├── api/                  # FastAPI Routers (20+ Routers)
+│   │   ├── models/               # SQLAlchemy ORM Models (Project, Paper, Experiment, Proposal, Manuscript)
+│   │   ├── schemas/              # Pydantic Schemas & DTOs
+│   │   ├── services/             # Core Business Logic & AI Engines
+│   │   ├── database/             # DB Connection & Session Management
+│   │   └── main.py               # FastAPI App Entrypoint
+│   └── tests/                    # Comprehensive Pytest Suite (256+ Tests)
 ├── frontend/
 │   ├── src/
-│   │   ├── assets/
-│   │   ├── components/     # Header, DragDropUpload, PaperCard, ViewerModal, SearchBar
-│   │   ├── pages/          # Home, Dashboard
-│   │   ├── services/       # Axios API client handlers
-│   │   ├── App.jsx         # Routes definition
-│   │   ├── index.css       # Tailwind CSS directives & theme config
-│   │   └── main.jsx
-│   ├── index.html          # Web entry and SEO meta tags
-│   ├── vite.config.js      # Vite compilation configurations
-│   └── package.json        # Frontend scripts & dependencies
-└── README.md               # User guide documentation
+│   │   ├── components/           # UI Components (Workspace Editors, Previewers, Modals, Panels)
+│   │   ├── pages/                # Views (Dashboard, ResearchProjectDetails, ResearchIntelligence, Projects)
+│   │   ├── services/             # Axios API Client
+│   │   └── App.jsx               # Main Route Config
+│   ├── package.json
+│   └── vite.config.js
+└── README.md
 ```
 
 ---
 
-## Running the Application
+## 🛡️ Academic Integrity & Safety Rules
 
-### 1. Backend Service Setup
-
-To run the backend, open your terminal (PowerShell or Command Prompt) and run:
-
-```powershell
-# Navigate to the backend directory
-cd "IntelliResearch/backend"
-
-# Activate the virtual environment
-.\venv\Scripts\Activate.ps1
-
-# Run the backend server
-python run.py
-```
-
-* The backend service will start on **`http://127.0.0.1:8000`**.
-* Open **`http://127.0.0.1:8000/docs`** in your browser to view the interactive FastAPI Swagger UI.
-
-#### Database Configurations (`.env`)
-By default, the backend has been configured to use **SQLite** (`DATABASE_URL=sqlite:///./intelliresearch.db`) for immediate local runnability.
-To switch to **PostgreSQL**:
-1. Open `backend/.env`.
-2. Comment out the SQLite URL and uncomment the PostgreSQL URL:
-   ```ini
-   DATABASE_URL=postgresql+psycopg2://postgres:postgres@localhost:5432/intelliresearch
-   ```
-3. Make sure your PostgreSQL server is active, and the database `intelliresearch` is created. Tables are automatically generated on application startup.
+1. **Zero Empirical Data Fabrication**: Unrecorded experiment metrics strictly display `"Results not yet recorded."`
+2. **No Fake Metadata**: Missing author, year, or DOI metadata is explicitly labeled `"Bibliographic metadata incomplete"` without generating fake citations.
+3. **Non-Destructive Editing**: Student edits to draft manuscript or proposal text modify version records only, and **NEVER** alter underlying `ExperimentResult` database records.
+4. **Collection-Scoped Novelty Framing**: Avoids absolute terms like *"Proves"*, *"Guaranteed"*, *"Globally novel"*. Enforces cautious phrasing (*"Within the indexed collection..."*, *"Based on the available evidence..."*).
 
 ---
 
-### 2. Frontend Dashboard Setup
+## ⚙️ Getting Started
 
-Open a new terminal window and run:
-
+### Backend Setup
 ```bash
-# Navigate to the frontend directory
-cd "IntelliResearch/frontend"
-
-# Start the Vite development server
-npm run dev
+cd backend
+python -m venv venv
+.\venv\Scripts\activate      # On Windows
+pip install -r requirements.txt
+python -m pytest              # Run test suite
+python -m uvicorn app.main:app --reload
 ```
 
-* Vite will spin up the interface. If port `5173` is occupied, it will automatically select **`http://localhost:5174`**.
-* Open the local URL in your browser to interact with the application.
+### Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev                   # Start development server
+npm run build                 # Compile production build
+```
 
 ---
 
-## Verifying the Flow (Self-Testing)
-
-We have created an automated verification script that compiles a test PDF, uploads it, validates text extraction fields (asserting abstract extraction and title parsing heuristics), checks file storage on disk, and runs deletion cleanups.
-
-To run it:
-```powershell
-# In the backend directory with active virtual environment:
-python "../.agents/scratch/verify_backend.py"
-```
-*(Wait, if running from the workspace, the scratch script path is located at `<AppData>/.gemini/antigravity-ide/brain/.../scratch/verify_backend.py`).*
-
-Alternatively, you can test it manually:
-1. Load **`http://localhost:5174`** in your browser.
-2. Drag and drop any PDF paper (under 50 MB) into the drop zone.
-3. Click **Upload to Database**. Once successful, a checkmark and the parsed title appear in the file list.
-4. Go to **Dashboard** in the header to search, delete, or view full text with the built-in search matching inside the modal window.
+## 📜 License
+Developed as part of the Advanced IntelliResearch Project Engine. All rights reserved.

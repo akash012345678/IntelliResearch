@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database.session import get_db
 from app.models.paper_model import ResearchPaper
+from app.models.project_model import ProjectPaper
 from app.schemas.paper_schema import PaperResponse, PaperDetailResponse, PaperMetadataResponse
 from app.config.settings import settings
 
@@ -101,8 +102,9 @@ def delete_paper(
     pdf_path = settings.ORIGINAL_PAPERS_DIR / filename
     txt_path = settings.EXTRACTED_TEXT_DIR / f"{Path(filename).stem}.txt"
 
-    # 1. Delete from Database first
+    # 1. Delete from Database first (along with project linkages)
     try:
+        db.query(ProjectPaper).filter(ProjectPaper.paper_id == paper_id).delete()
         db.delete(paper)
         db.commit()
         logger.info(f"Successfully deleted paper ID {paper_id} from database.")
@@ -114,7 +116,15 @@ def delete_paper(
             detail="Failed to delete paper metadata from database."
         )
 
-    # 2. Delete physical files from disk (fail-safe)
+    # 2. Remove paper from FAISS Vector Store (fail-safe)
+    try:
+        from app.services.semantic_index_service import SemanticIndexService
+        SemanticIndexService().remove_paper(paper_id)
+        logger.info(f"Successfully removed paper ID {paper_id} from FAISS Vector Store.")
+    except Exception as se:
+        logger.warning(f"Could not remove paper ID {paper_id} from FAISS Vector Store (non-fatal): {se}")
+
+    # 3. Delete physical files from disk (fail-safe)
     files_deleted = []
     files_failed = []
     
@@ -140,3 +150,22 @@ def delete_paper(
         "paper_id": paper_id,
         "cleaned_files": files_deleted
     }
+
+
+@router.post("/semantic/reindex")
+def reindex_semantic_store(db: Session = Depends(get_db)):
+    """
+    Administrative endpoint to safely re-index all papers stored in Supabase PostgreSQL into FAISS.
+    """
+    logger.info("Admin request received to reindex all research papers.")
+    try:
+        from app.services.semantic_index_service import SemanticIndexService
+        semantic_service = SemanticIndexService()
+        summary = semantic_service.rebuild_index(db_session=db)
+        return summary
+    except Exception as e:
+        logger.error(f"Failed to reindex semantic store: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Reindex operation failed: {str(e)}"
+        )

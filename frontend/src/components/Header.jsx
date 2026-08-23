@@ -5,7 +5,8 @@ export default function Header() {
   const location = useLocation();
 
   const isLinkActive = (path) => {
-    return location.pathname === path;
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -25,7 +26,7 @@ export default function Header() {
                   IntelliResearch
                 </span>
                 <span className="text-[10px] text-indigo-400/80 font-medium uppercase tracking-widest hidden sm:inline">
-                  Gap Discovery Engine
+                  AI Research Platform
                 </span>
               </div>
             </Link>
@@ -36,19 +37,16 @@ export default function Header() {
             <Link
               to="/"
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isLinkActive('/')
+                isLinkActive('/') && location.pathname === '/'
                   ? 'bg-slate-900 text-indigo-400 border border-slate-800'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
               }`}
             >
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                Upload Paper
+                <span>🏠</span> Home
               </div>
             </Link>
-            
+
             <Link
               to="/dashboard"
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -58,10 +56,33 @@ export default function Header() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                Dashboard
+                <span>📚</span> Research Library
+              </div>
+            </Link>
+
+            <Link
+              to="/research-projects"
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isLinkActive('/research-projects')
+                  ? 'bg-slate-900 text-indigo-400 border border-slate-800'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span>🗂</span> My Projects
+              </div>
+            </Link>
+
+            <Link
+              to="/research-intelligence"
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                isLinkActive('/research-intelligence')
+                  ? 'bg-slate-900 text-indigo-400 border border-slate-800'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/50'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span>🔎</span> Research Intelligence
               </div>
             </Link>
           </nav>

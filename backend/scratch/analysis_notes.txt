@@ -1,0 +1,17 @@
+# Diagnosis of Research Intelligence Error
+
+Look at the exact traceback output:
+```
+RuntimeError: Embedding model initialization failed for 'sentence-transformers/all-MiniLM-L6-v2': [WinError 10054] An existing connection was forcibly closed by the remote host
+```
+
+### Root Cause Analysis
+1. `GlobalResearchIntelligenceService` instantiates `LinkPredictionService()`.
+2. `LinkPredictionService()` initializes `EmbeddingService()`.
+3. `EmbeddingService()` attempts to download or verify `sentence-transformers/all-MiniLM-L6-v2` from Hugging Face Hub over network HTTP request (`huggingface.co`).
+4. On Windows without cached models or when network connection to HuggingFace Hub is interrupted / blocked / rate-limited (`[WinError 10054] An existing connection was forcibly closed by the remote host`), `EmbeddingService.get_model()` throws a `RuntimeError`.
+5. When `EmbeddingService.get_model()` fails, `LinkPredictionService` fails, causing `GlobalResearchIntelligenceService` to crash with a 500 error!
+
+### Graceful Fallback Strategy
+`LinkPredictionService` and `GlobalResearchIntelligenceService` should **gracefully handle** model initialization failures.
+If `EmbeddingService.get_model()` fails or if SBERT model loading fails (e.g. offline/network connection drop), `LinkPredictionService` should gracefully fall back to TF-IDF / Jaccard concept similarity predictions rather than crashing the entire Research Intelligence service!

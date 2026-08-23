@@ -160,11 +160,24 @@ async def upload_file(
         db.commit()
         db.refresh(db_paper)
         logger.info(f"Successfully persisted paper metadata in database. ID: {db_paper.id}")
-        
+
+        # 8. Semantic Indexing (SBERT embedding + FAISS Vector Store)
+        index_status = "indexed"
+        try:
+            from app.services.semantic_index_service import SemanticIndexService
+            semantic_service = SemanticIndexService()
+            semantic_service.index_paper(db_paper)
+            logger.info(f"Successfully semantically indexed paper ID {db_paper.id} in FAISS.")
+        except Exception as se:
+            logger.error(f"Semantic indexing failed for paper ID {db_paper.id}: {se}")
+            index_status = "failed"
+
         return UploadSuccessResponse(
             message="Upload Successful",
             paper_id=db_paper.id,
-            title=db_paper.title
+            title=db_paper.title,
+            database_status="success",
+            semantic_index_status=index_status
         )
     except Exception as e:
         # Clean up local files on db failure

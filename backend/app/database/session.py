@@ -18,7 +18,7 @@ try:
     )
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 except Exception as e:
-    logger.critical(f"Failed to create SQLAlchemy engine with URL {settings.DATABASE_URL}: {e}")
+    logger.critical(f"Failed to create SQLAlchemy engine: {e}")
     raise e
 
 Base = declarative_base()
@@ -34,8 +34,9 @@ def get_db():
 def init_db() -> None:
     """Initialize the database by creating all defined tables if they do not exist."""
     # Ensure tables are created. Import models first so SQLAlchemy knows about them.
-    from app.models.paper_model import ResearchPaper  # noqa: F401
+    import app.models  # noqa: F401
     Base.metadata.create_all(bind=engine)
+
 
     # Run automatic migrations to add new columns if they are missing
     from sqlalchemy import inspect, text
@@ -54,5 +55,17 @@ def init_db() -> None:
                     else:
                         conn.execute(text(f"ALTER TABLE research_papers ADD COLUMN {col} JSON DEFAULT '[]'"))
                     logger.info(f"Successfully added column '{col}' to 'research_papers'.")
+
+            # Migration for proposal_versions table if present
+            if "proposal_versions" in inspector.get_table_names():
+                prop_cols = [c["name"] for c in inspector.get_columns("proposal_versions")]
+                if "change_summary" not in prop_cols:
+                    conn.execute(text("ALTER TABLE proposal_versions ADD COLUMN change_summary TEXT NULL"))
+                if "is_restored" not in prop_cols:
+                    if db_type == "sqlite":
+                        conn.execute(text("ALTER TABLE proposal_versions ADD COLUMN is_restored INTEGER DEFAULT 0"))
+                    else:
+                        conn.execute(text("ALTER TABLE proposal_versions ADD COLUMN is_restored BOOLEAN DEFAULT FALSE"))
     except Exception as e:
         logger.error(f"Failed to check or execute database migrations: {e}")
+

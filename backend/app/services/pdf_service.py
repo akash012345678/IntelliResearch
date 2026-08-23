@@ -28,8 +28,10 @@ class PDFService:
         Extract text content, title, and abstract from the PDF.
         Returns a dictionary with extracted data.
         """
+        doc = None
         try:
-            doc = fitz.open(pdf_path)
+            pdf_bytes = pdf_path.read_bytes()
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
         except Exception as e:
             logger.error(f"PyMuPDF failed to open PDF at {pdf_path}: {e}")
             raise ValueError("Failed to parse the PDF file. It may be corrupted.") from e
