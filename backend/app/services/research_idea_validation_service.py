@@ -78,10 +78,10 @@ class ResearchIdeaValidationService:
         problem_snippet = eval_resp.title.replace("Explore integration of", "").replace("Explore", "").strip()
         search_queries = [
             f'"{problem_snippet}" "{primary_algo}" "{secondary_algo}"',
-            f'"{primary_algo}" temporal modeling driver monitoring',
+            f'"{primary_algo}" "{secondary_algo}" evaluation benchmark',
             f'"{secondary_algo}" "{problem_snippet}"',
             f'"{primary_algo}" "{problem_snippet}"',
-            f'spatial temporal modeling evaluation benchmark'
+            f'"{primary_algo}" "{secondary_algo}" empirical study'
         ]
 
         # 5. Validation Checklist

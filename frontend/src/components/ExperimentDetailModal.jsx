@@ -50,29 +50,50 @@ export default function ExperimentDetailModal({ experiment, projectId, onClose, 
     }
   };
 
-  const handleUpdateStatus = async (newStatus) => {
+  const [updateMsg, setUpdateMsg] = useState(null);
+
+  const handleUpdateStatus = async (newStatus, closeAfter = false) => {
     setSaving(true);
+    setUpdateMsg(null);
     try {
-      const res = await apiService.updateProjectExperiment(projectId, exp.id, {
+      const payload = {
         status: newStatus,
-        dataset_config: { ...exp.dataset_config, dataset_name: datasetName, samples: datasetSamples },
-        baseline_config: { ...exp.baseline_config, algorithm: baselineAlg },
-        proposed_config: { ...exp.proposed_config, architecture: proposedArch },
-        environment_config: { ...exp.environment_config, gpu: gpuEnv },
-        execution_config: { ...exp.execution_config, external_url: externalUrl },
+        dataset_config: { ...(exp.dataset_config || {}), dataset_name: datasetName, samples: datasetSamples },
+        baseline_config: { ...(exp.baseline_config || {}), algorithm: baselineAlg },
+        proposed_config: { ...(exp.proposed_config || {}), architecture: proposedArch },
+        environment_config: { ...(exp.environment_config || {}), gpu: gpuEnv },
+        execution_config: { ...(exp.execution_config || {}), external_url: externalUrl },
         notes,
         limitations,
         reproducibility_checklist: checklist
-      });
+      };
+      const res = await apiService.updateProjectExperiment(projectId, exp.id, payload);
       setStatus(newStatus);
       setExp(res.data);
-      if (onRefresh) onRefresh();
+      const successText = newStatus === 'COMPLETED' 
+        ? '✓ Experiment marked as completed.' 
+        : `Experiment status updated to ${newStatus}.`;
+      setUpdateMsg({ type: 'success', text: successText });
+      if (onRefresh) onRefresh(res.data);
+      if (closeAfter) {
+        setTimeout(() => {
+          if (onClose) onClose();
+        }, 600);
+      }
     } catch (err) {
       console.error('Failed to update experiment status:', err);
+      const errDetail = err.response?.data?.detail || 'Failed to update experiment status.';
+      setUpdateMsg({ type: 'error', text: errDetail });
     } finally {
       setSaving(false);
     }
   };
+
+  const expType = (exp.experiment_type || 'BASELINE_COMPARISON').toUpperCase();
+  const defaultMethodType = expType === 'BASELINE_COMPARISON' ? 'baseline' :
+                           expType === 'ABLATION' ? 'ablation' : 'proposed';
+  const [recordMethodType, setRecordMethodType] = useState(defaultMethodType);
+  const [newActualVal, setNewActualVal] = useState('');
 
   const handleRecordNewRunAndResults = async () => {
     if (!newMetricName.trim()) return;
@@ -81,24 +102,32 @@ export default function ExperimentDetailModal({ experiment, projectId, onClose, 
       // 1. Create Run
       const runRes = await apiService.createExperimentRun(projectId, exp.id, {
         seed: Number(newRunSeed) || 42,
-        notes: 'Empirical result run recorded by student.'
+        notes: 'Empirical result run recorded by researcher.'
       });
       const runId = runRes.data.id;
 
-      // 2. Record Baseline and Proposed Results if entered
+      // 2. Record Results
       const resultsToCreate = [];
+      if (newActualVal.trim()) {
+        resultsToCreate.push({
+          metric_name: newMetricName,
+          metric_value: newActualVal.trim(),
+          unit: newMetricUnit,
+          method_type: recordMethodType
+        });
+      }
       if (newBaselineVal.trim()) {
         resultsToCreate.push({
           metric_name: newMetricName,
-          metric_value: newBaselineVal,
+          metric_value: newBaselineVal.trim(),
           unit: newMetricUnit,
           method_type: 'baseline'
         });
       }
-      if (newProposedVal.trim()) {
+      if (newProposedVal.trim() && newProposedVal !== newActualVal) {
         resultsToCreate.push({
           metric_name: newMetricName,
-          metric_value: newProposedVal,
+          metric_value: newProposedVal.trim(),
           unit: newMetricUnit,
           method_type: 'proposed'
         });
@@ -111,13 +140,14 @@ export default function ExperimentDetailModal({ experiment, projectId, onClose, 
       // Fetch refreshed experiment
       const freshExp = await apiService.getProjectExperimentDetail(projectId, exp.id);
       setExp(freshExp.data);
-      if (freshExp.data.status === 'PLANNED' || freshExp.data.status === 'READY') {
+      if (freshExp.data.status === 'PLANNED' || freshExp.data.status === 'READY' || freshExp.data.status === 'NOT_STARTED') {
         await handleUpdateStatus('COMPLETED');
       } else if (onRefresh) {
-        onRefresh();
+        onRefresh(freshExp.data);
       }
 
       // Reset inputs
+      setNewActualVal('');
       setNewBaselineVal('');
       setNewProposedVal('');
     } catch (err) {
@@ -231,6 +261,21 @@ ${limitations || 'No specific limitations recorded.'}
             </button>
           ))}
         </div>
+
+        {/* NOTIFICATION BANNER */}
+        {updateMsg && (
+          <div className={`p-3 rounded-2xl border text-xs font-semibold flex items-center justify-between transition-all ${
+            updateMsg.type === 'success'
+              ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
+              : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
+          }`}>
+            <div className="flex items-center gap-2">
+              <span>{updateMsg.type === 'success' ? '✓' : '⚠️'}</span>
+              <span>{updateMsg.text}</span>
+            </div>
+            <button onClick={() => setUpdateMsg(null)} className="text-slate-400 hover:text-slate-200 text-xs">✕</button>
+          </div>
+        )}
 
         {/* WORKSPACE NAVIGATION TABS */}
         <div className="flex border-b border-slate-800 gap-2 font-bold scrollbar-none">
@@ -542,11 +587,16 @@ ${limitations || 'No specific limitations recorded.'}
           </button>
 
           <button
-            onClick={() => handleUpdateStatus('COMPLETED')}
-            disabled={saving}
-            className="btn-primary py-2 px-6 text-xs font-bold shadow-lg shadow-indigo-500/20"
+            onClick={() => handleUpdateStatus('COMPLETED', true)}
+            disabled={saving || status === 'COMPLETED'}
+            className={`py-2 px-6 text-xs font-bold rounded-2xl transition-all shadow-lg flex items-center gap-1.5 ${
+              status === 'COMPLETED'
+                ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 cursor-default'
+                : 'btn-primary shadow-indigo-500/20 disabled:opacity-50'
+            }`}
           >
-            {saving ? 'Updating...' : '✓ Mark Experiment Complete'}
+            <span>{status === 'COMPLETED' ? '✓' : '✓'}</span>
+            {saving ? 'Completing...' : status === 'COMPLETED' ? 'Experiment Completed' : 'Mark Experiment Complete'}
           </button>
         </div>
 

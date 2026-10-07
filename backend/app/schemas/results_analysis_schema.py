@@ -68,12 +68,18 @@ class ReproducibilitySummaryItem(BaseModel):
 
 class SingleExperimentAnalysisResponse(BaseModel):
     experiment_id: int
+    experiment_number: Optional[int] = 1
     experiment_name: str
     experiment_type: str
     status: str
+    purpose: Optional[str] = None
     dataset_name: str
     baseline_alg: str
     proposed_arch: str
+    variables: Optional[str] = None
+    configured_metrics: List[str] = []
+    direction_id: Optional[str] = None
+    source_plan_title: Optional[str] = None
     run_count: int
     metrics_count: int
     metrics_analysis: List[MetricAnalysisItem] = []
@@ -89,6 +95,13 @@ class SingleExperimentAnalysisResponse(BaseModel):
 
 
 class ProjectResultsAnalysisSummaryResponse(BaseModel):
+    project_id: int
+    project_name: Optional[str] = None
+    opportunity_id: Optional[str] = None
+    opportunity_title: Optional[str] = None
+    research_plan_id: Optional[str] = None
+    research_plan_title: Optional[str] = None
+    saved_directions: List[Dict[str, Any]] = []
     total_experiments: int
     completed_experiments: int
     results_recorded_count: int

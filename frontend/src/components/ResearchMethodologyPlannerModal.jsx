@@ -271,16 +271,29 @@ export default function ResearchMethodologyPlannerModal({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-850 space-y-3">
                 <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
-                  <span>📦</span> Dataset Plan
+                  <span>📦</span> Dataset Plan & Task-Suitability Audit
                 </h3>
                 {planData.dataset_plan && planData.dataset_plan.map((ds, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-xs">
-                    <div className="flex items-center justify-between">
+                  <div key={i} className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                       <span className="font-bold text-indigo-300">{ds.name}</span>
-                      <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 text-[10px] font-semibold">{ds.status}</span>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider ${
+                        ds.suitability_class === 'DIRECTLY_SUITABLE' 
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          : ds.suitability_class === 'REQUIRES_VERIFICATION'
+                          ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                          : 'bg-slate-800 text-slate-400 border border-slate-700'
+                      }`}>
+                        {ds.suitability_class === 'DIRECTLY_SUITABLE' ? 'Directly Suitable' : ds.suitability_class === 'REQUIRES_VERIFICATION' ? 'Requires Verification / Adaptation' : ds.status}
+                      </span>
                     </div>
-                    <p className="text-[11px] text-slate-300">{ds.suitability}</p>
-                    <span className="text-[10px] text-slate-500 italic block">Limitations: {ds.limitations}</span>
+                    <p className="text-[11px] text-slate-300 leading-snug">{ds.suitability}</p>
+                    {ds.annotation_type && (
+                      <div className="text-[10px] text-slate-400 font-mono bg-slate-900/80 px-2 py-1 rounded border border-slate-850">
+                        <strong className="text-slate-300">Annotation Type:</strong> {ds.annotation_type}
+                      </div>
+                    )}
+                    <span className="text-[10px] text-slate-500 italic block">Limitations & Audit: {ds.limitations}</span>
                   </div>
                 ))}
               </div>
@@ -363,8 +376,8 @@ export default function ResearchMethodologyPlannerModal({
               </div>
             </div>
 
-            {/* SECTION K & L: ABLATION & VARIABLES */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {/* SECTION K, L & M: ABLATION, VARIABLES & EXPERIMENT PARAMETERS */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-850 space-y-3">
                 <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                   <span>🔬</span> Ablation Study Plan
@@ -391,6 +404,31 @@ export default function ResearchMethodologyPlannerModal({
                     <div><strong className="text-slate-400">Control (Kept Constant):</strong> {planData.variables.control?.join(', ')}</div>
                   </div>
                 )}
+              </div>
+
+              <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-850 space-y-3">
+                <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                  <span>📋</span> Experiment Parameter Provenance
+                </h3>
+                <div className="space-y-2 text-xs">
+                  {planData.experiment_parameters && planData.experiment_parameters.map((param, i) => (
+                    <div key={i} className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="font-bold text-slate-200 text-[11px]">{param.parameter}</span>
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+                          param.provenance_status === 'RECORDED_EVIDENCE'
+                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                            : param.provenance_status === 'PROPOSED'
+                            ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
+                            : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                        }`}>
+                          {param.provenance_status}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-400">{param.value}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

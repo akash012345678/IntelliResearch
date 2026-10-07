@@ -127,6 +127,8 @@ class TestResearchDirectionAPI(unittest.TestCase):
             abstract="Sample Abstract",
             problem_statement="Sample Problem",
             research_motivation="Sample Motivation",
+            research_question="Sample Question",
+            objectives=["Obj 1"],
             related_work_synthesis="Sample Related Work",
             research_gap="Sample Gap",
             proposed_methodology="Sample Methodology",
@@ -143,7 +145,13 @@ class TestResearchDirectionAPI(unittest.TestCase):
             generation_timestamp="2026-08-23T00:00:00Z",
             disclaimer="Disclaimer notice"
         )
-        mock_draft_service.synthesize_draft.return_value = ProposalDraftResponse(proposal=sample_draft)
+        mock_draft_service.synthesize_draft.return_value = ProposalDraftResponse(
+            proposal_id="prop_123",
+            title="Sample Title",
+            status="DRAFT",
+            version_number=1,
+            proposal=sample_draft
+        )
 
         response = client.post("/api/research-directions/draft", json={"direction_id": "dir_1"})
         self.assertEqual(response.status_code, 200)

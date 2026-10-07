@@ -7,9 +7,14 @@ backend/.env
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 .pytest_cache/
+.coverage
+htmlcov/
 venv/
 backend/venv/
+.venv/
+env/
 
 # Local databases
 *.db
@@ -19,3 +24,21 @@ backend/venv/
 node_modules/
 dist/
 build/
+.vite/
+
+# Temporary / Generated test outputs & scratches
+scratch/
+backend/scratch/
+backend/app/scratch/
+backend/live_audit*.py
+backend/storage/
+backend/app/vector_store/
+backend/*.pdf
+*.pdf
+!backend/tests/**/*.pdf
+
+# Upload directories (keep folder structure via .gitkeep)
+backend/app/uploads/original_papers/*
+!backend/app/uploads/original_papers/.gitkeep
+backend/app/uploads/extracted_text/*
+!backend/app/uploads/extracted_text/.gitkeep

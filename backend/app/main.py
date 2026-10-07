@@ -83,6 +83,7 @@ from app.api.academic_manuscript_api import router as academic_manuscript_router
 from app.api.academic_citation_api import router as academic_citation_router
 from app.api.academic_document_api import router as academic_document_router
 from app.api.research_dashboard_api import router as research_dashboard_router
+from app.api.project_traceability_api import router as project_traceability_router
 
 # 5. Include API Routers
 app.include_router(upload_router, prefix=settings.API_V1_STR, tags=["Upload"])
@@ -96,6 +97,7 @@ app.include_router(research_project_router, prefix=settings.API_V1_STR, tags=["R
 app.include_router(proposal_router, prefix=settings.API_V1_STR, tags=["Proposal Persistence"])
 app.include_router(project_intelligence_router, prefix=settings.API_V1_STR, tags=["Project Research Intelligence"])
 app.include_router(project_research_report_router, prefix=settings.API_V1_STR, tags=["Project Research Reports"])
+app.include_router(project_traceability_router, prefix=settings.API_V1_STR, tags=["Project Evidence Traceability"])
 app.include_router(opportunity_evaluation_router, prefix=settings.API_V1_STR, tags=["Opportunity Evaluation"])
 app.include_router(opportunity_validation_router, prefix=settings.API_V1_STR, tags=["Opportunity Validation"])
 app.include_router(research_methodology_router, prefix=settings.API_V1_STR, tags=["Research Methodology"])
@@ -106,6 +108,7 @@ app.include_router(academic_manuscript_router, prefix=settings.API_V1_STR, tags=
 app.include_router(academic_citation_router, prefix=settings.API_V1_STR, tags=["Academic Citation & Quality"])
 app.include_router(academic_document_router, prefix=settings.API_V1_STR, tags=["Academic Document Formatting"])
 app.include_router(research_dashboard_router, prefix=settings.API_V1_STR, tags=["Student Research Dashboard"])
+
 
 
 

@@ -27,10 +27,18 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
+from app.models.project_model import ResearchProject
+
 class TestResearchMethodologyAPI(unittest.TestCase):
 
     def setUp(self):
         Base.metadata.create_all(bind=engine)
+        db = TestingSessionLocal()
+        p1 = db.query(ResearchProject).filter(ResearchProject.id == 1).first()
+        if not p1:
+            db.add(ResearchProject(id=1, name="Test Project 1", status="ACTIVE"))
+            db.commit()
+        db.close()
 
     def test_01_get_global_methodology_plan(self):
         """Test GET /api/research-directions/{direction_id}/methodology-plan returns valid plan response."""

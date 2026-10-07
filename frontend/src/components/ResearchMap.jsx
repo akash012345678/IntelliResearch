@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import OpportunityExplorerModal from './OpportunityExplorerModal';
 import OpportunityComparisonModal from './OpportunityComparisonModal';
+import { filterQualifiedGaps } from '../utils/researchGapUtils';
 
 const NODE_COLORS = {
   PAPER: '#6366f1',       // Indigo
@@ -30,7 +31,8 @@ export default function ResearchMap({
   onViewPaper,
   onGenerateDraft,
   onSaveDirection,
-  draftingDirId = null
+  draftingDirId = null,
+  mapOnly = false
 }) {
   // Help Panel State
   const [showHelpPanel, setShowHelpPanel] = useState(true);
@@ -39,6 +41,8 @@ export default function ResearchMap({
   const [confidenceFilter, setConfidenceFilter] = useState('All');
   const [sortBy, setSortBy] = useState('direction_score');
   const [paperQuery, setPaperQuery] = useState('');
+  const [selectedNodeType, setSelectedNodeType] = useState('ALL');
+  const [nodeSearchQuery, setNodeSearchQuery] = useState('');
 
   // Expandable States
   const [expandedGapIdx, setExpandedGapIdx] = useState(null);
@@ -77,13 +81,33 @@ export default function ResearchMap({
   }, [data]);
 
   const relationshipsList = useMemo(() => {
-    if (!data) return [];
-    return data.paper_relationships || [];
+    if (!data || !data.paper_relationships) return [];
+    const rels = data.paper_relationships;
+    const seenPairs = new Set();
+    const cleanList = [];
+
+    rels.forEach(r => {
+      const srcId = r.source_paper_id;
+      const tgtId = r.target_paper_id;
+      if (srcId === tgtId) return;
+      if (r.source_title && r.target_title && r.source_title.trim().toLowerCase() === r.target_title.trim().toLowerCase()) return;
+
+      const lowId = srcId < tgtId ? srcId : tgtId;
+      const highId = srcId < tgtId ? tgtId : srcId;
+      const pairKey = `${lowId}:${highId}`;
+      if (seenPairs.has(pairKey)) return;
+      seenPairs.add(pairKey);
+
+      cleanList.push(r);
+    });
+
+    return cleanList;
   }, [data]);
 
   const gapsList = useMemo(() => {
     if (!data) return [];
-    return data.gaps || data.research_gaps || [];
+    const raw = data.research_gaps || data.gaps || [];
+    return filterQualifiedGaps(raw);
   }, [data]);
 
   const underrepresentedList = useMemo(() => {
@@ -91,17 +115,28 @@ export default function ResearchMap({
     return data.underrepresented_concepts || [];
   }, [data]);
 
-  // Unified Research Opportunities / Directions List
+  // Unified Research Opportunities / Directions List with Defensive Deduplication
   const directionsList = useMemo(() => {
-    // 1. If explicit directionsData is provided (from getResearchDirections API call)
+    let rawList = [];
     if (directionsData && directionsData.directions && directionsData.directions.length > 0) {
-      return directionsData.directions;
+      rawList = directionsData.directions;
+    } else if (data && data.candidate_research_directions && data.candidate_research_directions.length > 0) {
+      rawList = data.candidate_research_directions;
     }
-    // 2. Fallback to candidate_research_directions in main data object
-    if (data && data.candidate_research_directions && data.candidate_research_directions.length > 0) {
-      return data.candidate_research_directions;
-    }
-    return [];
+
+    const seenOppKeys = new Set();
+    const uniqueList = [];
+    rawList.forEach(dir => {
+      const titleKey = (dir.title || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const probKey = (dir.research_problem || dir.description || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const oppKey = titleKey || probKey || dir.direction_id;
+      if (!seenOppKeys.has(oppKey)) {
+        seenOppKeys.add(oppKey);
+        uniqueList.push(dir);
+      }
+    });
+
+    return uniqueList;
   }, [data, directionsData]);
 
   // Filtered and Sorted Directions / Research Opportunities
@@ -151,7 +186,7 @@ export default function ResearchMap({
     ));
   }, [papersList, paperQuery]);
 
-  // Full Knowledge Graph Data for Advanced View
+  // Full Knowledge Graph Data for Advanced View & Isolated Map View
   const fullKnowledgeGraphData = useMemo(() => {
     if (!papersList || papersList.length === 0) return { nodes: [], links: [] };
 
@@ -190,18 +225,219 @@ export default function ResearchMap({
       addConcepts(p.algorithms, 'ALGORITHM');
       addConcepts(p.datasets, 'DATASET');
       addConcepts(p.methodologies, 'METHODOLOGY');
-      addConcepts(p.application_domains, 'DOMAIN');
+      addConcepts(p.application_domains || p.domains, 'DOMAIN');
       addConcepts(p.keywords, 'KEYWORD');
+    });
+
+    (relationshipsList || []).forEach(r => {
+      const srcId = r.source_paper_id || r.source_id;
+      const tgtId = r.target_paper_id || r.target_id;
+      if (!srcId || !tgtId || srcId === tgtId) return;
+      const srcNodeId = `paper_${srcId}`;
+      const tgtNodeId = `paper_${tgtId}`;
+      if (nodesMap.has(srcNodeId) && nodesMap.has(tgtNodeId)) {
+        const sim = typeof r.similarity_score === 'number'
+          ? (r.similarity_score > 1 ? r.similarity_score : r.similarity_score * 100)
+          : parseFloat(r.similarity_score) || 0;
+        links.push({
+          source: srcNodeId,
+          target: tgtNodeId,
+          relation: 'SIMILAR_TO',
+          similarity: sim
+        });
+      }
     });
 
     return {
       nodes: Array.from(nodesMap.values()),
       links
     };
-  }, [papersList]);
+  }, [papersList, relationshipsList]);
+
+  const filteredGraphData = useMemo(() => {
+    let nodes = fullKnowledgeGraphData.nodes;
+
+    if (selectedNodeType !== 'ALL') {
+      nodes = nodes.filter(n => n.type === selectedNodeType || n.type === 'PAPER');
+    }
+
+    if (nodeSearchQuery.trim()) {
+      const q = nodeSearchQuery.toLowerCase();
+      nodes = nodes.filter(n => n.label.toLowerCase().includes(q));
+    }
+
+    const validNodeIds = new Set(nodes.map(n => n.id));
+    const links = fullKnowledgeGraphData.links.filter(
+      l => validNodeIds.has(typeof l.source === 'object' ? l.source.id : l.source) &&
+           validNodeIds.has(typeof l.target === 'object' ? l.target.id : l.target)
+    );
+
+    return { nodes, links };
+  }, [fullKnowledgeGraphData, selectedNodeType, nodeSearchQuery]);
 
   const isProjectScope = scope === 'project';
   const totalPapers = collectionSummary.total_papers || papersList.length || 0;
+
+  if (mapOnly) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* --- HEADER BANNER & SCOPE IDENTIFIER --- */}
+        <div className="glass-card p-6 rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/40 relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-widest text-indigo-400 mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                {isProjectScope ? `PROJECT RESEARCH MAP — ${projectName || 'PROJECT'}` : 'GLOBAL RESEARCH MAP'}
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
+                Research Knowledge & Relationship Map
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-350 mt-1 max-w-3xl leading-relaxed">
+                Interactive node-edge graph visualization mapping relationships across assigned research papers, algorithms, datasets, methodologies, domains, and keywords.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowHelpPanel(!showHelpPanel)}
+              className="btn-secondary py-2 px-4 text-xs font-semibold flex items-center gap-2 self-start md:self-auto border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/30 whitespace-nowrap shadow-sm"
+            >
+              <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {showHelpPanel ? 'Hide Map Legend' : 'How to Read This Map'}
+            </button>
+          </div>
+
+          {showHelpPanel && (
+            <div className="mt-5 pt-5 border-t border-indigo-900/40 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-xs animate-slide-up">
+              <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <span className="font-bold text-indigo-300 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Paper
+                </span>
+                <p className="text-[11px] text-slate-400 leading-snug">Research manuscript indexed in project collection.</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Algorithm
+                </span>
+                <p className="text-[11px] text-slate-400 leading-snug">Machine learning algorithm or model architecture.</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Dataset
+                </span>
+                <p className="text-[11px] text-slate-400 leading-snug">Evaluation dataset or image corpus.</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <span className="font-bold text-rose-300 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Methodology
+                </span>
+                <p className="text-[11px] text-slate-400 leading-snug">Experimental technique or methodology.</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <span className="font-bold text-teal-300 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Domain
+                </span>
+                <p className="text-[11px] text-slate-400 leading-snug">Target application domain.</p>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-1">
+                <span className="font-bold text-sky-300 flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Keyword
+                </span>
+                <p className="text-[11px] text-slate-400 leading-snug">Extracted keyword or concept descriptor.</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* GRAPH VISUALIZATION & CONTROLS CONTAINER */}
+        <div className="glass-card p-6 rounded-3xl border border-slate-800 space-y-5 bg-slate-900/90 shadow-xl">
+          {/* Controls: Node Type Filters & Node Search */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold text-white flex items-center gap-2">
+                <span>🗺️</span> Knowledge Graph Network ({collectionSummary.total_nodes || filteredGraphData.nodes.length} Nodes, {collectionSummary.total_edges || filteredGraphData.links.length} Edges)
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              {/* Filter by Node Type */}
+              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 overflow-x-auto">
+                {['ALL', 'PAPER', 'ALGORITHM', 'DATASET', 'METHODOLOGY', 'DOMAIN', 'KEYWORD'].map((typeKey) => (
+                  <button
+                    key={typeKey}
+                    onClick={() => setSelectedNodeType(typeKey)}
+                    className={`px-2.5 py-1 rounded-lg font-bold text-[11px] transition-all whitespace-nowrap ${
+                      selectedNodeType === typeKey
+                        ? 'bg-indigo-600 text-white shadow'
+                        : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {typeKey}
+                  </button>
+                ))}
+              </div>
+
+              {/* Node Search Input */}
+              <input
+                type="text"
+                placeholder="Filter graph nodes..."
+                value={nodeSearchQuery}
+                onChange={(e) => setNodeSearchQuery(e.target.value)}
+                className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-40"
+              />
+            </div>
+          </div>
+
+          {/* Interactive ForceGraph2D Canvas */}
+          <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 min-h-[520px] flex items-center justify-center">
+            {filteredGraphData.nodes.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-400 italic">
+                No graph nodes match the active filter criteria.
+              </div>
+            ) : (
+              <ForceGraph2D
+                ref={fullGraphRef}
+                graphData={filteredGraphData}
+                nodeId="id"
+                nodeLabel={node => `${NODE_TYPE_LABELS[node.type] || node.type}: ${node.label}`}
+                nodeColor={node => NODE_COLORS[node.type] || NODE_COLORS.DEFAULT}
+                nodeRelSize={6}
+                linkColor={link => link.relation === 'SIMILAR_TO' ? 'rgba(99, 102, 241, 0.7)' : 'rgba(148, 163, 184, 0.25)'}
+                linkWidth={link => link.relation === 'SIMILAR_TO' ? 2.5 : 1}
+                onNodeClick={(node) => {
+                  if (node.type === 'PAPER' && node.paper_id && onViewPaper) {
+                    onViewPaper(node.paper_id);
+                  }
+                }}
+              />
+            )}
+          </div>
+
+          {/* Node Legend Footer */}
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 pt-2 border-t border-slate-800/80">
+            <div className="flex flex-wrap items-center gap-4 text-[11px] font-medium">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Paper</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Algorithm</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Dataset</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Methodology</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span> Domain</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Keyword</span>
+            </div>
+
+            <span className="text-[11px] text-slate-500 italic">Click any paper node to view full paper metadata</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -398,6 +634,29 @@ export default function ResearchMap({
                       <span className="px-3 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono font-extrabold text-xs">
                         Opportunity #{idx + 1}
                       </span>
+                      {(() => {
+                        const evClass = (evidence.evidence_classification || 'CROSS_PAPER_SYNTHESIS').toUpperCase();
+                        let badgeStyle = 'bg-purple-500/10 text-purple-300 border-purple-500/30';
+                        let labelText = 'Cross-Paper Synthesis';
+                        if (evClass === 'DIRECTLY_SUPPORTED') {
+                          badgeStyle = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30';
+                          labelText = 'Directly Supported';
+                        } else if (evClass === 'STRONGLY_INFERRED') {
+                          badgeStyle = 'bg-blue-500/10 text-blue-300 border-blue-500/30';
+                          labelText = 'Strongly Inferred';
+                        } else if (evClass === 'CROSS_PAPER_SYNTHESIS') {
+                          badgeStyle = 'bg-purple-500/10 text-purple-300 border-purple-500/30';
+                          labelText = 'Cross-Paper Synthesis';
+                        } else if (evClass === 'EXPLORATORY') {
+                          badgeStyle = 'bg-amber-500/10 text-amber-300 border-amber-500/30';
+                          labelText = 'Exploratory Direction';
+                        }
+                        return (
+                          <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border ${badgeStyle}`}>
+                            {labelText}
+                          </span>
+                        );
+                      })()}
                       <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border ${
                         conf.toUpperCase() === 'HIGH' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' :
                         conf.toUpperCase() === 'MODERATE' ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30' :
@@ -417,17 +676,38 @@ export default function ResearchMap({
                     </div>
 
                     <div className="flex items-center gap-4 text-xs font-mono">
-                      <span className="text-slate-400">Gap Score: <strong className="text-slate-100">{gapScorePct}%</strong></span>
+                      {(() => {
+                        const evClass = (evidence.evidence_classification || 'CROSS_PAPER_SYNTHESIS').toUpperCase();
+                        const isCrossPaper = evClass === 'CROSS_PAPER_SYNTHESIS' || evClass === 'EXPLORATORY';
+                        const scorePct = Math.round((evidence.opportunity_score || evidence.gap_score || 0.75) * 100);
+                        return (
+                          <span className="text-slate-400">
+                            {isCrossPaper ? 'Opportunity Score:' : 'Gap Score:'} <strong className="text-slate-100">{scorePct}%</strong>
+                          </span>
+                        );
+                      })()}
                       <span className="text-slate-400">Semantic Evidence: <strong className="text-indigo-300">{semanticPct}%</strong></span>
                       <span className="text-slate-400">Coverage: <strong className="text-amber-300">{coveragePct}%</strong></span>
                     </div>
                   </div>
 
-                  {/* Title & Core Problem */}
+                  {/* Title, Research Question & Core Problem */}
                   <div className="space-y-3">
                     <h4 className="text-lg font-bold text-slate-100 leading-snug group-hover:text-indigo-300 transition-colors">
                       {dir.title}
                     </h4>
+
+                    {dir.research_question && (
+                      <div className="p-3.5 rounded-2xl bg-purple-950/20 border border-purple-900/40 text-xs text-purple-200 flex items-start gap-2.5 shadow-inner">
+                        <span className="text-purple-400 font-extrabold text-sm">❓</span>
+                        <div>
+                          <span className="text-[10px] font-extrabold text-purple-400 uppercase tracking-wider block mb-0.5">
+                            Core Research Question
+                          </span>
+                          <p className="italic font-medium leading-relaxed text-purple-100">"{dir.research_question}"</p>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* What existing research does */}
@@ -626,42 +906,94 @@ export default function ResearchMap({
             {gapsList.map((gap, idx) => {
               const gapId = gap.gap_id || `gap_${idx}`;
               const isExpanded = expandedGapIdx === idx;
-              const sourceTitle = gap.source_paper_title || `Paper ID ${gap.source_paper_id}`;
-              const missingConcept = gap.missing_concept || gap.target_label || 'Target Concept';
-              const conceptType = gap.concept_type || gap.target_type || 'algorithm';
+              const gapTitle = gap.title || `Potential Gap #${idx + 1}: ${gap.missing_concept || 'Unassessed Relationship'}`;
+              const gapType = gap.gap_type || gap.concept_type || 'CROSS_PAPER_COMPARISON';
+              const description = gap.description || gap.explanation || 'Unassessed relationship across indexed collection.';
               const conf = gap.confidence || 'Moderate';
+              const gapScorePct = typeof gap.gap_score === 'number' ? Math.round(gap.gap_score * 100) : gap.gap_score;
+              const suppPapers = gap.source_papers && gap.source_papers.length > 0 ? gap.source_papers : (gap.source_paper_title ? [{ title: gap.source_paper_title, paper_id: gap.source_paper_id }] : []);
 
               return (
-                <div key={gapId} className="glass-card p-5 rounded-3xl border border-slate-800 space-y-4 flex flex-col justify-between">
+                <div key={gapId} className="glass-card p-5 rounded-3xl border border-slate-800 space-y-4 flex flex-col justify-between bg-slate-900/80 hover:border-rose-500/30 transition-all shadow-lg">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between gap-3 border-b border-slate-850 pb-3">
-                      <div>
-                        <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Source Paper</span>
-                        <h4 className="text-xs font-bold text-slate-100 line-clamp-2 mt-0.5" title={sourceTitle}>
-                          {sourceTitle}
-                        </h4>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide bg-rose-500/10 text-rose-300 border border-rose-500/30">
+                          {gapType.replace(/_/g, ' ')}
+                        </span>
+                        <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border ${
+                          conf.toUpperCase() === 'HIGH' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' :
+                          conf.toUpperCase() === 'MODERATE' ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30' :
+                          'bg-slate-800 text-slate-300 border-slate-700'
+                        }`}>
+                          {conf} Conf.
+                        </span>
+                        {gap.evidence?.eligibility_status && (
+                          <span className="px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                            {gap.evidence.eligibility_status.replace(/_/g, ' ')}
+                          </span>
+                        )}
                       </div>
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border flex-shrink-0 ${
-                        conf.toUpperCase() === 'HIGH' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' :
-                        conf.toUpperCase() === 'MODERATE' ? 'bg-indigo-500/10 text-indigo-300 border-indigo-500/30' :
-                        'bg-slate-800 text-slate-300 border-slate-700'
-                      }`}>
-                        {conf} Conf.
-                      </span>
+                      <div className="text-right font-mono flex-shrink-0">
+                        <div title="Gap Score represents the strength of the collection-level missing relationship based on multiple evidence signals. It does not represent probability of global research novelty.">
+                          <span className="text-[10px] text-slate-500 block uppercase cursor-help">Gap Score ℹ️</span>
+                          <span className="font-extrabold text-rose-300 text-base">{gapScorePct}%</span>
+                        </div>
+                        {gap.evidence?.relationship_evidence_score !== undefined && (
+                          <div title="Measures how strongly the indexed papers support the scientific compatibility and evidence for this relationship." className="mt-1">
+                            <span className="text-[9px] text-slate-500 block uppercase cursor-help">Rel. Evidence ℹ️</span>
+                            <span className="font-bold text-indigo-300 text-xs">{Math.round(gap.evidence.relationship_evidence_score * 100)}%</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-850 flex items-center justify-between gap-3 text-xs">
-                      <div>
-                        <span className="text-[10px] text-slate-500 block uppercase">Potentially Missing Concept</span>
-                        <span className="font-bold text-rose-300 text-sm">{missingConcept}</span>
-                        <span className="text-[10px] text-slate-400 ml-1 font-mono">({conceptType})</span>
-                      </div>
-                      <div className="text-right font-mono">
-                        <span className="text-[10px] text-slate-500 block uppercase">Gap Score</span>
-                        <span className="font-extrabold text-slate-100 text-base">
-                          {typeof gap.gap_score === 'number' ? `${Math.round(gap.gap_score * 100)}%` : gap.gap_score}
-                        </span>
-                      </div>
+                    <div className="space-y-1.5">
+                      <h4 className="text-sm font-bold text-slate-100 leading-snug">
+                        {gapTitle}
+                      </h4>
+                      <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-3 rounded-2xl border border-slate-850">
+                        {description}
+                      </p>
+                    </div>
+
+                    {/* Related Concepts & Supporting Papers */}
+                    <div className="space-y-2 pt-1">
+                      {gap.related_concepts && gap.related_concepts.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 items-center">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">Components:</span>
+                          {gap.related_concepts.map((c, cIdx) => (
+                            <span key={cIdx} className="px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[11px] font-semibold">
+                              {c}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {suppPapers.length > 0 && (
+                        <div className="text-[11px] text-slate-400 space-y-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase block">Supporting Papers in Collection:</span>
+                          <ul className="space-y-1">
+                            {suppPapers.map((sp, spIdx) => (
+                              <li key={spIdx} className="text-slate-300 truncate flex items-center gap-1.5">
+                                <span className="text-rose-400 text-xs">•</span>
+                                <span className="truncate">{sp.title || `Paper ID ${sp.paper_id}`}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {gap.evidence?.evidence_aliases?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 items-center pt-1 border-t border-slate-850/50 mt-1">
+                          <span className="text-[10px] font-bold text-slate-500 uppercase mr-1">Evidence Terms:</span>
+                          {gap.evidence.evidence_aliases.map((alias, aIdx) => (
+                            <span key={aIdx} className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]">
+                              {alias}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -678,14 +1010,36 @@ export default function ResearchMap({
                     </button>
 
                     {isExpanded && (
-                      <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-850 space-y-2 text-xs text-slate-300 animate-fade-in">
-                        <ol className="space-y-1.5 list-decimal list-inside leading-relaxed text-[11px]">
-                          <li>Source paper "{sourceTitle.slice(0, 30)}..." is structurally related to research using <strong>{missingConcept}</strong>.</li>
-                          <li>Other papers in the collection utilize <strong>{missingConcept}</strong>.</li>
-                          <li>Semantic similarity indicates that <strong>{missingConcept}</strong> is highly relevant to this paper's domain.</li>
-                          <li>The relationship does not currently exist in the source paper's research graph.</li>
-                          <li>Therefore, combining the source paper's approach with <strong>{missingConcept}</strong> is considered a potential research direction.</li>
-                        </ol>
+                      <div className="p-3 rounded-2xl bg-slate-950/90 border border-slate-850 space-y-2 text-xs text-slate-300 animate-fade-in">
+                        {gap.gap_reasoning && Object.keys(gap.gap_reasoning).length > 0 ? (
+                          <ul className="space-y-1.5 list-disc list-inside leading-relaxed text-[11px]">
+                            {gap.gap_reasoning.component_a_evidence && (
+                              <li><strong className="text-slate-200">Component A Evidence:</strong> {typeof gap.gap_reasoning.component_a_evidence === 'object' ? gap.gap_reasoning.component_a_evidence.description : gap.gap_reasoning.component_a_evidence}</li>
+                            )}
+                            {gap.gap_reasoning.component_b_evidence && (
+                              <li><strong className="text-slate-200">Component B Evidence:</strong> {typeof gap.gap_reasoning.component_b_evidence === 'object' ? gap.gap_reasoning.component_b_evidence.description : gap.gap_reasoning.component_b_evidence}</li>
+                            )}
+                            {gap.gap_reasoning.missing_relationship && (
+                              <li><strong className="text-slate-200">Missing Relationship:</strong> {typeof gap.gap_reasoning.missing_relationship === 'object' ? gap.gap_reasoning.missing_relationship.description : gap.gap_reasoning.missing_relationship}</li>
+                            )}
+                            {gap.gap_reasoning.task_alignment && (
+                              <li><strong className="text-slate-200">Task Alignment:</strong> {typeof gap.gap_reasoning.task_alignment === 'object' ? gap.gap_reasoning.task_alignment.description : gap.gap_reasoning.task_alignment}</li>
+                            )}
+                            {gap.gap_reasoning.scientific_compatibility && (
+                              <li><strong className="text-slate-200">Scientific Compatibility:</strong> {typeof gap.gap_reasoning.scientific_compatibility === 'object' ? gap.gap_reasoning.scientific_compatibility.description : gap.gap_reasoning.scientific_compatibility}</li>
+                            )}
+                            {gap.gap_reasoning.evidence_limitation && (
+                              <li className="text-amber-400/90 italic pt-1"><strong className="text-amber-300 font-semibold uppercase text-[10px]">Collection Limitation:</strong> {typeof gap.gap_reasoning.evidence_limitation === 'object' ? gap.gap_reasoning.evidence_limitation.statement : gap.gap_reasoning.evidence_limitation}</li>
+                            )}
+                          </ul>
+                        ) : (
+                          <ol className="space-y-1.5 list-decimal list-inside leading-relaxed text-[11px]">
+                            <li>Components <strong>{gap.related_concepts ? gap.related_concepts.join(' and ') : gap.missing_concept}</strong> exist separately across indexed papers in your collection.</li>
+                            <li>No single indexed paper directly evaluates or combines these components together.</li>
+                            <li>Semantic similarity and task relevance indicate strong potential for integrated research.</li>
+                            <li>Therefore, investigating their unassessed relationship is identified as a potential research gap.</li>
+                          </ol>
+                        )}
                       </div>
                     )}
                   </div>
@@ -854,10 +1208,15 @@ export default function ResearchMap({
             { title: 'Datasets', items: data?.shared_concepts?.datasets, color: 'bg-amber-500' },
             { title: 'Methodologies', items: data?.shared_concepts?.methodologies, color: 'bg-rose-500' },
             { title: 'Domains', items: data?.shared_concepts?.domains, color: 'bg-teal-500' },
+            { title: 'Tasks', items: data?.shared_concepts?.tasks, color: 'bg-indigo-500' },
+            { title: 'Metrics', items: data?.shared_concepts?.metrics, color: 'bg-cyan-500' },
+            { title: 'Applications', items: data?.shared_concepts?.applications, color: 'bg-violet-500' },
             { title: 'Keywords', items: data?.shared_concepts?.keywords, color: 'bg-sky-500' }
           ].map((group, idx) => (
             <div key={idx} className="space-y-3 bg-slate-950/50 p-4 rounded-2xl border border-slate-850">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">{group.title}</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                {group.title} ({group.items?.length || 0})
+              </h4>
               <div className="space-y-2.5">
                 {group.items && group.items.length > 0 ? (
                   group.items.slice(0, 5).map((item, i) => {

@@ -29,6 +29,8 @@ class MockSuccessProvider(LLMProvider):
             abstract="LLM synthesized abstract.",
             problem_statement="LLM problem statement.",
             research_motivation="LLM motivation.",
+            research_question="How does YOLOv8 affect accuracy?",
+            objectives=["1. Evaluate baseline.", "2. Compare metrics."],
             related_work_synthesis="LLM related work.",
             research_gap="LLM research gap.",
             proposed_methodology="LLM methodology.",

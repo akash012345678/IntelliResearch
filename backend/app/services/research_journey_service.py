@@ -280,12 +280,26 @@ class ResearchJourneyService:
         recent_activity.sort(key=lambda x: x.timestamp, reverse=True)
         recent_activity = recent_activity[:8]
 
+        # Dynamic Intelligence Counts for Gaps & Opportunities Trace Nodes
+        gaps_count = 0
+        opp_count = 0
+        if paper_count >= 1:
+            try:
+                from app.services.project_intelligence_service import ProjectIntelligenceService
+                intel = ProjectIntelligenceService.analyze_project(project_id, db)
+                gaps_count = len([g for g in getattr(intel, 'research_gaps', []) if getattr(g, 'eligibility_status', None) == 'QUALIFIED_POTENTIAL_GAP'])
+                opp_count = len(getattr(intel, 'candidate_research_directions', []))
+            except Exception as err:
+                logger.warning(f"Error retrieving project intelligence for journey trace: {err}")
+                gaps_count = 1 if st3_done else 0
+                opp_count = len(saved_dirs)
+
         # End-to-End Trace Nodes
         trace_nodes: List[JourneyTraceNode] = [
             JourneyTraceNode(id="n_papers", label="Papers", status="COMPLETED" if st1_done else "NOT_STARTED", count=paper_count, target_tab="papers"),
             JourneyTraceNode(id="n_landscape", label="Landscape", status="COMPLETED" if st2_done else "NOT_STARTED", count=paper_count, target_tab="map"),
-            JourneyTraceNode(id="n_gaps", label="Gaps", status="COMPLETED" if st3_done else "NOT_STARTED", count=1 if st3_done else 0, target_tab="gaps"),
-            JourneyTraceNode(id="n_opp", label="Opportunities", status="COMPLETED" if st4_done else "NOT_STARTED", count=len(saved_dirs), target_tab="directions"),
+            JourneyTraceNode(id="n_gaps", label="Gaps", status="COMPLETED" if st3_done else "NOT_STARTED", count=gaps_count, target_tab="gaps"),
+            JourneyTraceNode(id="n_opp", label="Opportunities", status="COMPLETED" if st4_done else "NOT_STARTED", count=opp_count, target_tab="directions"),
             JourneyTraceNode(id="n_val", label="Validation", status="COMPLETED" if st5_done else "NOT_STARTED", count=1 if st5_done else 0, target_tab="directions"),
             JourneyTraceNode(id="n_plan", label="Plan", status="COMPLETED" if st6_done else "NOT_STARTED", count=1 if st6_done else 0, target_tab="plan"),
             JourneyTraceNode(id="n_exp", label="Experiments", status="COMPLETED" if st7_done else "NOT_STARTED", count=len(exps), target_tab="experiments"),

@@ -18,6 +18,17 @@ class ResearchPaper(Base):
     datasets = Column(JSON, nullable=False, server_default='[]', default=list)
     methodologies = Column(JSON, nullable=False, server_default='[]', default=list)
     application_domains = Column(JSON, nullable=False, server_default='[]', default=list)
+    metrics = Column(JSON, nullable=False, server_default='[]', default=list)
+    tasks = Column(JSON, nullable=False, server_default='[]', default=list)
+    applications = Column(JSON, nullable=False, server_default='[]', default=list)
+
+    # Structured provenance & evidence detail fields
+    keyword_details = Column(JSON, nullable=False, server_default='[]', default=list)
+    algorithm_details = Column(JSON, nullable=False, server_default='[]', default=list)
+    dataset_details = Column(JSON, nullable=False, server_default='[]', default=list)
+    methodology_details = Column(JSON, nullable=False, server_default='[]', default=list)
 
     def __repr__(self) -> str:
         return f"<ResearchPaper(id={self.id}, title='{self.title[:30]}...', filename='{self.filename}')>"
+
+

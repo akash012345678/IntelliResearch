@@ -14,6 +14,8 @@ class ProposalEditRequest(BaseModel):
     abstract: Optional[str] = Field(None, description="Updated Executive Abstract")
     problem_statement: Optional[str] = Field(None, description="Updated Problem Statement")
     research_motivation: Optional[str] = Field(None, description="Updated Research Motivation")
+    research_question: Optional[str] = Field(None, description="Updated Research Question")
+    objectives: Optional[List[str]] = Field(None, description="Updated Research Objectives")
     related_work_synthesis: Optional[str] = Field(None, description="Updated Related Work Synthesis")
     research_gap: Optional[str] = Field(None, description="Updated Identified Research Gap")
     proposed_methodology: Optional[str] = Field(None, description="Updated Proposed Methodology")

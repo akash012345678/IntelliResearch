@@ -43,6 +43,58 @@ class TestProjectIntelligenceAPI(unittest.TestCase):
         self.assertEqual(data["collection_summary"]["total_papers"], 2)
         self.assertEqual(data["project"]["id"], 1)
 
+    @patch("app.api.project_intelligence_api.ProjectIntelligenceService")
+    def test_02_get_project_research_intelligence_api_refresh(self, mock_service):
+        mock_service.analyze_project.return_value = {
+            "project": {"id": 1, "name": "Test Proj", "description": "Desc", "status": "ACTIVE"},
+            "collection_summary": {"total_papers": 3, "total_nodes": 15, "total_edges": 20, "total_keywords": 5, "total_algorithms": 3, "total_datasets": 2, "total_methodologies": 2, "total_domains": 1},
+            "paper_landscape": [],
+            "shared_concepts": {"keywords": [], "algorithms": [], "datasets": [], "methodologies": [], "domains": []},
+            "paper_relationships": [],
+            "research_gaps": [],
+            "underrepresented_concepts": [],
+            "candidate_research_directions": [],
+            "proposal_traceability": [],
+            "insight_summary": "Refreshed summary"
+        }
+
+        response = client.get("/api/projects/1/research-intelligence?refresh=true")
+        self.assertEqual(response.status_code, 200)
+        mock_service.analyze_project.assert_called_with(
+            project_id=1,
+            db=unittest.mock.ANY,
+            refresh=True,
+            max_relationships=10,
+            max_gaps=10,
+            max_underrepresented=10,
+            max_directions=5
+        )
+
+    @patch("app.api.project_intelligence_api.ProjectIntelligenceService")
+    def test_03_api_failure_returns_500(self, mock_service):
+        mock_service.analyze_project.side_effect = RuntimeError("Database connection failed")
+        response = client.get("/api/projects/1/research-intelligence")
+        self.assertEqual(response.status_code, 500)
+        self.assertIn("Unable to compute project research intelligence", response.json()["detail"])
+
+    @patch("app.api.project_intelligence_api.ProjectIntelligenceService")
+    def test_04_reindex_project_api(self, mock_service):
+        mock_service.reindex_project.return_value = {
+            "project": {"id": 1, "name": "Test Proj", "description": "Desc", "status": "ACTIVE"},
+            "collection_summary": {"total_papers": 3, "total_nodes": 15, "total_edges": 20, "total_keywords": 5, "total_algorithms": 3, "total_datasets": 2, "total_methodologies": 2, "total_domains": 1},
+            "paper_landscape": [],
+            "shared_concepts": {"keywords": [], "algorithms": [], "datasets": [], "methodologies": [], "domains": []},
+            "paper_relationships": [],
+            "research_gaps": [],
+            "underrepresented_concepts": [],
+            "candidate_research_directions": [],
+            "proposal_traceability": [],
+            "insight_summary": "Reindexed summary"
+        }
+        response = client.post("/api/projects/1/reindex")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["collection_summary"]["total_papers"], 3)
+
 
 if __name__ == "__main__":
     unittest.main()

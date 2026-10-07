@@ -96,6 +96,26 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeletePaper = async (paperId) => {
+    const targetPaper = papers.find((p) => p.id === paperId) || semanticResults.find((p) => (p.id || p.paper_id) === paperId);
+    const paperTitle = targetPaper?.title || `Paper #${paperId}`;
+
+    if (!window.confirm(`Are you sure you want to delete "${paperTitle}" from your research library?\n\nThis will remove the paper file, text extractions, and associated project links.`)) {
+      return;
+    }
+
+    try {
+      await apiService.deletePaper(paperId);
+      await fetchDashboardData();
+      if (searchQuery.trim() && searchMode === 'semantic') {
+        executeSemanticSearch(searchQuery.trim());
+      }
+    } catch (err) {
+      console.error('Failed to delete paper:', err);
+      alert('Error deleting research paper.');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in text-xs text-slate-300">
 
@@ -237,10 +257,11 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {semanticResults.map((item) => (
                 <PaperCard
-                  key={item.paper_id}
+                  key={item.paper_id || item.id}
                   paper={item}
                   isSemantic={true}
-                  onView={() => setViewingPaperId(item.paper_id)}
+                  onView={() => setViewingPaperId(item.paper_id || item.id)}
+                  onDelete={handleDeletePaper}
                 />
               ))}
             </div>
@@ -252,6 +273,7 @@ export default function Dashboard() {
                 key={paper.id}
                 paper={paper}
                 onView={() => setViewingPaperId(paper.id)}
+                onDelete={handleDeletePaper}
               />
             ))}
           </div>

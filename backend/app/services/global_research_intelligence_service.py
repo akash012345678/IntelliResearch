@@ -305,47 +305,84 @@ class GlobalResearchIntelligenceService:
         if not gaps:
             return []
 
-        directions = []
-        for idx, g in enumerate(gaps, start=1):
-            title = f"Explore integration of {g['target_label']} with {g['source_paper_title']}"
+        import string
+        directions_by_key: Dict[str, Dict[str, Any]] = {}
+        for g in gaps:
+            target_label = g.get("target_label", "")
+            target_type = g.get("target_type", "").lower()
+            source_title = g.get("source_paper_title", "")
+            source_p_id = g.get("source_paper_id")
+            gap_score = g.get("gap_score", 0.0)
+            ev = g.get("evidence", {})
+            semantic_evidence = ev.get("semantic_evidence", 0.0)
+            link_score = ev.get("link_prediction_score", 0.0)
+            confidence = g.get("confidence", "Moderate")
+
+            # Canonical opportunity key based on target concept and source context
+            norm_target = " ".join(target_label.lower().translate(str.maketrans("", "", string.punctuation)).split())
+            norm_src = " ".join(source_title.lower().translate(str.maketrans("", "", string.punctuation)).split())
+            opp_key = f"{norm_target}___{norm_src}"
+
+            cand_algos = [{"name": target_label, "supporting_paper_count": 1, "reason": "Identified target concept"}] if target_type == 'algorithm' else []
+            cand_datasets = [{"name": target_label, "supporting_paper_count": 1, "reason": "Identified candidate dataset"}] if target_type == 'dataset' else []
+
+            title = f"Explore integration of {target_label} with {source_title}"
             desc = (
-                f"Collection analysis indicates a potential research opportunity in applying {g['target_label']} "
-                f"({g['target_type'].lower()}) to research surrounding '{g['source_paper_title']}'. "
-                f"This combination exhibits strong structural similarity ({g['evidence']['link_prediction_score']}) "
-                f"and semantic relevance ({g['evidence']['semantic_evidence']})."
+                f"Collection analysis indicates a potential research opportunity in applying {target_label} "
+                f"({target_type}) to research surrounding '{source_title}'. "
+                f"This combination exhibits strong structural similarity ({link_score}) "
+                f"and semantic relevance ({semantic_evidence})."
             )
+            research_problem = f"Current papers surrounding '{source_title}' do not incorporate {target_label} ({target_type})."
+            motivation = f"Collection analysis reveals strong semantic similarity ({semantic_evidence}) and gap score ({gap_score}) for integrating {target_label}."
+            missing_aspect = f"Integration of {target_label} with baseline approaches in '{source_title}' remains underrepresented."
+            proposed_direction = f"Investigate combining {target_label} with baseline techniques to evaluate potential performance and methodology enhancements."
 
-            research_problem = f"Current papers surrounding '{g['source_paper_title']}' do not incorporate {g['target_label']} ({g['target_type'].lower()})."
-            motivation = f"Collection analysis reveals strong semantic similarity ({g['evidence']['semantic_evidence']}) and gap score ({g['gap_score']}) for integrating {g['target_label']}."
-            missing_aspect = f"Integration of {g['target_label']} with baseline approaches in '{g['source_paper_title']}' remains underrepresented."
-            proposed_direction = f"Investigate combining {g['target_label']} with baseline techniques to evaluate potential performance and methodology enhancements."
+            supporting_paper = {"paper_id": source_p_id, "title": source_title, "role": "Source paper context"}
 
-            cand_algos = [{"name": g["target_label"], "supporting_paper_count": 1, "reason": "Identified target concept"}] if g['target_type'].upper() == 'ALGORITHM' else []
-            cand_datasets = [{"name": g["target_label"], "supporting_paper_count": 1, "reason": "Identified candidate dataset"}] if g['target_type'].upper() == 'DATASET' else []
+            if opp_key in directions_by_key:
+                # Merge with existing
+                ex = directions_by_key[opp_key]
+                ex["evidence"]["gap_score"] = round(max(ex["evidence"]["gap_score"], gap_score), 4)
+                ex["evidence"]["semantic_evidence"] = round(max(ex["evidence"]["semantic_evidence"], semantic_evidence), 4)
+                # Deduplicate supporting papers
+                existing_sp_ids = {p["paper_id"] for p in ex["supporting_papers"]}
+                if source_p_id not in existing_sp_ids:
+                    ex["supporting_papers"].append(supporting_paper)
+                ex["evidence"]["collection_coverage"] = round((len(ex["supporting_papers"]) / max(1, total_papers)) * 100.0, 1)
+                # Pick higher confidence
+                conf_order = {"HIGH": 3, "MODERATE": 2, "LOW": 1}
+                if conf_order.get(confidence.upper(), 1) > conf_order.get(ex["confidence"].upper(), 1):
+                    ex["confidence"] = confidence
+            else:
+                directions_by_key[opp_key] = {
+                    "direction_id": "temp",
+                    "title": title,
+                    "description": desc,
+                    "research_problem": research_problem,
+                    "motivation": motivation,
+                    "missing_aspect": missing_aspect,
+                    "proposed_direction": proposed_direction,
+                    "supporting_papers": [supporting_paper],
+                    "supporting_concepts": [target_label],
+                    "candidate_algorithms": cand_algos,
+                    "candidate_datasets": cand_datasets,
+                    "evidence": {
+                        "gap_score": gap_score,
+                        "semantic_evidence": semantic_evidence,
+                        "collection_coverage": round((1 / max(1, total_papers)) * 100.0, 1)
+                    },
+                    "confidence": confidence,
+                    "disclaimer": "This is a collection-based research direction and is not a claim of global academic novelty."
+                }
 
-            directions.append({
-                "direction_id": f"dir_{idx}",
-                "title": title,
-                "description": desc,
-                "research_problem": research_problem,
-                "motivation": motivation,
-                "missing_aspect": missing_aspect,
-                "proposed_direction": proposed_direction,
-                "supporting_papers": [{"paper_id": g["source_paper_id"], "title": g["source_paper_title"], "role": "Source paper context"}],
-                "supporting_concepts": [g["target_label"]],
-                "candidate_algorithms": cand_algos,
-                "candidate_datasets": cand_datasets,
-                "evidence": {
-                    "gap_score": g["gap_score"],
-                    "semantic_evidence": g["evidence"]["semantic_evidence"],
-                    "collection_coverage": round((1 / total_papers) * 100.0, 1)
-                },
-                "confidence": g["confidence"],
-                "disclaimer": "This is a collection-based research direction and is not a claim of global academic novelty."
-            })
-
-        directions.sort(key=lambda x: (-x["evidence"]["gap_score"], x["title"]))
-        return directions[:max_directions]
+        unique_dirs = list(directions_by_key.values())
+        unique_dirs.sort(key=lambda x: (-x["evidence"]["gap_score"], x["title"]))
+        final_dirs = []
+        for idx, d in enumerate(unique_dirs[:max_directions], start=1):
+            d["direction_id"] = f"dir_{idx}"
+            final_dirs.append(d)
+        return final_dirs
 
     def _build_empty_response(self) -> Dict[str, Any]:
         return {

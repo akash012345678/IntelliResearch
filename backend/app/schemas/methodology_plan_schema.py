@@ -11,10 +11,22 @@ class PipelineStepItem(BaseModel):
 
 class DatasetPlanItem(BaseModel):
     name: str
-    status: str  # 'Observed in current collection' | 'Candidate for investigation'
+    status: str  # 'Observed in current collection' | 'Candidate benchmark dataset' | 'Observed dataset (Requires Verification / Adaptation)'
     suitability: str
     limitations: str
     licensing: str
+    supporting_paper: Optional[str] = None
+    evidence_task: Optional[str] = None
+    annotation_type: Optional[str] = None
+    suitability_class: Optional[str] = None  # 'DIRECTLY_SUITABLE' | 'REQUIRES_VERIFICATION' | 'NOT_SUITABLE'
+
+
+class ExperimentParameterItem(BaseModel):
+    parameter: str
+    value: str
+    category: str  # 'MODEL' | 'DATASET' | 'SPLIT' | 'SEED' | 'HYPERPARAMETER' | 'RESULT'
+    provenance_status: str  # 'RECORDED_EVIDENCE' | 'PROPOSED' | 'MISSING'
+    source_evidence: Optional[str] = None
 
 
 class BaselineMethodItem(BaseModel):
@@ -76,6 +88,7 @@ class MethodologyPlanResponse(BaseModel):
     metrics: List[MetricCategoryItem] = []
     ablation_plan: List[AblationStepItem] = []
     variables: Dict[str, List[str]] = {}  # {'independent': [], 'dependent': [], 'control': []}
+    experiment_parameters: List[ExperimentParameterItem] = []
     expected_outputs: List[ExpectedOutputItem] = []
     success_criteria: List[str] = []
     risks: List[str] = []

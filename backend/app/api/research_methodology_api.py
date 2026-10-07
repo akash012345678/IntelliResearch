@@ -63,6 +63,8 @@ def get_project_methodology_plan(
             direction_id=direction_id,
             project_id=project_id
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching project methodology plan {direction_id}: {str(e)}", exc_info=True)
         raise HTTPException(

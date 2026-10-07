@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
@@ -97,3 +97,90 @@ def create_proposal_version(proposal_id: int, payload: ProposalVersionCreate, db
 def restore_proposal_version(proposal_id: int, version_number: int, db: Session = Depends(get_db)):
     """Restore a historical proposal version by creating a NEW ProposalVersion entry."""
     return ProposalPersistenceService.restore_version(db=db, proposal_id=proposal_id, version_number=version_number)
+
+
+@router.get("/proposals/{proposal_id}/export")
+def export_single_proposal(
+    proposal_id: int,
+    format: str = Query("markdown", description="Export format: 'markdown', 'md', 'json', or 'pdf'"),
+    version_number: Optional[int] = Query(None, description="Specific version number to export (defaults to latest)"),
+    db: Session = Depends(get_db)
+):
+    """Export a saved Proposal (or specific version) in Markdown, JSON, or PDF format."""
+    from app.services.proposal_export_service import ProposalExportService
+    fmt = format.lower().strip()
+    if fmt not in ("markdown", "md", "json", "pdf"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported export format. Allowed formats: 'markdown', 'md', 'json', 'pdf'."
+        )
+
+    if version_number is not None:
+        ver_res = ProposalPersistenceService.get_proposal_version(db=db, proposal_id=proposal_id, version_number=version_number)
+        p_data = ver_res.proposal_data
+        v_num = ver_res.version_number
+    else:
+        prop_res = ProposalPersistenceService.get_proposal(db=db, proposal_id=proposal_id)
+        p_data = prop_res.current_version.proposal_data
+        v_num = prop_res.current_version.version_number
+
+    if fmt in ("markdown", "md"):
+        content = ProposalExportService.export_single_proposal_markdown(p_data, version_number=v_num)
+        return Response(
+            content=content,
+            media_type="text/markdown",
+            headers={"Content-Disposition": f'attachment; filename="proposal_v{v_num}_{proposal_id}.md"'}
+        )
+    elif fmt == "json":
+        content = ProposalExportService.export_single_proposal_json(p_data, version_number=v_num)
+        return Response(
+            content=content,
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="proposal_v{v_num}_{proposal_id}.json"'}
+        )
+    elif fmt == "pdf":
+        pdf_bytes = ProposalExportService.export_single_proposal_pdf(p_data, version_number=v_num)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="proposal_v{v_num}_{proposal_id}.pdf"'}
+        )
+
+
+@router.post("/proposals/export")
+def export_raw_proposal(
+    payload: Dict[str, Any],
+    format: str = Query("markdown", description="Export format: 'markdown', 'md', 'json', or 'pdf'"),
+    version_number: int = Query(1, description="Version number metadata"),
+):
+    """Export a raw proposal payload (saved or unsaved draft) into Markdown, JSON, or PDF format."""
+    from app.services.proposal_export_service import ProposalExportService
+    fmt = format.lower().strip()
+    if fmt not in ("markdown", "md", "json", "pdf"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported export format. Allowed formats: 'markdown', 'md', 'json', 'pdf'."
+        )
+
+    if fmt in ("markdown", "md"):
+        content = ProposalExportService.export_single_proposal_markdown(payload, version_number=version_number)
+        return Response(
+            content=content,
+            media_type="text/markdown",
+            headers={"Content-Disposition": f'attachment; filename="proposal_v{version_number}.md"'}
+        )
+    elif fmt == "json":
+        content = ProposalExportService.export_single_proposal_json(payload, version_number=version_number)
+        return Response(
+            content=content,
+            media_type="application/json",
+            headers={"Content-Disposition": f'attachment; filename="proposal_v{version_number}.json"'}
+        )
+    elif fmt == "pdf":
+        pdf_bytes = ProposalExportService.export_single_proposal_pdf(payload, version_number=version_number)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="proposal_v{version_number}.pdf"'}
+        )
+
