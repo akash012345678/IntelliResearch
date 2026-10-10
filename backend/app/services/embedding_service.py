@@ -15,25 +15,33 @@ class EmbeddingService:
     """
 
     _model = None
+    _loading = False
+    _load_failed = False
     _cache: Dict[str, List[float]] = {}
 
     @classmethod
     def get_model(cls):
         """
         Lazy-load the Sentence-BERT model as a singleton.
-        Ensures the model is loaded into memory only once.
+        If loading fails or on memory-constrained servers, safely returns None to use fast fallback.
         """
-        if cls._model is None:
-            logger.info(f"Initializing Sentence-BERT singleton model: '{MODEL_NAME}'...")
+        if cls._load_failed:
+            return None
+
+        if cls._model is None and not cls._loading:
+            cls._loading = True
+            logger.info(f"Initializing Sentence-BERT model: '{MODEL_NAME}'...")
             try:
+                import torch
+                torch.set_num_threads(1)  # Limit CPU threads to prevent server lockup on cloud free tiers
                 from sentence_transformers import SentenceTransformer
                 cls._model = SentenceTransformer(MODEL_NAME)
                 logger.info(f"Successfully loaded Sentence-BERT model '{MODEL_NAME}'.")
             except Exception as e:
-                logger.critical(f"Failed to load SentenceTransformer model '{MODEL_NAME}': {e}")
-                raise RuntimeError(
-                    f"Embedding model initialization failed for '{MODEL_NAME}': {str(e)}"
-                ) from e
+                cls._load_failed = True
+                logger.warning(f"Could not initialize SentenceTransformer '{MODEL_NAME}' ({e}). Fast deterministic embeddings will be used.")
+            finally:
+                cls._loading = False
         return cls._model
 
     @classmethod
@@ -52,6 +60,8 @@ class EmbeddingService:
 
         try:
             model = cls.get_model()
+            if model is None:
+                raise RuntimeError("Embedding model unavailable")
             raw_embedding = model.encode(
                 clean_text,
                 convert_to_numpy=True,
@@ -104,6 +114,8 @@ class EmbeddingService:
         if uncached_texts:
             try:
                 model = cls.get_model()
+                if model is None:
+                    raise RuntimeError("Embedding model unavailable")
                 batch_embeddings = model.encode(
                     uncached_texts,
                     batch_size=64,
