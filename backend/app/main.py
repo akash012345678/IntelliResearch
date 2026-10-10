@@ -43,13 +43,6 @@ async def lifespan(app: FastAPI):
         logger.info("Database schemas initialized successfully.")
     except Exception as e:
         logger.critical(f"Failed to initialize database tables: {e}")
-    # Pre-warm Embedding Model asynchronously in background thread so first upload is instant
-    try:
-        import threading
-        from app.services.embedding_service import EmbeddingService
-        threading.Thread(target=EmbeddingService.get_model, daemon=True).start()
-    except Exception as e:
-        logger.warning(f"Could not spawn background embedding pre-warm thread: {e}")
 
     yield
     # Shutdown actions
