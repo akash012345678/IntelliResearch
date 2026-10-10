@@ -59,10 +59,10 @@ app = FastAPI(
 )
 
 # 4. CORS Middleware Configuration
-# Allows requests with credentials from any localhost/127.0.0.1 origin port (e.g. 5173, 5174, 5175, 3000)
+# Allows requests with credentials from localhost and deployed origins (e.g. Vercel, Render)
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origin_regex=r"https?://.*",
     allow_credentials=True,
     allow_methods=["*"],  # Allow all HTTP methods
     allow_headers=["*"],  # Allow all HTTP headers
