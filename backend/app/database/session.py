@@ -5,14 +5,21 @@ from app.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
+# Normalize DATABASE_URL for SQLAlchemy 2.0 (e.g. postgres:// -> postgresql+psycopg2://)
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
+elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
+    db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
 # Configure SQLAlchemy connection arguments for SQLite if needed
 connect_args = {}
-if settings.DATABASE_URL.startswith("sqlite"):
+if db_url.startswith("sqlite"):
     connect_args["check_same_thread"] = False
 
 try:
     engine = create_engine(
-        settings.DATABASE_URL,
+        db_url,
         connect_args=connect_args,
         pool_pre_ping=True  # Avoid connection drop issues
     )
