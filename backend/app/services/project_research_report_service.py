@@ -11,6 +11,8 @@ from app.models.project_model import ResearchProject, ProjectPaper, SavedResearc
 from app.models.paper_model import ResearchPaper
 from app.models.proposal_model import Proposal, ProposalVersion
 from app.services.project_intelligence_service import ProjectIntelligenceService
+from app.services.academic_report_content_builder import AcademicReportContentBuilder
+from app.services.academic_report_validator import AcademicReportValidator
 from app.services.academic_report_pdf_engine import AcademicReportPdfEngine
 from app.schemas.project_report_schema import (
     ProjectSummaryInfo,
@@ -500,64 +502,55 @@ class ProjectResearchReportService:
         cls,
         report: ProjectResearchReportResponse,
         db: Optional[Session] = None,
-        format_type: str = "complete"
+        format_type: str = "complete",
+        direction_id: Optional[str] = None
     ) -> bytes:
         """
         Generate PDF document for Project Research Report.
-        - format_type='complete': Generates full 29-section Academic Research Report PDF.
+        - format_type='complete': Generates full 8-Chapter Academic Research Report PDF.
         - format_type='overview': Generates 1-page executive summary overview PDF.
         """
         if format_type.lower().strip() == "overview":
             return cls.export_report_overview_to_pdf(report)
 
-        # Gather complete project state from DB if db session provided
         project_id = report.project.project_id
-        project = None
-        papers = []
-        proposal = None
-        plan = None
-        experiments = []
-        results_analysis = {}
 
         if db:
-            try:
-                project = db.query(ResearchProject).filter(ResearchProject.id == project_id).first()
-                paper_ids = [pp.paper_id for pp in db.query(ProjectPaper).filter(ProjectPaper.project_id == project_id).all()]
-                if paper_ids:
-                    papers = db.query(ResearchPaper).filter(ResearchPaper.id.in_(paper_ids)).all()
-                
-                # Latest Proposal
-                prop_rec = db.query(Proposal).filter(Proposal.project_id == project_id).order_by(Proposal.created_at.desc()).first()
-                if prop_rec and prop_rec.versions:
-                    proposal = prop_rec.versions[-1].proposal_data
-                
-                # Selected Plan
-                plan_rec = db.query(SavedResearchDirection).filter(SavedResearchDirection.project_id == project_id).order_by(SavedResearchDirection.created_at.desc()).first()
-                if plan_rec:
-                    plan = plan_rec.direction_data
-                
-                # Experiments
-                experiments = db.query(ResearchExperiment).filter(ResearchExperiment.project_id == project_id).all()
-                
-                # Results Analysis
-                try:
-                    from app.services.research_results_analysis_service import ResearchResultsAnalysisService
-                    results_analysis = ResearchResultsAnalysisService.get_project_results_analysis(db=db, project_id=project_id)
-                except Exception as e:
-                    logger.warning(f"Could not load results analysis for report PDF: {e}")
-            except Exception as e:
-                logger.error(f"Error loading project context for PDF generation: {e}")
+            report_content = AcademicReportContentBuilder.build_report_content(
+                db=db, project_id=project_id, direction_id=direction_id
+            )
+            validation = AcademicReportValidator.validate_report_content(report_content, db=db)
+            if not validation.get("is_valid_for_export"):
+                logger.warning(
+                    f"Academic report validation warnings for project {project_id}: {validation.get('issues')}"
+                )
+            engine = AcademicReportPdfEngine(report_content=report_content, db=db)
+            return engine.generate_pdf()
 
-        engine = AcademicReportPdfEngine(
-            report=report,
-            project=project or report.project,
-            papers=papers,
-            proposal=proposal,
-            plan=plan,
-            experiments=experiments,
-            results_analysis=results_analysis,
-            db=db
-        )
+        # Fallback if no DB session provided
+        dummy_content = {
+            "meta": {
+                "project_id": project_id,
+                "direction_id": direction_id or "dir_1",
+                "project_name": report.project.name,
+                "project_desc": report.project.description,
+                "abstract_text": report.research_problem_summary.summary_text,
+                "keywords_str": "Academic Research; Intelligence",
+                "active_direction_title": "Target Research Direction",
+                "has_empirical_results": False
+            },
+            "ch1": {"background": report.research_problem_summary.summary_text, "objectives": ["Analyze collection"]},
+            "ch2": {"lit_table_headers": ["Paper", "Task"], "lit_table_rows": []},
+            "ch3": {"gap_table_headers": [], "gap_table_rows": [], "opp_table_headers": [], "opp_table_rows": []},
+            "ch4": {"architecture_steps": ["Input", "Processing", "Evaluation"]},
+            "ch5": {"exp_table_headers": [], "exp_table_rows": []},
+            "ch6": {"res_table_headers": [], "res_table_rows": []},
+            "ch7": {"limitations": "Bounded by indexed paper collection."},
+            "ch8": {"contributions": "Evidence matrix and methodology design."},
+            "papers": [],
+            "appendices": {"trace_table_headers": [], "trace_table_rows": []}
+        }
+        engine = AcademicReportPdfEngine(report_content=dummy_content, db=db)
         return engine.generate_pdf()
 
     @classmethod

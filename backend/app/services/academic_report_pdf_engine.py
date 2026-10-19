@@ -3,6 +3,9 @@ from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
 import fitz  # PyMuPDF
 
+from app.services.academic_report_content_builder import AcademicReportContentBuilder
+from app.services.academic_report_validator import AcademicReportValidator
+
 logger = logging.getLogger(__name__)
 
 # Typography Tokens (Times New Roman Standard Type1 PDF Fonts ONLY)
@@ -32,41 +35,24 @@ class AcademicReportPdfEngine:
     
     Strict Academic Controls & Layout Specifications:
     - 100% Data-Driven from actual project database (0 hardcoded project values).
-    - Absolute Result Status rule: Experiment status != Result status.
-      Only marks [RECORDED] when actual measurement rows exist in database.
+    - Absolute Result Status rule: Only marks [RECORDED] when actual measurement rows exist.
       If zero result rows exist: displays explicit [MISSING] notice.
-    - Zero Empty Tables: Tables are rendered ONLY when data rows exist;
-      otherwise renders clean academic [MISSING] notice.
-    - Continuous vertical flow: Page breaks forced ONLY at major chapter boundaries.
-    - Full 8-Chapter University Thesis Structure + Front Matter + Appendices.
+    - Full 8-Chapter University Thesis Structure + Front Matter + Appendices A, B, C.
     - Times New Roman typography throughout (A4 paper, 1.25" left margin, 1.0" top/bottom/right).
     - Justified body paragraphs (align=3) with 1.5 line spacing (16.5 pt).
-    - Dotted-leader Table of Contents & List of Tables/Figures.
+    - Dotted-leader Table of Contents & List of Tables/Figures with 100% accurate page numbers.
     - PyMuPDF Native PDF Bookmarks / Outlines.
     """
 
     def __init__(
         self,
-        report: Any,
-        project: Any,
-        papers: List[Any],
-        proposal: Optional[Any] = None,
-        plan: Optional[Any] = None,
-        experiments: Optional[List[Any]] = None,
-        results_analysis: Optional[Dict[str, Any]] = None,
-        manuscript: Optional[Any] = None,
+        report_content: Dict[str, Any],
         db: Optional[Any] = None
     ):
         self.doc = fitz.open()
         self.db = db
-        self.report = report
-        self.project = project
-        self.papers = papers or []
-        self.proposal = proposal
-        self.plan = plan
-        self.experiments = experiments or []
-        self.results_analysis = results_analysis or {}
-        self.manuscript = manuscript
+        self.content = report_content
+        self.meta = report_content.get("meta", {})
 
         # Page Dimensions & Margins (A4 = 595.28 x 841.89 pt)
         # Margins: Left = 1.25 in (90 pt), Right = 1.0 in (523.28 pt), Top = 1.0 in (72 pt), Bottom = 1.0 in (769.89 pt)
@@ -88,7 +74,7 @@ class AcademicReportPdfEngine:
         self.fig_counter = 0
         self.table_counter = 0
 
-        # Chapter Numbering & Page Index Tracking
+        # Chapter Counter & Page Tracking
         self.chapter_counter = 0
         self.main_chapter_start_page_idx = -1
 
@@ -236,11 +222,11 @@ class AcademicReportPdfEngine:
     def draw_academic_table(self, title: str, headers: List[str], rows: List[List[str]], col_ratios: List[float]):
         """
         Academic Table rendering with caption ABOVE table.
-        CRITICAL RULE: Never render empty tables or blank table borders when rows is empty!
+        CRITICAL RULE: Never render empty tables or blank borders when rows is empty!
         """
         if not rows or len(rows) == 0:
             self.draw_paragraph(
-                "No qualified evidence records are available for this section within the current project scope. [MISSING]",
+                "No empirical measurements or qualified evidence records were available at the time of report generation. [MISSING]",
                 fontname=FONT_ITALIC,
                 color=(0.4, 0.4, 0.4)
             )
@@ -353,48 +339,28 @@ class AcademicReportPdfEngine:
         self.y += 22
 
     def generate_pdf(self) -> bytes:
-        """Generate full quality-controlled university academic research report."""
-        p = self.project
-        report_data = self.report
-        proj_id = getattr(p, "id", None) or getattr(report_data.project if hasattr(report_data, "project") else p, "project_id", 1)
-        proj_name = p.name if hasattr(p, "name") else getattr(p, "title", "Research Project")
-        proj_desc = p.description if hasattr(p, "description") else ""
+        meta = self.meta
+        ch1 = self.content.get("ch1", {})
+        ch2 = self.content.get("ch2", {})
+        ch3 = self.content.get("ch3", {})
+        ch4 = self.content.get("ch4", {})
+        ch5 = self.content.get("ch5", {})
+        ch6 = self.content.get("ch6", {})
+        ch7 = self.content.get("ch7", {})
+        ch8 = self.content.get("ch8", {})
+        papers = self.content.get("papers", [])
+        appendices = self.content.get("appendices", {})
 
-        # Safely extract Gaps & Directions from Intelligence or Report
-        raw_gaps = []
-        raw_dirs = []
-        if self.db and proj_id:
-            try:
-                from app.services.project_intelligence_service import ProjectIntelligenceService
-                intel = ProjectIntelligenceService.analyze_project(proj_id, self.db)
-                if hasattr(intel, "research_gaps") and intel.research_gaps:
-                    raw_gaps = intel.research_gaps
-                if hasattr(intel, "candidate_research_directions") and intel.candidate_research_directions:
-                    raw_dirs = intel.candidate_research_directions
-            except Exception as e:
-                logger.warning(f"Could not load project intelligence for report PDF: {e}")
-
-        if not raw_gaps:
-            raw_gaps = getattr(report_data, "research_gaps", []) or []
-        if not raw_dirs:
-            raw_dirs = getattr(report_data, "candidate_research_directions", []) or []
-
-        # Audit Counts for logging
-        logger.info(
-            f"REPORT_QA_AUDIT: PROJECT_ID={proj_id}, PAPER_COUNT={len(self.papers)}, "
-            f"GAP_COUNT={len(raw_gaps)}, OPPORTUNITY_COUNT={len(raw_dirs)}, "
-            f"EXPERIMENT_COUNT={len(self.experiments)}"
-        )
-
-        author_name = getattr(p, "author", None) or getattr(p, "student_name", None) or "Not Provided"
-        guide_name = getattr(p, "guide", None) or getattr(p, "supervisor_name", None) or "Not Provided"
-        institution_name = getattr(p, "institution", None) or "IntelliResearch AI Platform"
-        department_name = getattr(p, "department", None) or "Computer Science & Artificial Intelligence"
-        academic_year = getattr(p, "academic_year", None) or "2026"
-        project_id_str = f"#{proj_id}"
+        proj_name = meta.get("project_name", "Research Project")
+        proj_id_str = f"#{meta.get('project_id', 1)}"
+        author_name = meta.get("author_name", "Not Provided")
+        guide_name = meta.get("guide_name", "Not Provided")
+        institution_name = meta.get("institution_name", "IntelliResearch Academic Platform")
+        department_name = meta.get("department_name", "Department of Computer Science & Engineering")
+        academic_year = meta.get("academic_year", "2026")
 
         # -------------------------------------------------------------
-        # FRONT MATTER 1: TITLE PAGE
+        # PASS 1: FRONT MATTER PAGE 1 — TITLE PAGE
         # -------------------------------------------------------------
         self.new_page()
         self.current_page.draw_rect(fitz.Rect(36, 36, 559, 805), color=(0, 0, 0), width=1.5)
@@ -405,9 +371,9 @@ class AcademicReportPdfEngine:
         self.current_page.insert_textbox(rect_t, proj_name.upper(), fontsize=18, fontname=FONT_BOLD, color=(0, 0, 0), align=1)
         self.y += 70
 
-        if proj_desc:
+        if meta.get("project_desc"):
             rect_sub = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 35)
-            self.current_page.insert_textbox(rect_sub, f"Domain Focus: {proj_desc}", fontsize=12, fontname=FONT_ITALIC, color=(0.2, 0.2, 0.2), align=1)
+            self.current_page.insert_textbox(rect_sub, f"Domain Focus: {meta.get('project_desc')}", fontsize=12, fontname=FONT_ITALIC, color=(0.2, 0.2, 0.2), align=1)
             self.y += 45
 
         rect_sub2 = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 20)
@@ -437,20 +403,20 @@ class AcademicReportPdfEngine:
         self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Department:           {department_name}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0); m_y += 22
         self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Institution:          {institution_name}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0); m_y += 22
         self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Academic Year:        {academic_year}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0); m_y += 22
-        self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Research Project ID:  {project_id_str}", fontsize=11, fontname=FONT_BOLD, color=(0, 0, 0), align=0); m_y += 22
+        self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Research Project ID:  {proj_id_str}", fontsize=11, fontname=FONT_BOLD, color=(0, 0, 0), align=0); m_y += 22
         timestamp = datetime.now(timezone.utc).strftime("%B %d, %Y")
         self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Date of Generation:   {timestamp}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0)
 
         # -------------------------------------------------------------
-        # FRONT MATTER 2: CERTIFICATE, DECLARATION, ACKNOWLEDGEMENT, ABSTRACT
+        # FRONT MATTER PAGE 2 — CERTIFICATE, DECLARATION, ACKNOWLEDGEMENT, ABSTRACT
         # -------------------------------------------------------------
         self.new_page()
         self.draw_section_header("i.", "Certificate of Supervision")
         if guide_name != "Not Provided":
             self.draw_paragraph(
-                f"This is to certify that the research project report titled '{proj_name}' submitted by {author_name} "
+                f"This is to certify that the research report titled '{proj_name}' submitted by {author_name} "
                 f"represents an evidence-grounded academic study carried out under the supervision of {guide_name} "
-                f"at {institution_name} in fulfillment of the research requirements."
+                f"at {institution_name} in partial fulfillment of the requirements for the academic program."
             )
         else:
             self.draw_paragraph("Certificate details not provided in project data.")
@@ -460,7 +426,7 @@ class AcademicReportPdfEngine:
         self.draw_paragraph(
             "I hereby declare that this research report represents an evidence-grounded synthesis of indexed research literature, "
             "methodology planning, and experimental evaluation. All empirical statements, paper relationships, and evidence traceability chains "
-            "are derived deterministically from project data. Unexecuted experiments are explicitly labeled as [MISSING], and no empirical results have been fabricated."
+            "are derived deterministically from project database records. Unexecuted experiments are explicitly labeled as [MISSING], and zero empirical results have been fabricated."
         )
         self.y += 12
 
@@ -472,202 +438,124 @@ class AcademicReportPdfEngine:
         self.y += 12
 
         self.draw_section_header("iv.", "Executive Abstract")
-        abs_text = ""
-        if self.proposal and getattr(self.proposal, "abstract", None):
-            abs_text = self.proposal.abstract
-        elif hasattr(report_data, "research_problem_summary") and report_data.research_problem_summary:
-            abs_text = report_data.research_problem_summary.summary_text
-        if not abs_text:
-            abs_text = f"This report presents a comprehensive academic investigation into {proj_name}. It analyzes the assigned literature collection, synthesizes key research gaps, evaluates candidate methodologies, and structures an experimental workflow."
-
-        self.draw_paragraph(abs_text)
+        self.draw_paragraph(meta.get("abstract_text", ""))
         self.y += 10
 
         self.draw_section_header("v.", "Keywords & Research Domains")
-        kw_list = []
-        for paper in self.papers:
-            for kw in getattr(paper, "keywords", []) or []:
-                if kw and kw not in kw_list: kw_list.append(kw)
-            for dom in getattr(paper, "application_domains", []) or []:
-                if dom and dom not in kw_list: kw_list.append(dom)
-        kw_str = "; ".join(kw_list[:12]) if kw_list else "Artificial Intelligence; Computer Vision; Machine Learning; Research Methodology"
-        self.draw_paragraph(f"Keywords: {kw_str}", fontname=FONT_BOLD)
+        self.draw_paragraph(f"Keywords: {meta.get('keywords_str', '')}", fontname=FONT_BOLD)
         self.y += 20
 
         # -------------------------------------------------------------
-        # FRONT MATTER 3: TOC & LIST PLACEHOLDERS
+        # FRONT MATTER PAGE 3 & 4 — RESERVED TOC PAGES
         # -------------------------------------------------------------
-        toc_page_idx = self.get_current_page_number() - 1
-        self.new_page()
+        toc_start_page_idx = self.get_current_page_number() - 1
+        self.new_page()  # Page 3 (TOC Page 1)
+        self.new_page()  # Page 4 (TOC Page 2)
 
         # -------------------------------------------------------------
-        # MAIN BODY CHAPTERS 1 to 8
+        # MAIN BODY CHAPTERS 1 to 8 (Starts on Page 5 -> Arabic Page 1)
         # -------------------------------------------------------------
 
         # CHAPTER 1: INTRODUCTION
         c1 = self.draw_chapter_header("Introduction")
-        self.draw_section_header(f"{c1}1", "Background & Study Context")
-        self.draw_paragraph(
-            f"The domain of {proj_name} has observed significant academic interest due to advancements in algorithm design and dataset availability. "
-            f"This study conducts a systematic investigation based on an indexed collection of {len(self.papers)} assigned research papers."
-        )
+        self.draw_section_header(f"{c1}1", "Background & Research Context")
+        self.draw_paragraph(ch1.get("background", ""))
+        self.draw_paragraph(ch1.get("context", ""))
 
         self.draw_section_header(f"{c1}2", "Problem Statement")
-        prob_stmt = getattr(self.proposal, "problem_statement", None) or "Current literature leaves specific algorithmic trade-offs and domain adaptation challenges underrepresented within the indexed collection."
-        self.draw_paragraph(prob_stmt)
+        self.draw_paragraph(ch1.get("problem", ""))
 
         self.draw_section_header(f"{c1}3", "Research Motivation")
-        mot = getattr(self.proposal, "research_motivation", None) or "Identifying optimal baseline models and enhancing robustness is critical for real-world academic evaluation."
-        self.draw_paragraph(mot)
+        self.draw_paragraph(ch1.get("motivation", ""))
 
         self.draw_section_header(f"{c1}4", "Research Aim")
-        self.draw_paragraph(f"The overarching aim of this project is to systematically formulate and evaluate an evidence-grounded research methodology for {proj_name}.")
+        self.draw_paragraph(ch1.get("aim", ""))
 
         self.draw_section_header(f"{c1}5", "Research Objectives")
-        objs = getattr(self.proposal, "objectives", [])
-        if objs and isinstance(objs, list):
+        objs = ch1.get("objectives", [])
+        if isinstance(objs, list):
             for idx, obj in enumerate(objs, 1):
                 self.draw_paragraph(f"{idx}. {obj}", indent=15.0)
-        else:
-            self.draw_paragraph("1. Conduct structured literature review of assigned collection papers.", indent=15.0)
-            self.draw_paragraph("2. Identify underrepresented research gaps and formulate actionable opportunities.", indent=15.0)
-            self.draw_paragraph("3. Execute benchmark experiments and evaluate empirical performance metrics.", indent=15.0)
 
         self.draw_section_header(f"{c1}6", "Research Questions")
-        rq = getattr(self.proposal, "research_question", None) or "How do proposed algorithmic extensions compare against established baseline models under controlled evaluation?"
-        self.draw_paragraph(f"Research Question (RQ): {rq}", fontname=FONT_BOLD)
+        self.draw_paragraph(f"Research Question (RQ): {ch1.get('research_question', '')}", fontname=FONT_BOLD)
 
         self.draw_section_header(f"{c1}7", "Hypotheses")
-        self.draw_paragraph("Null Hypothesis (H0): The proposed methodology yields no statistically significant performance gain over the baseline.")
-        self.draw_paragraph("Alternative Hypothesis (H1): The proposed methodology achieves measurable performance improvement across primary evaluation metrics.")
+        self.draw_paragraph(ch1.get("hypothesis_h0", ""))
+        self.draw_paragraph(ch1.get("hypothesis_h1", ""))
 
         self.draw_section_header(f"{c1}8", "Scope of the Study")
-        self.draw_paragraph("This study is strictly bounded by the literature, datasets, and experimental configurations indexed within the project collection scope.")
+        self.draw_paragraph(ch1.get("scope", ""))
 
         self.draw_section_header(f"{c1}9", "Organization of the Report")
-        self.draw_paragraph("The remainder of this report is organized as follows: Chapter 2 presents Literature Review; Chapter 3 details Research Gaps and Opportunities; Chapter 4 outlines Proposed Methodology; Chapter 5 presents Experimental Design; Chapter 6 reports Experimental Results; Chapter 7 provides Discussion; Chapter 8 concludes the study.")
+        self.draw_paragraph(
+            "The remainder of this report is organized as follows: Chapter 2 presents Literature Review; Chapter 3 details Research Gaps and Opportunities; "
+            "Chapter 4 outlines Proposed Methodology; Chapter 5 presents Experimental Design; Chapter 6 reports Experimental Results; "
+            "Chapter 7 provides Discussion; Chapter 8 concludes the study."
+        )
 
         # CHAPTER 2: LITERATURE REVIEW
         c2 = self.draw_chapter_header("Literature Review")
         self.draw_section_header(f"{c2}1", "Literature Overview")
-        self.draw_paragraph("A thorough examination of assigned research papers was conducted to establish methodological context.")
+        self.draw_paragraph(
+            f"A systematic literature review was conducted across {len(papers)} indexed research papers assigned to project #{meta.get('project_id')}."
+        )
 
-        self.draw_section_header(f"{c2}2", "Individual Paper Review & Extraction")
-        if self.papers:
-            for p_idx, paper in enumerate(self.papers, 1):
-                algos = ", ".join(getattr(paper, "algorithms", []) or []) or "N/A"
-                dsets = ", ".join(getattr(paper, "datasets", []) or []) or "N/A"
-                self.draw_paragraph(f"Paper {p_idx}: {paper.title} [RECORDED]", fontname=FONT_BOLD)
-                self.draw_paragraph(f"Algorithms: {algos} | Datasets: {dsets} | File: {paper.filename}", indent=15.0)
+        self.draw_section_header(f"{c2}2", "Individual Paper Analysis")
+        if papers:
+            for p_idx, p in enumerate(papers, 1):
+                self.draw_paragraph(f"Paper #{p['id']}: {p['title']} ({p['year']}) [RECORDED]", fontname=FONT_BOLD)
+                self.draw_paragraph(f"Source file: {p['filename']}", indent=15.0)
         else:
             self.draw_paragraph("No individual papers currently assigned to this project collection. [MISSING]")
 
-        self.draw_section_header(f"{c2}3", "Comparative Literature Analysis")
-        headers_t1 = ["Paper ID", "Algorithm", "Dataset", "Task", "Methodology", "Main Finding", "Limitation"]
-        rows_t1 = []
-        for paper in self.papers:
-            algos_str = ", ".join(getattr(paper, "algorithms", []) or []) or "N/A"
-            ds_str = ", ".join(getattr(paper, "datasets", []) or []) or "N/A"
-            tasks_str = ", ".join(getattr(paper, "tasks", []) or []) or "Classification"
-            meth_str = ", ".join(getattr(paper, "methodologies", []) or []) or "Supervised"
-            rows_t1.append([
-                f"Paper #{paper.id}",
-                algos_str[:15],
-                ds_str[:12],
-                tasks_str[:12],
-                meth_str[:12],
-                "Indexed Paper [RECORDED]",
-                "Collection Bound"
-            ])
+        self.draw_section_header(f"{c2}3", "Comparative Literature Matrix")
+        self.draw_academic_table(
+            "Comparative Literature Review Matrix",
+            ch2.get("lit_table_headers", []),
+            ch2.get("lit_table_rows", []),
+            [0.9, 1.4, 1.1, 1.1, 1.1, 1.6, 1.2]
+        )
 
-        self.draw_academic_table("Comparative Literature Review Matrix", headers_t1, rows_t1, [0.9, 1.3, 1.1, 1.1, 1.1, 1.6, 1.2])
-
-        self.draw_section_header(f"{c2}4", "Dataset Comparison")
-        self.draw_paragraph("Evaluated benchmark datasets across assigned literature to verify task suitability and availability.")
-
-        self.draw_section_header(f"{c2}5", "Algorithm & Methodology Comparison")
-        self.draw_paragraph("Identified architectural paradigms and baseline algorithm configurations extracted from literature.")
-
-        self.draw_section_header(f"{c2}6", "Identified Literature Limitations")
-        self.draw_paragraph("Synthesized methodological limitations present across the indexed paper collection.")
+        self.draw_section_header(f"{c2}4", "Dataset & Algorithm Comparison")
+        self.draw_paragraph("Evaluated benchmark datasets and architectural paradigms extracted from assigned literature.")
 
         # CHAPTER 3: RESEARCH GAPS AND OPPORTUNITIES
         c3 = self.draw_chapter_header("Research Gaps & Opportunities")
         self.draw_section_header(f"{c3}1", "Gap Discovery Approach")
-        self.draw_paragraph("IntelliResearch deterministic knowledge graph traversal identified unassessed relationships across paper concepts within the indexed collection scope.")
+        self.draw_paragraph("Deterministic knowledge graph analysis identified unassessed relationships across paper concepts within the project collection scope.")
 
-        self.draw_section_header(f"{c3}2", "Identified Research Gap Evidence Matrix")
-        headers_t2 = ["Gap ID", "Component A", "Component B", "Supporting Papers", "Relationship", "Evidence Type", "Gap Score", "Confidence", "Limitation"]
-        rows_t2 = []
-        if raw_gaps:
-            for idx, g in enumerate(raw_gaps[:5], 1):
-                c_name = g.get("missing_concept") if isinstance(g, dict) else getattr(g, "missing_concept", None)
-                if not c_name:
-                    c_name = g.get("relationship_type", "Concept") if isinstance(g, dict) else getattr(g, "relationship_type", "Concept")
-                score = str(g.get("gap_score", "0.85")) if isinstance(g, dict) else str(getattr(g, "gap_score", "0.85"))
-                conf = g.get("confidence", "High") if isinstance(g, dict) else getattr(g, "confidence", "High")
-                rows_t2.append([
-                    f"Gap #{idx}",
-                    str(c_name)[:12],
-                    "Target Task",
-                    f"Paper {idx}",
-                    "Unassessed Pair",
-                    "[RECORDED]",
-                    score,
-                    conf,
-                    "Collection Bound"
-                ])
-
-        self.draw_academic_table("Research Gap Evidence Matrix", headers_t2, rows_t2, [0.8, 1.2, 1.2, 1.1, 1.3, 1.0, 0.8, 0.9, 1.2])
+        self.draw_section_header(f"{c3}2", "Evidence-Based Gap Analysis")
+        self.draw_academic_table(
+            "Identified Research Gap Evidence Matrix",
+            ch3.get("gap_table_headers", []),
+            ch3.get("gap_table_rows", []),
+            [0.8, 1.4, 1.1, 1.1, 0.8, 0.9, 1.2]
+        )
 
         self.draw_section_header(f"{c3}3", "Research Opportunities & Traceability")
-        headers_t3 = ["Opportunity", "Source Gap", "Supporting Papers", "Proposed Method", "Candidate Alg", "Candidate Dataset", "RQ", "Evidence Status"]
-        rows_t3 = []
-        if raw_dirs:
-            for idx, d in enumerate(raw_dirs[:4], 1):
-                d_title = d.get("title") if isinstance(d, dict) else getattr(d, "title", None)
-                if not d_title:
-                    d_title = f"Research Opportunity #{idx}"
-                rows_t3.append([
-                    str(d_title)[:18],
-                    f"Gap #{idx}",
-                    f"Paper #{idx}",
-                    "Integrated Pipeline",
-                    "Target Alg",
-                    "Target Dataset",
-                    f"RQ #{idx}",
-                    "[PROPOSED]"
-                ])
+        self.draw_academic_table(
+            "Opportunity Traceability Matrix",
+            ch3.get("opp_table_headers", []),
+            ch3.get("opp_table_rows", []),
+            [1.5, 0.9, 1.1, 1.2, 1.2, 1.0]
+        )
 
-        self.draw_academic_table("Opportunity Traceability Matrix", headers_t3, rows_t3, [1.5, 0.9, 1.1, 1.4, 1.1, 1.2, 0.8, 1.0])
+        self.draw_section_header(f"{c3}4", "Selected Research Opportunity")
+        self.draw_paragraph(f"Selected Target Direction: {meta.get('active_direction_title')} (ID: {meta.get('direction_id')}) [PROPOSED]", fontname=FONT_BOLD)
 
         # CHAPTER 4: PROPOSED METHODOLOGY
         c4 = self.draw_chapter_header("Proposed Methodology")
         self.draw_section_header(f"{c4}1", "Research Problem & Proposed Approach")
-        prop_title = getattr(self.proposal, "title", None) if self.proposal else None
-        if not prop_title and isinstance(self.proposal, dict):
-            prop_title = self.proposal.get("title")
-        if not prop_title:
-            prop_title = proj_name
-        self.draw_paragraph(f"Proposed Research Title: {prop_title} [PROPOSED]", fontname=FONT_BOLD)
+        self.draw_paragraph(f"Target Proposed Architecture: {meta.get('active_direction_title')} [PROPOSED]", fontname=FONT_BOLD)
 
-        self.draw_section_header(f"{c4}2", "System Architecture & Workflow Visual Diagram")
+        self.draw_section_header(f"{c4}2", "System Architecture & Workflow Diagram")
         self.draw_academic_figure_diagram(
             "IntelliResearch System Architecture & Evidence Workflow",
-            ["1. Paper Indexing", "2. Knowledge Graph", "3. Gap Discovery", "4. Opportunity Plan", "5. Experiment Matrix", "6. Results Synthesis"]
+            ch4.get("architecture_steps", [])
         )
 
-        self.draw_section_header(f"{c4}3", "Data Acquisition & Preprocessing Strategy")
-        self.draw_paragraph("Data acquisition strategy and preprocessing pipelines for model training and evaluation.")
-
-        self.draw_section_header(f"{c4}4", "Model Architecture & Proposed Components")
-        candidate_algs = getattr(self.proposal, "candidate_algorithms", []) if self.proposal else []
-        if not candidate_algs and isinstance(self.proposal, dict):
-            candidate_algs = self.proposal.get("candidate_algorithms", [])
-        alg_str = ", ".join(candidate_algs) if isinstance(candidate_algs, list) and candidate_algs else "Baseline vs Extension Architecture"
-        self.draw_paragraph(f"Architectural Components: {alg_str} [PROPOSED]")
-
-        self.draw_section_header(f"{c4}5", "Reproducibility Checklist")
+        self.draw_section_header(f"{c4}3", "Evaluation & Reproducibility Strategy")
         self.draw_paragraph("1. Fixed random seed initialization for deterministic execution. [PROPOSED]")
         self.draw_paragraph("2. Standardized train/val/test split configuration without data leakage. [PROPOSED]")
 
@@ -679,99 +567,45 @@ class AcademicReportPdfEngine:
         self.draw_paragraph("Control Variables: Learning rate, optimizer, epochs, and input resolution.")
 
         self.draw_section_header(f"{c5}2", "Planned Experiment Execution Matrix")
-        headers_t4 = ["Exp ID", "Experiment Title", "Purpose", "Baseline", "Proposed Method", "Dataset", "Variables", "Metrics", "Exp Status", "Result Status"]
-        rows_t4 = []
-        
-        has_empirical_results = False
-        recorded_results_list = []
-        total_result_runs = 0
-
-        if self.experiments:
-            for exp in self.experiments:
-                exp_name = getattr(exp, "name", f"Exp #{exp.id}")
-                exp_status = getattr(exp, "status", "PLANNED")
-
-                # STRICT CHECK: Only mark RECORDED if result rows exist in DB!
-                runs = getattr(exp, "runs", []) or []
-                if runs:
-                    total_result_runs += len(runs)
-                exp_results = []
-                for r in runs:
-                    results = getattr(r, "results", []) or []
-                    for res in results:
-                        m_val = getattr(res, "metric_value", None)
-                        if m_val is not None and str(m_val).strip() != "":
-                            exp_results.append(res)
-
-                if exp_results:
-                    has_empirical_results = True
-                    rec_status = "RECORDED [RECORDED]"
-                    for res in exp_results:
-                        recorded_results_list.append({
-                            "exp_id": exp.id,
-                            "exp_name": exp_name,
-                            "method": res.method_type,
-                            "metric": res.metric_name,
-                            "value": res.metric_value,
-                            "unit": res.unit or ""
-                        })
-                else:
-                    rec_status = "NOT RECORDED [MISSING]"
-
-                rows_t4.append([
-                    f"Exp #{getattr(exp, 'id', 'N/A')}",
-                    exp_name[:18],
-                    "Evaluation",
-                    "Baseline Model",
-                    "Proposed Alg",
-                    "Target Split",
-                    "Arch Variant",
-                    "F1 / Latency",
-                    exp_status,
-                    rec_status
-                ])
-
-        self.draw_academic_table("Experimental Execution Matrix", headers_t4, rows_t4, [0.8, 1.4, 1.0, 1.1, 1.2, 1.1, 1.0, 1.0, 0.9, 1.3])
+        self.draw_academic_table(
+            "Experimental Execution Matrix",
+            ch5.get("exp_table_headers", []),
+            ch5.get("exp_table_rows", []),
+            [0.8, 1.4, 1.0, 1.1, 1.2, 1.1, 1.0, 1.0, 0.9, 1.3]
+        )
 
         # CHAPTER 6: EXPERIMENTAL RESULTS
         c6 = self.draw_chapter_header("Experimental Results")
         self.draw_section_header(f"{c6}1", "Execution Status & Empirical Findings")
 
-        # ABSOLUTE RULE: If NO result rows exist, explicitly print MISSING notice; NO empty tables or fake numbers!
-        if has_empirical_results and len(recorded_results_list) > 0:
-            self.draw_paragraph(f"Empirical measurements were recorded across {total_result_runs} execution run(s) [RECORDED]:", fontname=FONT_BOLD)
-            headers_res = ["Exp ID", "Experiment Name", "Method Type", "Metric Name", "Recorded Value", "Evidence Status"]
-            rows_res = []
-            for rr in recorded_results_list:
-                rows_res.append([
-                    f"Exp #{rr['exp_id']}",
-                    rr['exp_name'][:20],
-                    rr['method'].upper(),
-                    rr['metric'],
-                    f"{rr['value']} {rr['unit']}".strip(),
-                    "[RECORDED]"
-                ])
-            self.draw_academic_table("Recorded Experimental Results Matrix", headers_res, rows_res, [1.0, 2.2, 1.5, 1.8, 1.8, 1.7])
+        has_empirical_results = meta.get("has_empirical_results", False)
+        res_rows = ch6.get("res_table_rows", [])
+
+        if has_empirical_results and len(res_rows) > 0:
+            self.draw_paragraph(f"Empirical measurements recorded across database execution runs [RECORDED]:", fontname=FONT_BOLD)
+            self.draw_academic_table(
+                "Recorded Experimental Results Matrix",
+                ch6.get("res_table_headers", []),
+                res_rows,
+                [1.0, 2.2, 1.5, 1.8, 1.8, 1.7]
+            )
         else:
             self.draw_paragraph(
-                "No empirical results have been recorded at the time of report generation. Experimental execution and measurement capture remain pending. [MISSING]",
+                "No empirical measurements were available at the time of report generation. Experimental execution and measurement capture remain pending. [MISSING]",
                 fontname=FONT_BOLD,
                 color=(0.5, 0.2, 0.0)
             )
 
         self.draw_section_header(f"{c6}2", "Statistical Analysis")
-        if has_empirical_results and len(recorded_results_list) > 0:
+        if has_empirical_results and len(res_rows) > 0:
             self.draw_paragraph("Statistical analysis computed from actual recorded database measurements [DERIVED].")
         else:
-            self.draw_paragraph(
-                "Statistical analysis is unavailable because sufficient empirical measurements have not yet been recorded. [MISSING]",
-                fontname=FONT_BOLD
-            )
+            self.draw_paragraph("Statistical analysis is unavailable because empirical measurements have not yet been recorded. [MISSING]", fontname=FONT_BOLD)
 
         # CHAPTER 7: DISCUSSION
         c7 = self.draw_chapter_header("Discussion")
         self.draw_section_header(f"{c7}1", "Findings & Interpretation")
-        if has_empirical_results and len(recorded_results_list) > 0:
+        if has_empirical_results and len(res_rows) > 0:
             self.draw_paragraph("Discussion of empirical measurements recorded during experiment execution [RECORDED].")
         else:
             self.draw_paragraph(
@@ -780,13 +614,8 @@ class AcademicReportPdfEngine:
                 fontname=FONT_BOLD
             )
 
-        self.draw_section_header(f"{c7}2", "Study Limitations & Threats to Validity")
-        lims = getattr(self.proposal, "limitations", None) if self.proposal else None
-        if not lims and isinstance(self.proposal, dict):
-            lims = self.proposal.get("limitations")
-        if not lims:
-            lims = "Evaluation is strictly bounded by the literature and dataset scope indexed within the current project collection."
-        self.draw_paragraph(f"Limitations: {lims}")
+        self.draw_section_header(f"{c7}2", "Limitations")
+        self.draw_paragraph(f"Limitations: {ch7.get('limitations', '')}")
 
         # CHAPTER 8: CONCLUSION AND FUTURE WORK
         c8 = self.draw_chapter_header("Conclusion & Future Work")
@@ -794,43 +623,25 @@ class AcademicReportPdfEngine:
         self.draw_paragraph(f"This academic research report compiled evidence for {proj_name}, establishing clear gap traceability and methodology planning.")
 
         self.draw_section_header(f"{c8}2", "Contributions")
-        contrib = getattr(self.proposal, "expected_contribution", None) if self.proposal else None
-        if not contrib and isinstance(self.proposal, dict):
-            contrib = self.proposal.get("expected_contribution")
-        if not contrib:
-            contrib = "Provides structured evidence matrix, gap identification, and methodology planning for academic synthesis."
-        self.draw_paragraph(f"Contributions: {contrib}")
-
-        self.draw_section_header(f"{c8}3", "Future Research Directions")
-        self.draw_paragraph("Future research includes external experiment execution, multi-run variance logging, and secondary dataset validation.")
+        self.draw_paragraph(f"Contributions: {ch8.get('contributions', '')}")
 
         # REFERENCES
         self.draw_chapter_header("References")
-        if self.papers:
-            for idx, paper in enumerate(self.papers, 1):
-                p_title = getattr(paper, "title", "Indexed Paper")
-                p_file = getattr(paper, "filename", "file.pdf")
-                ref_str = f"[{idx}] Paper #{paper.id}: '{p_title}'. (File: {p_file}). [RECORDED]"
-                self.draw_paragraph(ref_str)
+        if papers:
+            for idx, p in enumerate(papers, 1):
+                self.draw_paragraph(f"[{idx}] Paper #{p['id']}: '{p['title']}'. (File: {p['filename']}). [RECORDED]")
         else:
             self.draw_paragraph("[1] Bibliographic metadata incomplete or no papers assigned to project. [MISSING]")
 
         # APPENDICES
         self.draw_chapter_header("Appendices & Traceability")
         self.draw_section_header("A.", "Evidence Traceability Matrix")
-
-        headers_t5 = ["Paper ID", "Associated Concept", "Gap Score", "Direction Title", "Proposal Status"]
-        rows_t5 = []
-        trace_items = getattr(report_data, "evidence_traceability", []) or []
-        for tr in trace_items:
-            p_id = getattr(tr, "paper_id", "N/A")
-            c_str = tr.concept.name if getattr(tr, "concept", None) else "Collection Concept"
-            g_str = str(tr.gap.gap_score) if getattr(tr, "gap", None) else "0.85"
-            d_str = tr.research_direction.title[:20] if getattr(tr, "research_direction", None) else "Saved Opportunity"
-            prop_str = tr.proposal.title[:20] if getattr(tr, "proposal", None) else "Draft Proposal"
-            rows_t5.append([f"Paper #{p_id}", c_str[:15], g_str, d_str, prop_str])
-
-        self.draw_academic_table("Evidence Traceability Matrix", headers_t5, rows_t5, [1.2, 1.8, 1.0, 2.5, 2.5])
+        self.draw_academic_table(
+            "Evidence Traceability Matrix",
+            appendices.get("trace_table_headers", []),
+            appendices.get("trace_table_rows", []),
+            [1.2, 1.8, 1.0, 2.5, 2.5]
+        )
 
         self.draw_section_header("B.", "Academic Quality & Evidence Audit")
         self.draw_paragraph("• Paper Metadata Provenance: Verified against SQLite database records.")
@@ -838,9 +649,9 @@ class AcademicReportPdfEngine:
         self.draw_paragraph("• Citation Integrity: Strictly compiled from assigned project papers.")
 
         # -------------------------------------------------------------
-        # PASS 2: RENDER TOC AND LISTS ON TOC PAGE
+        # PASS 2: RENDER TOC AND LISTS ON RESERVED TOC PAGES (PAGES 3 & 4)
         # -------------------------------------------------------------
-        self.render_toc_and_lists(toc_page_idx)
+        self.render_toc_and_lists(toc_start_page_idx)
 
         # -------------------------------------------------------------
         # PASS 3: APPLY HEADERS & FOOTERS WITH ROMAN / ARABIC NUMERALS
@@ -855,8 +666,10 @@ class AcademicReportPdfEngine:
         return self.doc.tobytes()
 
     def render_toc_and_lists(self, toc_page_idx: int):
-        """Render Real Table of Contents, List of Figures, and List of Tables with dotted leaders."""
-        page = self.doc[toc_page_idx]
+        """Render Real Table of Contents, List of Figures, and List of Tables with dotted leaders into reserved TOC pages."""
+        main_start = max(0, self.main_chapter_start_page_idx)
+        cur_p_idx = toc_page_idx
+        page = self.doc[cur_p_idx]
         y = self.margin_top
 
         rect_t = fitz.Rect(self.margin_left, y, self.margin_right, y + 22)
@@ -866,11 +679,12 @@ class AcademicReportPdfEngine:
         page.draw_line(fitz.Point(self.margin_left, y), fitz.Point(self.margin_right, y), color=(0, 0, 0), width=0.8)
         y += 14
 
-        main_start = max(0, self.main_chapter_start_page_idx)
-
         for entry in self.toc_entries:
-            if y > self.margin_bottom - 120:
-                break
+            if y > self.margin_bottom - 40:
+                cur_p_idx += 1
+                if cur_p_idx < main_start:
+                    page = self.doc[cur_p_idx]
+                    y = self.margin_top
 
             title = entry["title"]
             level = entry["level"]
@@ -893,7 +707,6 @@ class AcademicReportPdfEngine:
             dots_count = max(3, int(avail_dots / 4.0))
             dots_str = " ." * dots_count
 
-            # Render TOC Entry Line using baseline insert_text
             page.insert_text(fitz.Point(self.margin_left + indent, y + 10), entry_str, fontsize=10, fontname=fname, color=(0, 0, 0))
             page.insert_text(fitz.Point(self.margin_left + indent + t_width + 6, y + 10), dots_str, fontsize=9, fontname=FONT_REGULAR, color=(0.4, 0.4, 0.4))
             page.insert_text(fitz.Point(self.margin_right - p_width, y + 10), p_label, fontsize=10, fontname=fname, color=(0, 0, 0))
@@ -906,9 +719,8 @@ class AcademicReportPdfEngine:
             page.insert_textbox(rect_lof, "LIST OF FIGURES & TABLES", fontsize=12, fontname=FONT_BOLD, color=(0, 0, 0), align=0)
             y += 20
 
-            # Render ONLY figures that actually exist
             for fig in self.figures:
-                if y > self.margin_bottom - 50: break
+                if y > self.margin_bottom - 40: break
                 fig_p_idx = fig["page_idx"]
                 p_label = str((fig_p_idx - main_start) + 1) if fig_p_idx >= main_start else to_roman(fig_p_idx + 1)
                 fig_text = f"Figure {fig['fig_num']}. {fig['title']}"
@@ -918,7 +730,6 @@ class AcademicReportPdfEngine:
                 page.insert_text(fitz.Point(self.margin_right - p_w, y + 10), p_label, fontsize=9.5, fontname=FONT_REGULAR, color=(0, 0, 0))
                 y += 15.0
 
-            # Render ONLY tables that actually exist
             for tbl in self.tables:
                 if y > self.margin_bottom - 30: break
                 tbl_p_idx = tbl["page_idx"]

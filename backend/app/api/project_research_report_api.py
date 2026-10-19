@@ -44,6 +44,7 @@ def get_project_research_report(
 def export_project_research_report(
     project_id: int,
     format: str = Query("markdown", description="Export format: 'markdown', 'md', 'json', or 'pdf'"),
+    dir_id: str = Query(None, alias="direction_id", description="Selected research direction / opportunity ID"),
     include_proposals: bool = Query(True, description="Include proposal summaries in export"),
     include_relationships: bool = Query(True, description="Include paper relationships in export"),
     include_gaps: bool = Query(True, description="Include research gaps in export"),
@@ -88,7 +89,9 @@ def export_project_research_report(
             headers={"Content-Disposition": f'attachment; filename="{filename}"'}
         )
     elif fmt == "pdf":
-        pdf_bytes = ProjectResearchReportService.export_report_to_pdf(report, db=db, format_type="complete")
+        pdf_bytes = ProjectResearchReportService.export_report_to_pdf(
+            report, db=db, format_type="complete", direction_id=dir_id
+        )
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",

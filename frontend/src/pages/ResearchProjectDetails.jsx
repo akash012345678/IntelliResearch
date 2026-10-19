@@ -1668,38 +1668,7 @@ export default function ResearchProjectDetails() {
 
       {/* STAGE TAB CONTENT: PROPOSALS */}
       {activeTab === 'proposals' && (
-        <div className="space-y-6 animate-fade-in">
-          {/* Selected Opportunity Banner if user navigated with dir_id */}
-          {(() => {
-            const activeDirId = searchParams.get('dir_id') || selectedOpportunityDirId;
-            const activeDir = candidateDirections.find(d => (d.direction_id || d.id) === activeDirId);
-            if (!activeDir) return null;
-            return (
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-950/40 via-slate-900 to-slate-900 border border-purple-500/40 shadow-lg space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-mono font-bold uppercase">
-                        Selected Opportunity: #{activeDir.direction_id || activeDir.id}
-                      </span>
-                      <span className="text-xs text-slate-400">({activeDir.confidence || 'HIGH'} Confidence)</span>
-                    </div>
-                    <h4 className="text-sm font-bold text-white">{activeDir.title}</h4>
-                  </div>
-                  <button
-                    onClick={() => handleDraftProposalFromDirection(activeDir)}
-                    disabled={draftingDirectionId === (activeDir.direction_id || activeDir.id)}
-                    className="btn-primary py-2 px-4 text-xs font-bold shrink-0 flex items-center gap-2 shadow-lg shadow-purple-900/30"
-                  >
-                    <span>🚀</span>
-                    {draftingDirectionId === (activeDir.direction_id || activeDir.id) ? 'Synthesizing Proposal...' : 'Synthesize & Draft Proposal →'}
-                  </button>
-                </div>
-                <p className="text-xs text-slate-300 leading-relaxed">{activeDir.description}</p>
-              </div>
-            );
-          })()}
-
+        <div className="space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
               Saved Research Proposals ({proposals.length})

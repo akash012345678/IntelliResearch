@@ -1,0 +1,615 @@
+{
+  "benchmark_timestamp": "2026-10-17 22:29:14",
+  "environment": {
+    "os": "Windows 11 (Build 10.0.26200)",
+    "cpu": "Intel(R) Core(TM) 7 150U",
+    "logical_cores": 12,
+    "total_ram_gb": 15.69,
+    "available_ram_gb": 3.41,
+    "python_version": "3.13.7",
+    "pytorch_version": "2.14.0+cpu",
+    "cuda_available": false,
+    "device": "CPU",
+    "sentence_transformers_version": "6.1.0",
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "embedding_dimension": 384,
+    "pymupdf_version": "1.28.2",
+    "faiss_version": "1.15.1",
+    "database": "SQLite (Local File DB)"
+  },
+  "paper_processing": [
+    {
+      "filename": "Evaluating_the_Performance_of_YOLO_Object_Detectors3.pdf",
+      "file_size_kb": 411.23,
+      "page_count": 6,
+      "text_length_chars": 23223,
+      "extracted_title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+      "extracted_abstract_len": 1134,
+      "extracted_counts": {
+        "keywords": 1,
+        "algorithms": 6,
+        "datasets": 1,
+        "methodologies": 3,
+        "application_domains": 3
+      },
+      "runs": [
+        {
+          "run": 1,
+          "pdf_extract_time_ms": 98.05,
+          "concept_extract_time_ms": 212.94,
+          "total_processing_time_ms": 310.99
+        },
+        {
+          "run": 2,
+          "pdf_extract_time_ms": 39.53,
+          "concept_extract_time_ms": 202.7,
+          "total_processing_time_ms": 242.23
+        },
+        {
+          "run": 3,
+          "pdf_extract_time_ms": 39.29,
+          "concept_extract_time_ms": 223.94,
+          "total_processing_time_ms": 263.23
+        }
+      ],
+      "metrics": {
+        "pdf_extract_mean_ms": 58.96,
+        "concept_extract_mean_ms": 213.19,
+        "total_mean_ms": 272.15,
+        "total_std_ms": 35.24,
+        "total_min_ms": 242.23,
+        "total_max_ms": 310.99
+      }
+    },
+    {
+      "filename": "Improving_Plant_Disease_Classification_with_Deep_L.pdf",
+      "file_size_kb": 2373.55,
+      "page_count": 10,
+      "text_length_chars": 39265,
+      "extracted_title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+      "extracted_abstract_len": 1185,
+      "extracted_counts": {
+        "keywords": 4,
+        "algorithms": 4,
+        "datasets": 1,
+        "methodologies": 8,
+        "application_domains": 2
+      },
+      "runs": [
+        {
+          "run": 1,
+          "pdf_extract_time_ms": 194.45,
+          "concept_extract_time_ms": 288.88,
+          "total_processing_time_ms": 483.33
+        },
+        {
+          "run": 2,
+          "pdf_extract_time_ms": 105.9,
+          "concept_extract_time_ms": 261.51,
+          "total_processing_time_ms": 367.41
+        },
+        {
+          "run": 3,
+          "pdf_extract_time_ms": 110.47,
+          "concept_extract_time_ms": 387.51,
+          "total_processing_time_ms": 497.99
+        }
+      ],
+      "metrics": {
+        "pdf_extract_mean_ms": 136.94,
+        "concept_extract_mean_ms": 312.63,
+        "total_mean_ms": 449.58,
+        "total_std_ms": 71.53,
+        "total_min_ms": 367.41,
+        "total_max_ms": 497.99
+      }
+    },
+    {
+      "filename": "Plant_Disease_Detection_Using_an_Innovative_Swin-A.pdf",
+      "file_size_kb": 1594.78,
+      "page_count": 15,
+      "text_length_chars": 78690,
+      "extracted_title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+      "extracted_abstract_len": 1878,
+      "extracted_counts": {
+        "keywords": 9,
+        "algorithms": 10,
+        "datasets": 3,
+        "methodologies": 6,
+        "application_domains": 3
+      },
+      "runs": [
+        {
+          "run": 1,
+          "pdf_extract_time_ms": 171.48,
+          "concept_extract_time_ms": 815.6,
+          "total_processing_time_ms": 987.08
+        },
+        {
+          "run": 2,
+          "pdf_extract_time_ms": 143.27,
+          "concept_extract_time_ms": 815.49,
+          "total_processing_time_ms": 958.76
+        },
+        {
+          "run": 3,
+          "pdf_extract_time_ms": 139.85,
+          "concept_extract_time_ms": 820.44,
+          "total_processing_time_ms": 960.3
+        }
+      ],
+      "metrics": {
+        "pdf_extract_mean_ms": 151.53,
+        "concept_extract_mean_ms": 817.18,
+        "total_mean_ms": 968.71,
+        "total_std_ms": 15.92,
+        "total_min_ms": 958.76,
+        "total_max_ms": 987.08
+      }
+    }
+  ],
+  "semantic_search": {
+    "cold_model_load_ms": 11155.68,
+    "cold_model_load_s": 11.156,
+    "index_build_time_ms": 506.94,
+    "total_papers_indexed": 3,
+    "sample_queries": [
+      {
+        "query": "YOLO object detection for plant disease",
+        "top_k": 3,
+        "runs": [
+          {
+            "run": 1,
+            "embedding_gen_ms": 19.813,
+            "faiss_search_only_ms": 2.435,
+            "e2e_search_ms": 5.573,
+            "results_returned": 3
+          },
+          {
+            "run": 2,
+            "embedding_gen_ms": 16.575,
+            "faiss_search_only_ms": 0.298,
+            "e2e_search_ms": 2.259,
+            "results_returned": 3
+          },
+          {
+            "run": 3,
+            "embedding_gen_ms": 16.842,
+            "faiss_search_only_ms": 0.283,
+            "e2e_search_ms": 2.202,
+            "results_returned": 3
+          },
+          {
+            "run": 4,
+            "embedding_gen_ms": 15.693,
+            "faiss_search_only_ms": 0.283,
+            "e2e_search_ms": 2.332,
+            "results_returned": 3
+          },
+          {
+            "run": 5,
+            "embedding_gen_ms": 16.852,
+            "faiss_search_only_ms": 0.286,
+            "e2e_search_ms": 2.297,
+            "results_returned": 3
+          }
+        ],
+        "metrics": {
+          "embedding_gen_mean_ms": 17.155,
+          "faiss_search_mean_ms": 0.717,
+          "e2e_search_mean_ms": 2.933,
+          "e2e_search_std_ms": 1.477,
+          "e2e_search_min_ms": 2.202,
+          "e2e_search_max_ms": 5.573
+        }
+      },
+      {
+        "query": "Swin Transformer axial attention agriculture",
+        "top_k": 3,
+        "runs": [
+          {
+            "run": 1,
+            "embedding_gen_ms": 16.202,
+            "faiss_search_only_ms": 0.275,
+            "e2e_search_ms": 2.103,
+            "results_returned": 3
+          },
+          {
+            "run": 2,
+            "embedding_gen_ms": 17.935,
+            "faiss_search_only_ms": 0.281,
+            "e2e_search_ms": 2.137,
+            "results_returned": 3
+          },
+          {
+            "run": 3,
+            "embedding_gen_ms": 17.689,
+            "faiss_search_only_ms": 0.29,
+            "e2e_search_ms": 2.246,
+            "results_returned": 3
+          },
+          {
+            "run": 4,
+            "embedding_gen_ms": 15.868,
+            "faiss_search_only_ms": 0.271,
+            "e2e_search_ms": 2.124,
+            "results_returned": 3
+          },
+          {
+            "run": 5,
+            "embedding_gen_ms": 16.728,
+            "faiss_search_only_ms": 0.32,
+            "e2e_search_ms": 2.44,
+            "results_returned": 3
+          }
+        ],
+        "metrics": {
+          "embedding_gen_mean_ms": 16.884,
+          "faiss_search_mean_ms": 0.287,
+          "e2e_search_mean_ms": 2.21,
+          "e2e_search_std_ms": 0.14,
+          "e2e_search_min_ms": 2.103,
+          "e2e_search_max_ms": 2.44
+        }
+      },
+      {
+        "query": "Deep learning classification explainable artificial intelligence LIME",
+        "top_k": 3,
+        "runs": [
+          {
+            "run": 1,
+            "embedding_gen_ms": 18.867,
+            "faiss_search_only_ms": 0.291,
+            "e2e_search_ms": 2.204,
+            "results_returned": 3
+          },
+          {
+            "run": 2,
+            "embedding_gen_ms": 16.756,
+            "faiss_search_only_ms": 0.282,
+            "e2e_search_ms": 2.189,
+            "results_returned": 3
+          },
+          {
+            "run": 3,
+            "embedding_gen_ms": 18.291,
+            "faiss_search_only_ms": 0.345,
+            "e2e_search_ms": 2.283,
+            "results_returned": 3
+          },
+          {
+            "run": 4,
+            "embedding_gen_ms": 18.788,
+            "faiss_search_only_ms": 0.393,
+            "e2e_search_ms": 2.248,
+            "results_returned": 3
+          },
+          {
+            "run": 5,
+            "embedding_gen_ms": 19.606,
+            "faiss_search_only_ms": 0.292,
+            "e2e_search_ms": 2.153,
+            "results_returned": 3
+          }
+        ],
+        "metrics": {
+          "embedding_gen_mean_ms": 18.462,
+          "faiss_search_mean_ms": 0.321,
+          "e2e_search_mean_ms": 2.215,
+          "e2e_search_std_ms": 0.051,
+          "e2e_search_min_ms": 2.153,
+          "e2e_search_max_ms": 2.283
+        }
+      },
+      {
+        "query": "PlantDoc and PlantVillage dataset benchmarks",
+        "top_k": 3,
+        "runs": [
+          {
+            "run": 1,
+            "embedding_gen_ms": 21.588,
+            "faiss_search_only_ms": 0.296,
+            "e2e_search_ms": 2.173,
+            "results_returned": 3
+          },
+          {
+            "run": 2,
+            "embedding_gen_ms": 16.905,
+            "faiss_search_only_ms": 0.192,
+            "e2e_search_ms": 1.466,
+            "results_returned": 3
+          },
+          {
+            "run": 3,
+            "embedding_gen_ms": 11.842,
+            "faiss_search_only_ms": 0.188,
+            "e2e_search_ms": 1.42,
+            "results_returned": 3
+          },
+          {
+            "run": 4,
+            "embedding_gen_ms": 16.819,
+            "faiss_search_only_ms": 0.284,
+            "e2e_search_ms": 2.157,
+            "results_returned": 3
+          },
+          {
+            "run": 5,
+            "embedding_gen_ms": 19.596,
+            "faiss_search_only_ms": 0.39,
+            "e2e_search_ms": 2.321,
+            "results_returned": 3
+          }
+        ],
+        "metrics": {
+          "embedding_gen_mean_ms": 17.35,
+          "faiss_search_mean_ms": 0.27,
+          "e2e_search_mean_ms": 1.907,
+          "e2e_search_std_ms": 0.429,
+          "e2e_search_min_ms": 1.42,
+          "e2e_search_max_ms": 2.321
+        }
+      },
+      {
+        "query": "Real-time crop leaf disease identification",
+        "top_k": 3,
+        "runs": [
+          {
+            "run": 1,
+            "embedding_gen_ms": 17.051,
+            "faiss_search_only_ms": 0.276,
+            "e2e_search_ms": 2.073,
+            "results_returned": 3
+          },
+          {
+            "run": 2,
+            "embedding_gen_ms": 13.679,
+            "faiss_search_only_ms": 0.207,
+            "e2e_search_ms": 1.43,
+            "results_returned": 3
+          },
+          {
+            "run": 3,
+            "embedding_gen_ms": 11.166,
+            "faiss_search_only_ms": 0.194,
+            "e2e_search_ms": 1.449,
+            "results_returned": 3
+          },
+          {
+            "run": 4,
+            "embedding_gen_ms": 9.771,
+            "faiss_search_only_ms": 0.186,
+            "e2e_search_ms": 1.43,
+            "results_returned": 3
+          },
+          {
+            "run": 5,
+            "embedding_gen_ms": 11.12,
+            "faiss_search_only_ms": 0.186,
+            "e2e_search_ms": 1.382,
+            "results_returned": 3
+          }
+        ],
+        "metrics": {
+          "embedding_gen_mean_ms": 12.557,
+          "faiss_search_mean_ms": 0.21,
+          "e2e_search_mean_ms": 1.553,
+          "e2e_search_std_ms": 0.292,
+          "e2e_search_min_ms": 1.382,
+          "e2e_search_max_ms": 2.073
+        }
+      }
+    ],
+    "aggregate_metrics": {
+      "overall_e2e_search_mean_ms": 2.164,
+      "overall_faiss_search_mean_ms": 0.361,
+      "overall_emb_gen_mean_ms": 16.482
+    }
+  },
+  "knowledge_graph": {
+    "total_papers": 3,
+    "total_nodes": 43,
+    "total_edges": 64,
+    "node_breakdown": {},
+    "edge_breakdown": {},
+    "top_entities": {
+      "top_algorithms": [
+        {
+          "label": "CNN",
+          "paper_count": 3
+        },
+        {
+          "label": "YOLOv5",
+          "paper_count": 2
+        },
+        {
+          "label": "SVM",
+          "paper_count": 2
+        },
+        {
+          "label": "ResNet",
+          "paper_count": 2
+        },
+        {
+          "label": "YOLO",
+          "paper_count": 1
+        }
+      ],
+      "top_datasets": [
+        {
+          "label": "PlantDoc",
+          "paper_count": 2
+        },
+        {
+          "label": "PlantVillage",
+          "paper_count": 2
+        },
+        {
+          "label": "Fusion Dataset",
+          "paper_count": 1
+        }
+      ],
+      "top_methodologies": [
+        {
+          "label": "Object Detection",
+          "paper_count": 3
+        },
+        {
+          "label": "Deep Learning",
+          "paper_count": 3
+        },
+        {
+          "label": "Transfer Learning",
+          "paper_count": 3
+        },
+        {
+          "label": "Feature Extraction",
+          "paper_count": 2
+        },
+        {
+          "label": "Image Classification",
+          "paper_count": 2
+        }
+      ],
+      "top_domains": [
+        {
+          "label": "Agriculture",
+          "paper_count": 3
+        },
+        {
+          "label": "Plant Diseases",
+          "paper_count": 3
+        },
+        {
+          "label": "Computer Vision",
+          "paper_count": 2
+        }
+      ],
+      "top_keywords": [
+        {
+          "label": "Plant Disease Detection",
+          "paper_count": 3
+        },
+        {
+          "label": "Plant Disease Classification",
+          "paper_count": 2
+        },
+        {
+          "label": "Crop Disease Detection",
+          "paper_count": 1
+        },
+        {
+          "label": "Leaf Disease Classification",
+          "paper_count": 1
+        },
+        {
+          "label": "Edge Computing",
+          "paper_count": 1
+        }
+      ]
+    },
+    "runs": [
+      {
+        "run": 1,
+        "duration_ms": 1.41,
+        "total_papers": 3,
+        "total_nodes": 43,
+        "total_edges": 64
+      },
+      {
+        "run": 2,
+        "duration_ms": 1.19,
+        "total_papers": 3,
+        "total_nodes": 43,
+        "total_edges": 64
+      },
+      {
+        "run": 3,
+        "duration_ms": 1.58,
+        "total_papers": 3,
+        "total_nodes": 43,
+        "total_edges": 64
+      },
+      {
+        "run": 4,
+        "duration_ms": 1.96,
+        "total_papers": 3,
+        "total_nodes": 43,
+        "total_edges": 64
+      },
+      {
+        "run": 5,
+        "duration_ms": 2.03,
+        "total_papers": 3,
+        "total_nodes": 43,
+        "total_edges": 64
+      }
+    ],
+    "metrics": {
+      "mean_ms": 1.63,
+      "std_ms": 0.36,
+      "min_ms": 1.19,
+      "max_ms": 2.03
+    }
+  },
+  "research_gap_analysis": {
+    "top_k_requested": 10,
+    "total_gaps_detected": 3,
+    "sample_gaps": [
+      {
+        "title": "Application of Explainable AI to YOLO-family Plant Disease Analysis",
+        "gap_score": 0.8945,
+        "concept_a": null,
+        "concept_b": null,
+        "category": "METHODOLOGY_ARCHITECTURE_GAP"
+      },
+      {
+        "title": "Unified Comparative Evaluation of Transformer-family and YOLO-family",
+        "gap_score": 0.8162,
+        "concept_a": null,
+        "concept_b": null,
+        "category": "CROSS_PAPER_COMPARISON"
+      },
+      {
+        "title": "Application of Explainable AI to Transformer-family Plant Disease Analysis",
+        "gap_score": 0.8112,
+        "concept_a": null,
+        "concept_b": null,
+        "category": "METHODOLOGY_ARCHITECTURE_GAP"
+      }
+    ],
+    "runs": [
+      {
+        "run": 1,
+        "duration_ms": 556.56,
+        "gaps_found": 3
+      },
+      {
+        "run": 2,
+        "duration_ms": 56.29,
+        "gaps_found": 3
+      },
+      {
+        "run": 3,
+        "duration_ms": 61.96,
+        "gaps_found": 3
+      },
+      {
+        "run": 4,
+        "duration_ms": 57.77,
+        "gaps_found": 3
+      },
+      {
+        "run": 5,
+        "duration_ms": 49.16,
+        "gaps_found": 3
+      }
+    ],
+    "metrics": {
+      "mean_ms": 156.35,
+      "std_ms": 223.77,
+      "min_ms": 49.16,
+      "max_ms": 556.56
+    }
+  }
+}

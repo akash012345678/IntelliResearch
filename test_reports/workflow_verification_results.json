@@ -1,0 +1,72 @@
+{
+  "1_pdf_upload_processing": {
+    "status": "PASS",
+    "steps": "Extracted text and metadata from Evaluating_the_Performance_of_YOLO_Object_Detectors3.pdf via PDFService.",
+    "expected": "Extracted text length > 100 chars with valid title.",
+    "observed": "Extracted title 'Evaluating the Performance YOLO Object Detectors for Plant D...' with 23223 characters across 6 pages.",
+    "evidence": "Pages: 6, extracted text length: 23223 chars."
+  },
+  "2_concept_extraction_normalisation": {
+    "status": "PASS",
+    "steps": "Ran rule-based NLP concept extractor on extracted paper text.",
+    "expected": "Extracted normalized keywords, algorithms, and methodologies.",
+    "observed": "Extracted 1 keywords, 6 algorithms, 1 datasets, 3 methodologies.",
+    "evidence": "Sample algorithms: ['YOLO', 'YOLOv9', 'YOLOv8']; datasets: ['PlantDoc']"
+  },
+  "3_semantic_search": {
+    "status": "PASS",
+    "steps": "Sent POST /api/semantic/search with query 'YOLO object detection for plant disease' and top_k=3 via TestClient.",
+    "expected": "HTTP 200 with ranked semantic similarity results.",
+    "observed": "HTTP 200 returned 3 results. Top hit similarity: 0.754.",
+    "evidence": "Query: 'YOLO object detection for plant disease', Top paper: 'Evaluating the Performance YOLO Object Detectors for Plant Disease Detection' (Similarity: 0.754)"
+  },
+  "4_knowledge_graph_generation": {
+    "status": "PASS",
+    "steps": "Called GET /api/knowledge-graph to construct NetworkX concept graph from database.",
+    "expected": "HTTP 200 with graph nodes and directed/undirected edges.",
+    "observed": "HTTP 200 with 43 nodes and 64 edges.",
+    "evidence": "Sample nodes: ['Evaluating the Performance YOLO Object Detectors for Plant Disease Detection', 'PlantDoc', 'YOLO']"
+  },
+  "5_research_gap_generation": {
+    "status": "PASS",
+    "steps": "Called GET /api/research-gaps?top_k=5 via ResearchGapService.",
+    "expected": "HTTP 200 with ranked multi-signal candidate research gaps.",
+    "observed": "HTTP 200 with 3 candidate gaps discovered.",
+    "evidence": "Top gap title: 'Application of Explainable AI to YOLO-family Plant Disease Analysis', score: 0.8945"
+  },
+  "6_evidence_state_handling": {
+    "status": "PASS",
+    "steps": "Generated academic manuscript for Project 1 and audited section evidence classifications.",
+    "expected": "Classification across 4 badge states: RECORDED, DERIVED, PROPOSED, MISSING.",
+    "observed": "Evidence distribution across 46 sections: {'RECORDED_EVIDENCE': 15, 'PROPOSED': 9, 'DERIVED': 17, 'MISSING': 5}.",
+    "evidence": "Verified badge states present: ['RECORDED_EVIDENCE', 'PROPOSED', 'DERIVED', 'MISSING']"
+  },
+  "7_research_planning_and_experiments": {
+    "status": "PASS",
+    "steps": "Queried GET /api/projects/1/experiments via TestClient.",
+    "expected": "HTTP 200 with experiment tracking records for Project 1.",
+    "observed": "HTTP 200 returned 3 tracked experiments for Project 1.",
+    "evidence": "Tracked experiment items: 3"
+  },
+  "8_manuscript_citation_management": {
+    "status": "PASS",
+    "steps": "Invoked AcademicCitationService.get_project_references for Project 1.",
+    "expected": "Verified IEEE, APA, and Harvard citations formatted without metadata fabrication.",
+    "observed": "Generated 3 citations. IEEE sample: '[1] Authors Not Recorded, \"Evaluating the Performance YOLO Object Dete...'",
+    "evidence": "IEEE: [1] Authors Not Recorded, \"Evaluating the Performance YOLO Object Detectors for Plant Disease Detection,\" IntelliResearch Collection, n.d.. [Bibliographic metadata incomplete] | APA: Authors Not Recorded (n.d.). Evaluating the Performance YOLO Object Detectors for Plant Disease Detection. IntelliResearch Collection. [Bibliographic metadata incomplete]"
+  },
+  "9_academic_quality_auditing": {
+    "status": "PASS",
+    "steps": "Invoked AcademicQualityService.get_manuscript_quality for Project 1.",
+    "expected": "Citation traceability score, reference integrity score, novelty claim safety, and dataset verification.",
+    "observed": "Reference Integrity: 0%, Traceability: 20%, Novelty Safety: PASS.",
+    "evidence": "Detected 1 issues and 0 metric mismatches."
+  },
+  "10_frontend_backend_api_communication": {
+    "status": "PASS",
+    "steps": "Audited FastAPI backend routes against frontend Axios API client contracts via OpenAPI schema inspection.",
+    "expected": "HTTP 200 root with complete REST API endpoint mapping matching frontend services.",
+    "observed": "Backend exposes 75 registered OpenAPI REST endpoints across 23 routers; root returned HTTP 200.",
+    "evidence": "Sample verified API endpoints: ['/api/upload', '/api/papers', '/api/paper/{paper_id}', '/api/paper/{paper_id}/metadata', '/api/semantic/reindex']"
+  }
+}

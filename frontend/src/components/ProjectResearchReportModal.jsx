@@ -4,7 +4,7 @@ import api from '../services/api';
 import PaperViewModal from './PaperViewModal';
 import ProposalWorkspaceModal from './ProposalWorkspaceModal';
 
-const ProjectResearchReportModal = ({ isOpen, onClose, projectId, projectName }) => {
+const ProjectResearchReportModal = ({ isOpen, onClose, projectId, projectName, dirId }) => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,6 +13,8 @@ const ProjectResearchReportModal = ({ isOpen, onClose, projectId, projectName })
   // Traceability Navigation Modals
   const [selectedPaperId, setSelectedPaperId] = useState(null);
   const [selectedProposalId, setSelectedProposalId] = useState(null);
+
+  const activeDirId = dirId || new URLSearchParams(window.location.hash.split('?')[1] || window.location.search).get('dir_id') || null;
 
   // Lock body scroll when report modal is open
   useEffect(() => {
@@ -28,13 +30,14 @@ const ProjectResearchReportModal = ({ isOpen, onClose, projectId, projectName })
     if (isOpen && projectId) {
       fetchReport();
     }
-  }, [isOpen, projectId]);
+  }, [isOpen, projectId, activeDirId]);
 
   const fetchReport = async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await api.getProjectResearchReport(projectId);
+      const params = activeDirId ? { direction_id: activeDirId } : {};
+      const res = await api.getProjectResearchReport(projectId, params);
       setReport(res.data);
     } catch (err) {
       console.error('Failed to load project research report:', err);
@@ -47,7 +50,8 @@ const ProjectResearchReportModal = ({ isOpen, onClose, projectId, projectName })
   const handleExport = async (format) => {
     try {
       setExporting(true);
-      const response = await api.exportProjectResearchReport(projectId, format);
+      const params = activeDirId ? { direction_id: activeDirId } : {};
+      const response = await api.exportProjectResearchReport(projectId, format, params);
 
       if (format === 'json') {
         const jsonStr = JSON.stringify(response.data, null, 2);
