@@ -88,7 +88,7 @@ def export_project_research_report(
             headers={"Content-Disposition": f'attachment; filename="{filename}"'}
         )
     elif fmt == "pdf":
-        pdf_bytes = ProjectResearchReportService.export_report_to_pdf(report)
+        pdf_bytes = ProjectResearchReportService.export_report_to_pdf(report, db=db, format_type="complete")
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",

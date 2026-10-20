@@ -23,12 +23,37 @@ def generate_proposal_draft(
     db: Session = Depends(get_db)
 ):
     """
-    Synthesize a structured research proposal draft from an existing research direction.
+    Synthesize a structured research proposal draft from an existing research direction,
+    or create a user-provided manual research idea proposal.
     Supports LLM-guided synthesis when configured, with automatic template fallback.
     """
     try:
-        logger.info(f"API Endpoint POST /api/research-directions/draft called with direction_id='{payload.direction_id}'")
-        result = ProposalDraftService.synthesize_draft(db=db, direction_id=payload.direction_id)
+        if payload.is_manual_idea or (payload.manual_title and not payload.direction_id):
+            logger.info("API Endpoint POST /api/research-directions/draft called for manual research idea")
+            return ProposalDraftService.create_manual_proposal(
+                db=db,
+                title=payload.manual_title or "User-Provided Research Idea",
+                description=payload.manual_description,
+                project_id=payload.project_id
+            )
+
+        if not payload.direction_id and not payload.title:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Either 'direction_id' or 'title' or 'manual_title' must be provided."
+            )
+
+        logger.info(f"API Endpoint POST /api/research-directions/draft called with direction_id='{payload.direction_id}', project_id={payload.project_id}")
+        result = ProposalDraftService.synthesize_draft(
+            db=db,
+            direction_id=payload.direction_id,
+            project_id=payload.project_id,
+            opportunity_family_id=payload.opportunity_family_id,
+            payload_title=payload.title,
+            payload_research_question=payload.research_question,
+            payload_supporting_papers=payload.supporting_papers,
+            regenerate=getattr(payload, "regenerate", False)
+        )
         return result
     except HTTPException:
         raise

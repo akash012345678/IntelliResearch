@@ -1,0 +1,198 @@
+{
+  "project_id": 6,
+  "paper_ids": [
+    9
+  ],
+  "response": {
+    "project": {
+      "id": 6,
+      "name": "Report API Project",
+      "description": "API Test Description",
+      "status": "ACTIVE",
+      "created_at": "2026-10-06T05:03:55",
+      "updated_at": "2026-10-06T05:03:55"
+    },
+    "collection_summary": {
+      "total_papers": 1,
+      "total_nodes": 8,
+      "total_edges": 7,
+      "total_keywords": 1,
+      "total_algorithms": 1,
+      "total_datasets": 1,
+      "total_methodologies": 0,
+      "total_domains": 1,
+      "total_metrics": 0,
+      "total_tasks": 0,
+      "total_applications": 0
+    },
+    "paper_landscape": [
+      {
+        "id": 9,
+        "title": "API Paper 1",
+        "abstract": "Abstract for API Paper 1",
+        "year": null,
+        "authors": [],
+        "keywords": [
+          "API",
+          "AI",
+          "Vision"
+        ],
+        "algorithms": [
+          "CNN"
+        ],
+        "datasets": [
+          "MNIST"
+        ],
+        "methodologies": [
+          "Supervised"
+        ],
+        "application_domains": [
+          "Image Processing"
+        ],
+        "metrics": [],
+        "tasks": [],
+        "applications": [],
+        "keyword_details": [
+          {
+            "name": "API",
+            "keyword": "API",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "API Paper 1",
+            "evidence_section": "Title",
+            "source": "title"
+          }
+        ],
+        "algorithm_details": [],
+        "dataset_details": [],
+        "methodology_details": []
+      }
+    ],
+    "shared_concepts": {
+      "keywords": [
+        {
+          "name": "API",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 100.0,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 9,
+              "title": "API Paper 1"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "algorithms": [
+        {
+          "name": "CNN",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 100.0,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "USED_MODEL"
+          ],
+          "papers": [
+            {
+              "paper_id": 9,
+              "title": "API Paper 1"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "datasets": [
+        {
+          "name": "MNIST",
+          "type": "dataset",
+          "paper_count": 1,
+          "coverage_percentage": 100.0,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "EXPERIMENTAL_DATASET"
+          ],
+          "papers": [
+            {
+              "paper_id": 9,
+              "title": "API Paper 1"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "methodologies": [],
+      "domains": [
+        {
+          "name": "Image Processing",
+          "type": "domain",
+          "paper_count": 1,
+          "coverage_percentage": 100.0,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "PRIMARY_DOMAIN"
+          ],
+          "papers": [
+            {
+              "paper_id": 9,
+              "title": "API Paper 1"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "metrics": [],
+      "tasks": [],
+      "applications": []
+    },
+    "paper_relationships": [],
+    "research_gaps": [],
+    "underrepresented_concepts": [
+      {
+        "name": "CNN",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 100.0,
+        "related_paper_count": 1,
+        "explanation": "Concept 'CNN' appears in only 1 out of 1 project papers (100.0% coverage)."
+      },
+      {
+        "name": "MNIST",
+        "type": "dataset",
+        "paper_count": 1,
+        "coverage_percentage": 100.0,
+        "related_paper_count": 1,
+        "explanation": "Concept 'MNIST' appears in only 1 out of 1 project papers (100.0% coverage)."
+      },
+      {
+        "name": "Image Processing",
+        "type": "domain",
+        "paper_count": 1,
+        "coverage_percentage": 100.0,
+        "related_paper_count": 1,
+        "explanation": "Concept 'Image Processing' appears in only 1 out of 1 project papers (100.0% coverage)."
+      },
+      {
+        "name": "API",
+        "type": "keyword",
+        "paper_count": 1,
+        "coverage_percentage": 100.0,
+        "related_paper_count": 1,
+        "explanation": "Concept 'API' appears in only 1 out of 1 project papers (100.0% coverage)."
+      }
+    ],
+    "candidate_research_directions": [],
+    "proposal_traceability": [],
+    "insight_summary": "This research project contains 1 assigned paper(s) forming a project knowledge graph of 8 nodes and 7 connections. Most frequently referenced algorithms include CNN. There are 4 underrepresented concept(s) and 0 potential research gap(s) identified strictly within this project collection, supporting 0 candidate research direction(s)."
+  }
+}

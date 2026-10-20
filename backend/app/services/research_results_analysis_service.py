@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
-from app.models.project_model import ResearchProject, ResearchExperiment, ExperimentRun, ExperimentResult
+from app.models.project_model import ResearchProject, ResearchExperiment, ExperimentRun, ExperimentResult, SavedResearchDirection
 from app.schemas.results_analysis_schema import (
     MetricAnalysisItem,
     TradeoffAnalysisItem,
@@ -250,14 +250,26 @@ class ResearchResultsAnalysisService:
             if len(next_steps) == 0:
                 next_steps.append("Proceed to integrate recorded findings into your draft research proposal.")
 
+        exp_cfg = exp.execution_config or {}
+        exp_num = exp_cfg.get("experiment_number", 1)
+        variables = exp_cfg.get("variables")
+        metrics = exp_cfg.get("metrics", [])
+        source_plan = exp_cfg.get("source_plan_title")
+
         return SingleExperimentAnalysisResponse(
             experiment_id=exp.id,
+            experiment_number=exp_num,
             experiment_name=exp.name,
             experiment_type=exp.experiment_type,
             status=exp.status,
+            purpose=exp.purpose,
             dataset_name=ds_name,
             baseline_alg=base_name,
             proposed_arch=prop_name,
+            variables=variables,
+            configured_metrics=metrics,
+            direction_id=exp.direction_id,
+            source_plan_title=source_plan,
             run_count=len(runs),
             metrics_count=len(all_metric_names),
             metrics_analysis=metrics_analysis,
@@ -273,15 +285,40 @@ class ResearchResultsAnalysisService:
         )
 
     @classmethod
-    def get_project_results_analysis(cls, db: Session, project_id: int) -> ProjectResultsAnalysisSummaryResponse:
+    def get_project_results_analysis(cls, db: Session, project_id: int, direction_id: Optional[str] = None) -> ProjectResultsAnalysisSummaryResponse:
         """
-        Aggregate results analysis across all experiments in a research project.
+        Aggregate results analysis across experiments in a research project for a selected opportunity/plan.
         """
         project = db.query(ResearchProject).filter(ResearchProject.id == project_id).first()
         if not project:
             raise HTTPException(status_code=404, detail=f"Research project {project_id} not found")
 
-        exps = project.experiments or []
+        saved_dirs = db.query(SavedResearchDirection).filter(SavedResearchDirection.project_id == project_id).order_by(SavedResearchDirection.created_at.desc()).all()
+        saved_dirs_list = [
+            {
+                "id": sd.id,
+                "source_direction_id": sd.source_direction_id,
+                "title": sd.title,
+                "created_at": sd.created_at.isoformat()
+            }
+            for sd in saved_dirs
+        ]
+
+        target_dir_id = direction_id
+        if not target_dir_id and len(saved_dirs) > 0:
+            target_dir_id = saved_dirs[0].source_direction_id
+
+        all_exps = project.experiments or []
+        if target_dir_id:
+            dir_exps = [e for e in all_exps if e.direction_id == target_dir_id]
+            exps = dir_exps if len(dir_exps) > 0 else all_exps
+        else:
+            exps = all_exps
+
+        matching_sd = next((sd for sd in saved_dirs if sd.source_direction_id == target_dir_id), None)
+        opp_title = matching_sd.title if matching_sd else (f"Opportunity ({target_dir_id})" if target_dir_id else "All Project Opportunities")
+        plan_title = f"Research Methodology Plan ({target_dir_id})" if target_dir_id else "Research Methodology Plan"
+
         exp_analyses: List[SingleExperimentAnalysisResponse] = [cls._analyze_single_experiment(e) for e in exps]
 
         completed_count = sum(1 for e in exps if e.status == "COMPLETED")
@@ -290,13 +327,13 @@ class ResearchResultsAnalysisService:
         ablation_count = sum(1 for e in exps if e.experiment_type == "ABLATION")
         multi_run_count = sum(1 for e in exps if len(e.runs) >= 2)
         hyp_count = sum(1 for ea in exp_analyses if ea.hypothesis_assessment.assessment_status != "INSUFFICIENT_DATA")
-        lims_count = sum(1 for e in exps if e.limitations and len(e.limitations.trim() if isinstance(e.limitations, str) else "") > 0)
+        lims_count = sum(1 for e in exps if e.limitations and len(str(e.limitations).strip()) > 0)
 
         has_results = results_rec_count > 0
         notice = "Analysis is based only on experimental results recorded in this project." if has_results else "Your experiments are planned, but no experimental results have been recorded yet."
 
         if not has_results:
-            proj_conclusion = "No experimental results have been recorded for this project yet. Complete experiment runs externally and enter verified measurements to generate evidence-based conclusions."
+            proj_conclusion = "No experimental results have been recorded for this opportunity yet. Complete experiment runs externally and enter verified measurements to generate evidence-based conclusions."
             guidance = [
                 "Open the Research Experiment Workspace.",
                 "Configure your dataset and model hyperparameters.",
@@ -304,7 +341,7 @@ class ResearchResultsAnalysisService:
                 "Record real baseline vs proposed measurements."
             ]
         else:
-            proj_conclusion = f"Across {results_rec_count} experiment(s) with recorded results in this project, empirical measurements have been systematically evaluated. "
+            proj_conclusion = f"Across {results_rec_count} experiment(s) with recorded results for opportunity '{opp_title}', empirical measurements have been systematically evaluated. "
             if hyp_count > 0:
                 proj_conclusion += f"Evidence was consistent with alternative hypotheses in {hyp_count} experiment(s). "
             proj_conclusion += "Conclusions remain strictly grounded in student-entered empirical data."
@@ -315,6 +352,13 @@ class ResearchResultsAnalysisService:
             ]
 
         return ProjectResultsAnalysisSummaryResponse(
+            project_id=project.id,
+            project_name=project.name,
+            opportunity_id=target_dir_id,
+            opportunity_title=opp_title,
+            research_plan_id=f"plan_{target_dir_id}" if target_dir_id else None,
+            research_plan_title=plan_title,
+            saved_directions=saved_dirs_list,
             total_experiments=len(exps),
             completed_experiments=completed_count,
             results_recorded_count=results_rec_count,

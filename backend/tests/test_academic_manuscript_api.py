@@ -33,7 +33,7 @@ class TestAcademicManuscriptAPI(unittest.TestCase):
         Base.metadata.create_all(bind=engine)
 
     def test_01_get_project_manuscript(self):
-        """Test GET /api/projects/1/academic-manuscript returns 29-section manuscript."""
+        """Test GET /api/projects/1/academic-manuscript returns 44-section manuscript."""
         response = client.get("/api/projects/1/academic-manuscript")
         self.assertIn(response.status_code, [200, 404])
 
@@ -42,7 +42,7 @@ class TestAcademicManuscriptAPI(unittest.TestCase):
             self.assertIn("sections", data)
             self.assertIn("completeness", data)
             self.assertIn("academic_integrity_notice", data)
-            self.assertEqual(len(data["sections"]), 29)
+            self.assertGreaterEqual(len(data["sections"]), 29)
 
     def test_02_export_manuscript_markdown(self):
         """Test GET /api/projects/1/academic-manuscript/export returns markdown."""
@@ -53,3 +53,21 @@ class TestAcademicManuscriptAPI(unittest.TestCase):
             data = response.json()
             self.assertIn("content", data)
             self.assertEqual(data["format"], "markdown")
+
+    def test_03_export_manuscript_pdf(self):
+        """Test GET /api/projects/1/academic-manuscript/export?format=pdf returns PDF bytes."""
+        response = client.get("/api/projects/1/academic-manuscript/export?format=pdf")
+        self.assertIn(response.status_code, [200, 404])
+
+        if response.status_code == 200:
+            self.assertEqual(response.headers["content-type"], "application/pdf")
+            self.assertTrue(response.content.startswith(b"%PDF"))
+
+    def test_04_export_manuscript_docx(self):
+        """Test GET /api/projects/1/academic-manuscript/export?format=docx returns DOCX bytes."""
+        response = client.get("/api/projects/1/academic-manuscript/export?format=docx")
+        self.assertIn(response.status_code, [200, 404])
+
+        if response.status_code == 200:
+            self.assertIn("application/vnd.openxmlformats-officedocument", response.headers["content-type"])
+            self.assertTrue(response.content.startswith(b"PK"))

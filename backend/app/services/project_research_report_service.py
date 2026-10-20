@@ -7,10 +7,11 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 import fitz  # PyMuPDF
 
-from app.models.project_model import ResearchProject, ProjectPaper, SavedResearchDirection
+from app.models.project_model import ResearchProject, ProjectPaper, SavedResearchDirection, ResearchExperiment
 from app.models.paper_model import ResearchPaper
 from app.models.proposal_model import Proposal, ProposalVersion
 from app.services.project_intelligence_service import ProjectIntelligenceService
+from app.services.academic_report_pdf_engine import AcademicReportPdfEngine
 from app.schemas.project_report_schema import (
     ProjectSummaryInfo,
     ResearchProblemSummary,
@@ -495,8 +496,73 @@ class ProjectResearchReportService:
         return json.dumps(data, indent=2, default=str)
 
     @classmethod
-    def export_report_to_pdf(cls, report: ProjectResearchReportResponse) -> bytes:
-        """Generate formatted PDF document for Project Research Report using PyMuPDF."""
+    def export_report_to_pdf(
+        cls,
+        report: ProjectResearchReportResponse,
+        db: Optional[Session] = None,
+        format_type: str = "complete"
+    ) -> bytes:
+        """
+        Generate PDF document for Project Research Report.
+        - format_type='complete': Generates full 29-section Academic Research Report PDF.
+        - format_type='overview': Generates 1-page executive summary overview PDF.
+        """
+        if format_type.lower().strip() == "overview":
+            return cls.export_report_overview_to_pdf(report)
+
+        # Gather complete project state from DB if db session provided
+        project_id = report.project.project_id
+        project = None
+        papers = []
+        proposal = None
+        plan = None
+        experiments = []
+        results_analysis = {}
+
+        if db:
+            try:
+                project = db.query(ResearchProject).filter(ResearchProject.id == project_id).first()
+                paper_ids = [pp.paper_id for pp in db.query(ProjectPaper).filter(ProjectPaper.project_id == project_id).all()]
+                if paper_ids:
+                    papers = db.query(ResearchPaper).filter(ResearchPaper.id.in_(paper_ids)).all()
+                
+                # Latest Proposal
+                prop_rec = db.query(Proposal).filter(Proposal.project_id == project_id).order_by(Proposal.created_at.desc()).first()
+                if prop_rec and prop_rec.versions:
+                    proposal = prop_rec.versions[-1].proposal_data
+                
+                # Selected Plan
+                plan_rec = db.query(SavedResearchDirection).filter(SavedResearchDirection.project_id == project_id).order_by(SavedResearchDirection.created_at.desc()).first()
+                if plan_rec:
+                    plan = plan_rec.direction_data
+                
+                # Experiments
+                experiments = db.query(ResearchExperiment).filter(ResearchExperiment.project_id == project_id).all()
+                
+                # Results Analysis
+                try:
+                    from app.services.research_results_analysis_service import ResearchResultsAnalysisService
+                    results_analysis = ResearchResultsAnalysisService.get_project_results_analysis(db=db, project_id=project_id)
+                except Exception as e:
+                    logger.warning(f"Could not load results analysis for report PDF: {e}")
+            except Exception as e:
+                logger.error(f"Error loading project context for PDF generation: {e}")
+
+        engine = AcademicReportPdfEngine(
+            report=report,
+            project=project or report.project,
+            papers=papers,
+            proposal=proposal,
+            plan=plan,
+            experiments=experiments,
+            results_analysis=results_analysis,
+            db=db
+        )
+        return engine.generate_pdf()
+
+    @classmethod
+    def export_report_overview_to_pdf(cls, report: ProjectResearchReportResponse) -> bytes:
+        """Generate short 1-page overview PDF document for Project Research Report using PyMuPDF."""
         doc = fitz.open()
         page = doc.new_page(width=595, height=842)  # A4
 
@@ -541,7 +607,7 @@ class ProjectResearchReportService:
         cs = report.collection_summary
 
         # Title Block
-        draw_text(f"Project Research Report: {p.name}", fontsize=15, is_bold=True, color=(0.05, 0.15, 0.35), line_spacing=18)
+        draw_text(f"Project Research Overview Report: {p.name}", fontsize=15, is_bold=True, color=(0.05, 0.15, 0.35), line_spacing=18)
         timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
         draw_text(f"Project ID: {p.project_id} | Status: {p.status} | Generated: {timestamp}", fontsize=8.5, color=(0.4, 0.4, 0.4), line_spacing=11)
         y += 6
@@ -572,25 +638,6 @@ class ProjectResearchReportService:
             if pl.get("abstract"):
                 draw_text(f"  {pl.get('abstract')[:140]}...", fontsize=8.5, color=(0.3, 0.3, 0.3), line_spacing=11)
             y += 4
-
-        y += 6
-
-        # 4. Identified Gaps & Directions
-        draw_text(f"4. Research Gaps & Directions ({len(report.research_gaps)} Gaps, {len(report.candidate_research_directions)} Directions)", fontsize=11, is_bold=True, color=(0.1, 0.2, 0.4), line_spacing=14)
-        for g in report.research_gaps[:5]:
-            draw_text(f"Gap: {g.get('missing_concept')} (Score: {g.get('gap_score')})", fontsize=9, is_bold=True, color=(0.4, 0.2, 0.0), line_spacing=12)
-        for d in report.candidate_research_directions[:5]:
-            draw_text(f"Direction: {d.get('title')}", fontsize=9, is_bold=True, color=(0.0, 0.3, 0.2), line_spacing=12)
-        y += 8
-
-        # 5. Evidence Traceability Chains
-        draw_text(f"5. Evidence Traceability Chains ({len(report.evidence_traceability)} Papers)", fontsize=11, is_bold=True, color=(0.1, 0.2, 0.4), line_spacing=14)
-        for tr in report.evidence_traceability:
-            c_str = f"{tr.concept.type}:{tr.concept.name}" if tr.concept else "No concept"
-            g_str = f"Gap {tr.gap.gap_score}" if tr.gap else "No gap"
-            d_str = tr.research_direction.title[:25] + "..." if tr.research_direction else "No direction"
-            p_str = f"Proposal (v{tr.proposal.latest_version})" if tr.proposal else "No proposal"
-            draw_text(f"• Paper #{tr.paper_id} → {c_str} → {g_str} → {d_str} → {p_str}", fontsize=8.5, line_spacing=11)
 
         y += 12
         page = check_page_space(20)

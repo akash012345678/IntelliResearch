@@ -112,3 +112,14 @@ class ExperimentSummaryResponse(BaseModel):
 
 class ImportPlanExperimentsRequest(BaseModel):
     direction_id: str
+
+
+class ImportPlanExperimentsResponse(BaseModel):
+    project_id: int
+    research_plan_id: Optional[str] = None
+    opportunity_id: Optional[str] = None
+    imported_count: int
+    skipped_count: int
+    message: str
+    experiments: List[ExperimentResponse] = []
+

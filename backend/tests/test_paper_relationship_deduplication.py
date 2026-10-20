@@ -211,6 +211,16 @@ class TestPaperRelationshipDeduplication(unittest.TestCase):
         # 5 papers -> 5*4/2 = 10 pairs
         self.assertEqual(len(rels), 10)
 
+    def test_10_knowledge_graph_service_prevents_self_loops(self):
+        """TEST 10: KnowledgeGraphService.add_relationship strictly rejects self-loops (source_id == target_id)."""
+        from app.services.knowledge_graph_service import KnowledgeGraphService
+        kg = KnowledgeGraphService()
+        kg.add_paper_node(1, "Test Paper")
+        
+        added = kg.add_relationship("paper_1", "paper_1", "CITES")
+        self.assertFalse(added)
+        self.assertFalse(kg.get_graph().has_edge("paper_1", "paper_1"))
+
 
 if __name__ == "__main__":
     unittest.main()

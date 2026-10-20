@@ -5,9 +5,12 @@ import ExperimentDetailModal from './ExperimentDetailModal';
 export default function ResearchExperimentWorkspace({ projectId, directionId }) {
   const [summary, setSummary] = useState(null);
   const [experiments, setExperiments] = useState([]);
+  const [savedDirections, setSavedDirections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [activeDirId, setActiveDirId] = useState(directionId || 'dir_1');
 
   // Selected experiment for modal
   const [selectedExp, setSelectedExp] = useState(null);
@@ -26,11 +29,30 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
   const [newProposed, setNewProposed] = useState('');
 
   useEffect(() => {
+    if (directionId) {
+      setActiveDirId(directionId);
+    }
+  }, [directionId]);
+
+  useEffect(() => {
     fetchExperimentData();
+    fetchProjectSavedDirections();
   }, [projectId]);
 
-  const fetchExperimentData = async () => {
-    setLoading(true);
+  const fetchProjectSavedDirections = async () => {
+    try {
+      const res = await apiService.getProjectDirections(projectId);
+      setSavedDirections(res.data || []);
+      if (!directionId && res.data && res.data.length > 0) {
+        setActiveDirId(res.data[0].source_direction_id || 'dir_1');
+      }
+    } catch (err) {
+      console.error('Failed to load project saved directions:', err);
+    }
+  };
+
+  const fetchExperimentData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError(null);
     try {
       const [sumRes, expRes] = await Promise.all([
@@ -43,18 +65,37 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
       console.error('Failed to load project experiments:', err);
       setError('Unable to load research experiment workspace.');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
+  const handleExperimentUpdated = (updatedExp) => {
+    if (updatedExp) {
+      setExperiments(prev => prev.map(e => e.id === updatedExp.id ? updatedExp : e));
+      if (updatedExp.status === 'COMPLETED') {
+        setImportMessage({ type: 'success', text: `✓ Experiment "${updatedExp.name}" marked as COMPLETED.` });
+      }
+    }
+    fetchExperimentData(false);
+  };
+
   const handleImportPlan = async () => {
-    const targetDirId = directionId || 'dir_1';
+    const targetDirId = activeDirId || directionId || 'dir_1';
     setImporting(true);
+    setImportMessage(null);
     try {
-      await apiService.importMethodologyExperiments(projectId, targetDirId);
+      const res = await apiService.importMethodologyExperiments(projectId, targetDirId);
+      const data = res.data;
+      if (data && data.message) {
+        setImportMessage({ type: 'success', text: data.message });
+      } else {
+        setImportMessage({ type: 'success', text: 'Planned experiments imported successfully.' });
+      }
       await fetchExperimentData();
     } catch (err) {
       console.error('Failed to import experiments from methodology plan:', err);
+      const errDetail = err.response?.data?.detail || 'Failed to import methodology experiments.';
+      setImportMessage({ type: 'error', text: errDetail });
     } finally {
       setImporting(false);
     }
@@ -65,13 +106,14 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
     if (!newName.trim()) return;
     try {
       await apiService.createProjectExperiment(projectId, {
-        direction_id: directionId || 'dir_1',
+        direction_id: activeDirId || directionId || 'dir_1',
         name: newName,
         purpose: newPurpose,
         experiment_type: newType,
-        status: 'PLANNED',
+        status: 'NOT_STARTED',
         baseline_config: { algorithm: newBaseline },
-        proposed_config: { architecture: newProposed }
+        proposed_config: { architecture: newProposed },
+        execution_config: { origin: 'CUSTOM' }
       });
       setIsCreateOpen(false);
       setNewName('');
@@ -115,6 +157,22 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
             <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-bold text-[11px]">
               🧪 RESEARCH EXPERIMENT WORKSPACE
             </span>
+            {savedDirections.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-xl px-2.5 py-1 text-[11px]">
+                <span className="text-slate-400 font-bold">Plan:</span>
+                <select
+                  value={activeDirId}
+                  onChange={(e) => setActiveDirId(e.target.value)}
+                  className="bg-transparent font-bold text-indigo-300 outline-none cursor-pointer"
+                >
+                  {savedDirections.map((sd) => (
+                    <option key={sd.id} value={sd.source_direction_id} className="bg-slate-950 text-slate-200">
+                      {sd.title} ({sd.source_direction_id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
           <h2 className="text-xl font-black text-slate-100">Lab Notebook & Empirical Result Tracker</h2>
           <p className="text-xs text-slate-400">
@@ -126,7 +184,7 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
           <button
             onClick={handleImportPlan}
             disabled={importing}
-            className="px-4 py-2 rounded-2xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs transition-all flex items-center gap-1.5"
+            className="px-4 py-2 rounded-2xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs transition-all flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>📥</span> {importing ? 'Importing...' : 'Import Planned Experiments'}
           </button>
@@ -138,6 +196,21 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
           </button>
         </div>
       </div>
+
+      {/* IMPORT NOTIFICATION BANNER */}
+      {importMessage && (
+        <div className={`p-4 rounded-2xl border text-xs font-semibold flex items-center justify-between transition-all ${
+          importMessage.type === 'success' 
+            ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' 
+            : 'bg-rose-950/40 border-rose-500/40 text-rose-300'
+        }`}>
+          <div className="flex items-center gap-2">
+            <span>{importMessage.type === 'success' ? '✓' : '⚠️'}</span>
+            <span>{importMessage.text}</span>
+          </div>
+          <button onClick={() => setImportMessage(null)} className="text-slate-400 hover:text-slate-200 text-xs">✕</button>
+        </div>
+      )}
 
       {/* DASHBOARD METRIC CARDS */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -186,11 +259,11 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
               className="px-2.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-bold outline-none"
             >
               <option value="ALL">All Statuses</option>
+              <option value="NOT_STARTED">NOT_STARTED</option>
               <option value="PLANNED">PLANNED</option>
-              <option value="READY">READY</option>
               <option value="IN_PROGRESS">IN_PROGRESS</option>
               <option value="COMPLETED">COMPLETED</option>
-              <option value="BLOCKED">BLOCKED</option>
+              <option value="NEEDS_ATTENTION">NEEDS_ATTENTION</option>
             </select>
           </div>
         </div>
@@ -215,16 +288,18 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
           <button
             onClick={handleImportPlan}
             disabled={importing}
-            className="btn-primary py-2 px-5 text-xs font-bold"
+            className="btn-primary py-2 px-5 text-xs font-bold disabled:opacity-50"
           >
-            Import Planned Experiments
+            {importing ? 'Importing...' : 'Import Planned Experiments'}
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredExperiments.map((exp) => {
+          {filteredExperiments.map((exp, idx) => {
             const runCount = exp.runs?.length || 0;
             const hasResults = exp.runs?.some(r => r.results?.length > 0);
+            const origin = exp.execution_config?.origin || (exp.direction_id ? 'PLANNED' : 'CUSTOM');
+            const expNum = exp.execution_config?.experiment_number || (idx + 1);
 
             return (
               <div
@@ -232,21 +307,44 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
                 className="glass-card rounded-3xl p-5 border border-slate-800 hover:border-indigo-500/40 transition-all flex flex-col justify-between space-y-4 bg-slate-900/60"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-300 font-mono font-bold text-[10px]">
-                      {exp.experiment_type}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-mono font-bold text-[10px]">
+                        EXP #{expNum}
+                      </span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase ${
+                        origin === 'PLANNED'
+                          ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
+                          : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                      }`}>
+                        {origin}
+                      </span>
+                    </div>
+
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${
                       exp.status === 'COMPLETED' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' :
                       exp.status === 'IN_PROGRESS' ? 'bg-amber-500/10 border-amber-500/30 text-amber-300' :
-                      'bg-slate-800 border-slate-700 text-slate-400'
+                      exp.status === 'NEEDS_ATTENTION' ? 'bg-rose-500/10 border-rose-500/30 text-rose-400' :
+                      'bg-slate-800 border-slate-700 text-slate-300'
                     }`}>
                       {exp.status}
                     </span>
                   </div>
 
-                  <h3 className="text-sm font-extrabold text-slate-100 line-clamp-2">{exp.name}</h3>
-                  <p className="text-xs text-slate-400 line-clamp-2">{exp.purpose || 'No purpose description entered.'}</p>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-extrabold text-slate-100 line-clamp-2">{exp.name}</h3>
+                    <p className="text-xs text-slate-400 line-clamp-2">{exp.purpose || 'No purpose description entered.'}</p>
+                  </div>
+
+                  {/* PROVENANCE / PLAN ORIGIN INFO */}
+                  <div className="text-[10px] text-slate-400 bg-slate-950/40 p-2 rounded-xl border border-slate-850 space-y-1 font-mono">
+                    {exp.execution_config?.source_plan_title && (
+                      <div className="truncate"><strong className="text-slate-300">Plan:</strong> {exp.execution_config.source_plan_title}</div>
+                    )}
+                    {exp.direction_id && (
+                      <div className="truncate"><strong className="text-slate-300">Opportunity ID:</strong> {exp.direction_id}</div>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800">
                     <div>
@@ -258,13 +356,19 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
                       <span className="font-semibold text-indigo-300 truncate block">{exp.proposed_config?.architecture || 'Not set'}</span>
                     </div>
                   </div>
+
+                  {exp.execution_config?.metrics && exp.execution_config.metrics.length > 0 && (
+                    <div className="text-[10px] text-amber-300/90 font-mono truncate">
+                      <strong>Metrics:</strong> {Array.isArray(exp.execution_config.metrics) ? exp.execution_config.metrics.join(', ') : exp.execution_config.metrics}
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t border-slate-800/80 pt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${hasResults ? 'bg-emerald-400' : 'bg-slate-600'}`}></span>
                     <span className="text-[11px] text-slate-400 font-bold">
-                      {hasResults ? `${runCount} Runs Recorded` : 'Results not yet recorded'}
+                      {hasResults ? `${runCount} Run(s) Recorded` : 'Results not yet recorded'}
                     </span>
                   </div>
 
@@ -377,7 +481,7 @@ export default function ResearchExperimentWorkspace({ projectId, directionId }) 
           experiment={selectedExp}
           projectId={projectId}
           onClose={() => setSelectedExp(null)}
-          onRefresh={fetchExperimentData}
+          onRefresh={handleExperimentUpdated}
         />
       )}
     </div>

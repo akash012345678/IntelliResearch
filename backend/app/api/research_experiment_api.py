@@ -13,7 +13,8 @@ from app.schemas.experiment_schema import (
     ExperimentResultCreate,
     ExperimentResultResponse,
     ExperimentSummaryResponse,
-    ImportPlanExperimentsRequest
+    ImportPlanExperimentsRequest,
+    ImportPlanExperimentsResponse
 )
 from app.services.research_experiment_service import ResearchExperimentService
 
@@ -74,7 +75,7 @@ def create_project_experiment(
 
 @router.post(
     "/{project_id}/experiments/import-plan",
-    response_model=List[ExperimentResponse],
+    response_model=ImportPlanExperimentsResponse,
     status_code=status.HTTP_200_OK
 )
 def import_methodology_plan_experiments(

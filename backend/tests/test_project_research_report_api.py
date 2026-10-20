@@ -9,47 +9,10 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 from app.main import app as fastapi_app
-from app.database.session import SessionLocal, Base, engine
 from app.models.paper_model import ResearchPaper
 from app.models.project_model import ResearchProject, ProjectPaper
-from app.models.proposal_model import Proposal, ProposalVersion
-import app.models  # Ensure all models register with Base.metadata
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
-from app.database.session import get_db
-
-TEST_ENGINE = create_engine(
-    "sqlite:///./test_fixture.db",
-    connect_args={"check_same_thread": False}
-)
-TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=TEST_ENGINE)
-
-def override_get_db():
-    db = TestSessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-fastapi_app.dependency_overrides[get_db] = override_get_db
 client = TestClient(fastapi_app)
-
-
-@pytest.fixture
-def setup_db():
-    Base.metadata.create_all(bind=TEST_ENGINE)
-    db = TestSessionLocal()
-    db.query(ProposalVersion).delete()
-    db.query(Proposal).delete()
-    db.query(ProjectPaper).delete()
-    db.query(ResearchProject).delete()
-    db.query(ResearchPaper).delete()
-    db.commit()
-    yield db
-    db.close()
-
 
 
 def create_test_paper(db: Session, title: str):
@@ -88,11 +51,10 @@ def assign_paper(db: Session, project_id: int, paper_id: int):
 
 class TestProjectResearchReportAPI:
 
-    def test_01_get_report_success(self, setup_db):
-        db = setup_db
-        p1 = create_test_paper(db, "API Paper 1")
-        proj = create_test_project(db, "Report API Project")
-        assign_paper(db, proj.id, p1.id)
+    def test_01_get_report_success(self, db_session: Session):
+        p1 = create_test_paper(db_session, "API Paper 1")
+        proj = create_test_project(db_session, "Report API Project")
+        assign_paper(db_session, proj.id, p1.id)
 
         response = client.get(f"/api/projects/{proj.id}/research-report")
         assert response.status_code == 200
@@ -102,16 +64,15 @@ class TestProjectResearchReportAPI:
         assert "research_problem_summary" in data
         assert "evidence_traceability" in data
 
-    def test_02_get_report_non_existent_project(self, setup_db):
+    def test_02_get_report_non_existent_project(self, db_session: Session):
         response = client.get("/api/projects/999999/research-report")
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
-    def test_03_get_report_with_query_filters(self, setup_db):
-        db = setup_db
-        p1 = create_test_paper(db, "Filtered Paper")
-        proj = create_test_project(db)
-        assign_paper(db, proj.id, p1.id)
+    def test_03_get_report_with_query_filters(self, db_session: Session):
+        p1 = create_test_paper(db_session, "Filtered Paper")
+        proj = create_test_project(db_session)
+        assign_paper(db_session, proj.id, p1.id)
 
         response = client.get(
             f"/api/projects/{proj.id}/research-report?include_proposals=false&include_relationships=false&include_gaps=false&include_directions=false"
@@ -123,11 +84,10 @@ class TestProjectResearchReportAPI:
         assert data["research_gaps"] == []
         assert data["candidate_research_directions"] == []
 
-    def test_04_export_markdown(self, setup_db):
-        db = setup_db
-        p1 = create_test_paper(db, "Export MD Paper")
-        proj = create_test_project(db)
-        assign_paper(db, proj.id, p1.id)
+    def test_04_export_markdown(self, db_session: Session):
+        p1 = create_test_paper(db_session, "Export MD Paper")
+        proj = create_test_project(db_session)
+        assign_paper(db_session, proj.id, p1.id)
 
         response = client.get(f"/api/projects/{proj.id}/research-report/export?format=markdown")
         assert response.status_code == 200
@@ -135,11 +95,10 @@ class TestProjectResearchReportAPI:
         assert "attachment; filename=" in response.headers["content-disposition"]
         assert "# Project Research Report" in response.text
 
-    def test_05_export_json(self, setup_db):
-        db = setup_db
-        p1 = create_test_paper(db, "Export JSON Paper")
-        proj = create_test_project(db)
-        assign_paper(db, proj.id, p1.id)
+    def test_05_export_json(self, db_session: Session):
+        p1 = create_test_paper(db_session, "Export JSON Paper")
+        proj = create_test_project(db_session)
+        assign_paper(db_session, proj.id, p1.id)
 
         response = client.get(f"/api/projects/{proj.id}/research-report/export?format=json")
         assert response.status_code == 200
@@ -147,20 +106,18 @@ class TestProjectResearchReportAPI:
         data = response.json()
         assert data["project"]["project_id"] == proj.id
 
-    def test_06_export_pdf(self, setup_db):
-        db = setup_db
-        p1 = create_test_paper(db, "Export PDF Paper")
-        proj = create_test_project(db)
-        assign_paper(db, proj.id, p1.id)
+    def test_06_export_pdf(self, db_session: Session):
+        p1 = create_test_paper(db_session, "Export PDF Paper")
+        proj = create_test_project(db_session)
+        assign_paper(db_session, proj.id, p1.id)
 
         response = client.get(f"/api/projects/{proj.id}/research-report/export?format=pdf")
         assert response.status_code == 200
         assert "application/pdf" in response.headers["content-type"]
         assert response.content.startswith(b"%PDF")
 
-    def test_07_export_invalid_format(self, setup_db):
-        db = setup_db
-        proj = create_test_project(db)
+    def test_07_export_invalid_format(self, db_session: Session):
+        proj = create_test_project(db_session)
 
         response = client.get(f"/api/projects/{proj.id}/research-report/export?format=invalid_fmt")
         assert response.status_code == 422

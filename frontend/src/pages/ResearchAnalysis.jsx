@@ -232,12 +232,26 @@ export default function ResearchAnalysis() {
       paper_id: p.paper_id
     }));
 
-    const links = (data.paper_relationships || []).map(r => ({
-      source: `paper_${r.source_paper_id}`,
-      target: `paper_${r.target_paper_id}`,
-      similarity: r.similarity_score,
-      label: `${(r.similarity_score * 100).toFixed(1)}%`
-    }));
+    const seenPairs = new Set();
+    const links = [];
+    (data.paper_relationships || []).forEach(r => {
+      const src = r.source_paper_id;
+      const tgt = r.target_paper_id;
+      if (src === tgt || !src || !tgt) return;
+      const lowId = src < tgt ? src : tgt;
+      const highId = src < tgt ? tgt : src;
+      const key = `${lowId}:${highId}`;
+      if (seenPairs.has(key)) return;
+      seenPairs.add(key);
+
+      const sim = r.similarity_score > 1 ? r.similarity_score : r.similarity_score * 100;
+      links.push({
+        source: `paper_${src}`,
+        target: `paper_${tgt}`,
+        similarity: r.similarity_score,
+        label: `${sim.toFixed(1)}%`
+      });
+    });
 
     return { nodes, links };
   }, [data]);

@@ -50,11 +50,13 @@ export default function KnowledgeGraph() {
       setStatistics(gData.statistics || null);
       setGraphData({
         nodes: gData.nodes || [],
-        links: (gData.edges || []).map(e => ({
-          source: e.source,
-          target: e.target,
-          relation: e.relation
-        }))
+        links: (gData.edges || [])
+          .filter(e => e.source && e.target && e.source !== e.target)
+          .map(e => ({
+            source: e.source,
+            target: e.target,
+            relation: e.relation
+          }))
       });
 
       setTopEntities(topEntitiesResp.data || null);

@@ -122,8 +122,17 @@ export const apiService = {
   /**
    * Synthesize a structured academic research proposal draft from a research direction ID.
    */
-  generateProposalDraft: (directionId) => {
-    return apiClient.post('/research-directions/draft', { direction_id: directionId });
+  generateProposalDraft: (payloadOrDirectionId, optionalProjectId = null) => {
+    let body;
+    if (typeof payloadOrDirectionId === 'string') {
+      body = { direction_id: payloadOrDirectionId };
+      if (optionalProjectId) {
+        body.project_id = parseInt(optionalProjectId, 10);
+      }
+    } else {
+      body = payloadOrDirectionId;
+    }
+    return apiClient.post('/research-directions/draft', body);
   },
 
   // =========================================================================
@@ -157,9 +166,12 @@ export const apiService = {
   updateProposal: (proposalId, data) => apiClient.patch(`/proposals/${proposalId}`, data),
   compareProposalVersions: (proposalId, versionA, versionB) => apiClient.get(`/proposals/${proposalId}/compare?version_a=${versionA}&version_b=${versionB}`),
   restoreProposalVersion: (proposalId, versionNumber) => apiClient.post(`/proposals/${proposalId}/restore/${versionNumber}`),
-
+  exportProposal: (proposalId, format = 'markdown', versionNumber = null) => apiClient.get(`/proposals/${proposalId}/export?format=${encodeURIComponent(format)}${versionNumber ? `&version_number=${versionNumber}` : ''}`, { responseType: 'blob' }),
+  exportRawProposal: (payload, format = 'markdown', versionNumber = 1) => apiClient.post(`/proposals/export?format=${encodeURIComponent(format)}&version_number=${versionNumber}`, payload, { responseType: 'blob' }),
   getProjectResearchIntelligence: (projectId, params) => apiClient.get(`/projects/${projectId}/research-intelligence`, { params }),
+  reindexProject: (projectId) => apiClient.post(`/projects/${projectId}/reindex`),
   getProjectResearchReport: (projectId, params) => apiClient.get(`/projects/${projectId}/research-report`, { params }),
+  getProjectTraceability: (projectId) => apiClient.get(`/projects/${projectId}/traceability`),
   exportProjectResearchReport: (projectId, format, params) => apiClient.get(`/projects/${projectId}/research-report/export`, {
     params: { format, ...params },
     responseType: format === 'json' ? 'json' : 'blob'
@@ -191,7 +203,7 @@ export const apiService = {
   recordExperimentResults: (projectId, runId, resultsPayload) => apiClient.post(`/projects/${projectId}/experiments/runs/${runId}/results`, resultsPayload),
 
   // PHASE 7 PART 6 — RESEARCH RESULTS ANALYSIS & EVIDENCE-BASED CONCLUSION ENGINE APIs
-  getProjectResultsAnalysis: (projectId) => apiClient.get(`/projects/${projectId}/results-analysis`),
+  getProjectResultsAnalysis: (projectId, directionId = null) => apiClient.get(`/projects/${projectId}/results-analysis${directionId ? `?direction_id=${encodeURIComponent(directionId)}` : ''}`),
   getSingleExperimentAnalysis: (projectId, experimentId) => apiClient.get(`/projects/${projectId}/experiments/${experimentId}/results-analysis`),
   getProjectSafeConclusion: (projectId) => apiClient.get(`/projects/${projectId}/results-analysis/conclusion`),
 
@@ -203,7 +215,14 @@ export const apiService = {
   generateProjectManuscript: (projectId) => apiClient.post(`/projects/${projectId}/academic-manuscript/generate`),
   saveManuscriptVersion: (projectId, payload) => apiClient.post(`/projects/${projectId}/academic-manuscript/versions`, payload),
   getManuscriptVersions: (projectId) => apiClient.get(`/projects/${projectId}/academic-manuscript/versions`),
-  exportManuscript: (projectId, format = 'markdown') => apiClient.get(`/projects/${projectId}/academic-manuscript/export?format=${format}`),
+  restoreManuscriptVersion: (projectId, versionNumber) => apiClient.post(`/projects/${projectId}/academic-manuscript/versions/${versionNumber}/restore`),
+  compareManuscriptVersions: (projectId, v1, v2) => apiClient.get(`/projects/${projectId}/academic-manuscript/versions/compare?v1=${v1}&v2=${v2}`),
+  exportManuscript: (projectId, format = 'markdown') => {
+    if (format === 'pdf' || format === 'docx') {
+      return apiClient.get(`/projects/${projectId}/academic-manuscript/export?format=${format}`, { responseType: 'blob' });
+    }
+    return apiClient.get(`/projects/${projectId}/academic-manuscript/export?format=${format}`);
+  },
 
   // PHASE 8 PART 2 — ACADEMIC PAPER QUALITY, CITATION INTELLIGENCE & REFERENCE MANAGEMENT APIs
   getManuscriptCitations: (projectId) => apiClient.get(`/projects/${projectId}/academic-manuscript/citations`),

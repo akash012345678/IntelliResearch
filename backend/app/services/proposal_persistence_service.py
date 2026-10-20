@@ -73,8 +73,6 @@ class ProposalPersistenceService:
         )
         db.add(ver1)
         db.commit()
-        db.refresh(proposal)
-
         logger.info(f"Created Proposal id={proposal.id}, uuid='{proposal.proposal_uuid}', version=1")
         return cls._to_proposal_response(proposal, ver1)
 
@@ -113,6 +111,8 @@ class ProposalPersistenceService:
             "abstract": data.abstract,
             "problem_statement": data.problem_statement,
             "research_motivation": data.research_motivation,
+            "research_question": data.research_question,
+            "objectives": data.objectives,
             "related_work_synthesis": data.related_work_synthesis,
             "research_gap": data.research_gap,
             "proposed_methodology": data.proposed_methodology,

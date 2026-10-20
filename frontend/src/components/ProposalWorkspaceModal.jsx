@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { normalizeProposal } from '../utils/proposalNormalizer';
 
 export default function ProposalWorkspaceModal({ proposal: initialProposal, proposalId: initialProposalId, onClose, onSelectPaperId }) {
   // Current active proposal content & version metadata
-  const [activeProposal, setActiveProposal] = useState(initialProposal || null);
+  const [activeProposal, setActiveProposal] = useState(initialProposal ? normalizeProposal(initialProposal) : null);
   const [dbProposalId, setDbProposalId] = useState(initialProposalId || null);
   const [activeVersionNumber, setActiveVersionNumber] = useState(1);
   const [versionHistory, setVersionHistory] = useState([]);
@@ -47,8 +48,8 @@ export default function ProposalWorkspaceModal({ proposal: initialProposal, prop
     try {
       const res = await apiService.getProposal(pId);
       setDbProposalId(res.data.id);
-      setActiveVersionNumber(res.data.current_version.version_number);
-      setActiveProposal(res.data.current_version.proposal_data);
+      setActiveVersionNumber(res.data.current_version?.version_number || 1);
+      setActiveProposal(normalizeProposal(res.data.current_version?.proposal_data || res.data));
       fetchVersionHistory(res.data.id);
     } catch (err) {
       console.error('Failed to load saved proposal:', err);
@@ -76,6 +77,8 @@ export default function ProposalWorkspaceModal({ proposal: initialProposal, prop
       abstract: activeProposal.abstract || '',
       problem_statement: activeProposal.problem_statement || '',
       research_motivation: activeProposal.research_motivation || '',
+      research_question: activeProposal.research_question || '',
+      objectives: Array.isArray(activeProposal.objectives) ? activeProposal.objectives.join('\n') : (activeProposal.objectives || ''),
       related_work_synthesis: activeProposal.related_work_synthesis || '',
       research_gap: activeProposal.research_gap || '',
       proposed_methodology: activeProposal.proposed_methodology || '',
@@ -116,6 +119,8 @@ export default function ProposalWorkspaceModal({ proposal: initialProposal, prop
         abstract: editFormData.abstract.trim() || undefined,
         problem_statement: editFormData.problem_statement.trim() || undefined,
         research_motivation: editFormData.research_motivation.trim() || undefined,
+        research_question: editFormData.research_question ? editFormData.research_question.trim() : undefined,
+        objectives: editFormData.objectives ? editFormData.objectives.split('\n').map((s) => s.trim()).filter(Boolean) : undefined,
         related_work_synthesis: editFormData.related_work_synthesis.trim() || undefined,
         research_gap: editFormData.research_gap.trim() || undefined,
         proposed_methodology: editFormData.proposed_methodology.trim() || undefined,
@@ -130,7 +135,7 @@ export default function ProposalWorkspaceModal({ proposal: initialProposal, prop
 
       const res = await apiService.updateProposal(dbProposalId, payload);
       setActiveVersionNumber(res.data.version_number);
-      setActiveProposal(res.data.proposal_data);
+      setActiveProposal(normalizeProposal(res.data.proposal_data || res.data));
       setIsEditMode(false);
       setIsChangeSummaryOpen(false);
       setSaveSuccessMsg(`Saved new Version ${res.data.version_number} successfully!`);
@@ -206,7 +211,7 @@ export default function ProposalWorkspaceModal({ proposal: initialProposal, prop
     try {
       const res = await apiService.getProposalVersion(dbProposalId, verNum);
       setActiveVersionNumber(res.data.version_number);
-      setActiveProposal(res.data.proposal_data);
+      setActiveProposal(normalizeProposal(res.data.proposal_data || res.data));
       setIsEditMode(false);
     } catch (err) {
       console.error('Failed to load version:', err);
@@ -223,7 +228,7 @@ export default function ProposalWorkspaceModal({ proposal: initialProposal, prop
     try {
       const res = await apiService.restoreProposalVersion(dbProposalId, verNum);
       setActiveVersionNumber(res.data.version_number);
-      setActiveProposal(res.data.proposal_data);
+      setActiveProposal(normalizeProposal(res.data.proposal_data || res.data));
       setIsEditMode(false);
       setSaveSuccessMsg(`Restored Version ${verNum} as new Version ${res.data.version_number}!`);
       fetchVersionHistory(dbProposalId);
@@ -305,11 +310,18 @@ ${activeProposal.disclaimer}
   const handleQuickExport = async (format) => {
     setExportingFormat(format);
     try {
-      const response = await apiService.exportResearchDirections(format, 10);
-      let filename = `intelliresearch_proposal_v${activeVersionNumber}.${format === 'markdown' ? 'md' : format}`;
-      const blob = new Blob([response.data], {
-        type: (response.headers && response.headers['content-type']) || 'application/octet-stream'
-      });
+      let response;
+      const ext = format === 'markdown' ? 'md' : format;
+      const filename = `proposal_v${activeVersionNumber}.${ext}`;
+      
+      if (dbProposalId) {
+        response = await apiService.exportProposal(dbProposalId, format, activeVersionNumber);
+      } else {
+        response = await apiService.exportRawProposal(activeProposal, format, activeVersionNumber);
+      }
+
+      const mimeType = format === 'pdf' ? 'application/pdf' : (format === 'json' ? 'application/json' : 'text/markdown');
+      const blob = new Blob([response.data], { type: (response.headers && response.headers['content-type']) || mimeType });
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
@@ -320,6 +332,7 @@ ${activeProposal.disclaimer}
       window.URL.revokeObjectURL(downloadUrl);
     } catch (err) {
       console.error('Failed to export proposal:', err);
+      alert('Unable to generate proposal export. Please try again.');
     } finally {
       setExportingFormat(null);
     }
@@ -631,6 +644,30 @@ ${activeProposal.disclaimer}
                   </div>
                 </div>
 
+                {/* Research Question & Objectives */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-5 rounded-2xl bg-slate-950/70 border border-emerald-500/20 space-y-2">
+                    <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>❓</span> Testable Research Question
+                    </h3>
+                    <p className="text-slate-100 font-semibold leading-relaxed">{activeProposal.research_question || 'Formulate research question based on target concepts.'}</p>
+                  </div>
+                  <div className="p-5 rounded-2xl bg-slate-950/70 border border-emerald-500/20 space-y-2">
+                    <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>🎯</span> Measurable Research Objectives
+                    </h3>
+                    {Array.isArray(activeProposal.objectives) && activeProposal.objectives.length > 0 ? (
+                      <ul className="space-y-1 text-slate-300 list-none">
+                        {activeProposal.objectives.map((obj, idx) => (
+                          <li key={idx} className="text-xs leading-relaxed">{obj}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-slate-300 leading-relaxed">{activeProposal.objectives || 'Define measurable objectives.'}</p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Motivation & Related Work */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-850 space-y-2">
@@ -680,16 +717,30 @@ ${activeProposal.disclaimer}
 
                   <div className="p-5 rounded-2xl bg-slate-950/70 border border-slate-850 space-y-3">
                     <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <span>📊</span> Candidate Datasets & Plan
+                      <span>📊</span> Candidate Datasets & Provenance
                     </h3>
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {Array.isArray(activeProposal.candidate_datasets) ? activeProposal.candidate_datasets.map((ds, idx) => (
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {Array.isArray(activeProposal.datasets_provenance) && activeProposal.datasets_provenance.length > 0 ? (
+                        activeProposal.datasets_provenance.map((dsp, idx) => (
+                          <div key={idx} className="flex flex-wrap items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-semibold">
+                            <span className="text-emerald-300 font-bold">{dsp.dataset_name}</span>
+                            {dsp.source_paper_ids && dsp.source_paper_ids.length > 0 && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 text-indigo-300 border border-indigo-500/30 font-mono">
+                                Paper {Array.isArray(dsp.source_paper_ids) ? dsp.source_paper_ids.join(', ') : dsp.source_paper_ids}
+                              </span>
+                            )}
+                            <span className="text-[9px] px-1.5 py-0.5 rounded uppercase font-extrabold bg-emerald-950 text-emerald-400 border border-emerald-500/30">
+                              {dsp.evidence_status === 'RECORDED_EVIDENCE' || dsp.evidence_status === 'RECORDED' ? 'RECORDED EVIDENCE' : 'PROPOSED FOR EVALUATION'}
+                            </span>
+                          </div>
+                        ))
+                      ) : Array.isArray(activeProposal.candidate_datasets) ? activeProposal.candidate_datasets.map((ds, idx) => (
                         <span key={idx} className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 text-xs font-semibold">
                           {ds}
                         </span>
                       )) : <span className="text-slate-400">{activeProposal.candidate_datasets}</span>}
                     </div>
-                    <p className="text-slate-300 leading-relaxed">{activeProposal.dataset_evaluation_plan}</p>
+                    <p className="text-slate-300 leading-relaxed whitespace-pre-line">{activeProposal.dataset_evaluation_plan}</p>
                   </div>
                 </div>
 
@@ -734,9 +785,14 @@ ${activeProposal.disclaimer}
 
                 {/* Evidence Metrics Summary */}
                 <div className="p-5 rounded-2xl bg-slate-950/90 border border-indigo-500/20 space-y-3">
-                  <h3 className="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <span>📊</span> Evidence Summary (Protected Evidence Metrics)
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h3 className="text-xs font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                      <span>📊</span> Evidence Summary (Protected Intelligence Signals)
+                    </h3>
+                    <span className="text-[10px] text-slate-400 italic">
+                      Note: These values represent collection-level research-intelligence signals and do not represent experimental performance.
+                    </span>
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-center">
                     <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800">
                       <span className="text-[10px] text-slate-400 block uppercase font-semibold">Gap Score</span>

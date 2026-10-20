@@ -179,31 +179,52 @@ export default function OpportunityExplorerModal({
                 <span>📄</span> B. What Current Research Does (Collection Baseline)
               </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {evalData.what_current_research_does && evalData.what_current_research_does.map((paper, idx) => (
-                  <div
-                    key={idx}
-                    onClick={() => paper.paper_id && onViewPaper && onViewPaper(paper.paper_id)}
-                    className="p-4 rounded-2xl bg-slate-950/70 border border-slate-850 hover:border-indigo-500/40 cursor-pointer transition-colors space-y-1.5"
-                  >
-                    <span className="text-[10px] font-mono text-indigo-400 font-bold block">
-                      {paper.role}
-                    </span>
-                    <h4 className="text-xs font-bold text-slate-100 line-clamp-2">
-                      {paper.title}
-                    </h4>
-                    {paper.key_methods && (
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {paper.key_methods.map((m, mIdx) => (
-                          <span key={mIdx} className="px-2 py-0.5 rounded bg-slate-850 text-slate-300 text-[10px]">
-                            {m}
-                          </span>
-                        ))}
+              {(() => {
+                const papers = evalData.what_current_research_does || [];
+                const seenIds = new Set();
+                const uniquePapers = papers.filter(p => {
+                  const pId = p.paper_id ?? p.title;
+                  if (seenIds.has(pId)) return false;
+                  seenIds.add(pId);
+                  return true;
+                });
+
+                if (uniquePapers.length === 0) {
+                  return (
+                    <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-850 text-slate-400 italic text-xs">
+                      No direct supporting paper found for this opportunity.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {uniquePapers.map((paper, idx) => (
+                      <div
+                        key={paper.paper_id || idx}
+                        onClick={() => paper.paper_id && onViewPaper && onViewPaper(paper.paper_id)}
+                        className="p-4 rounded-2xl bg-slate-950/70 border border-slate-850 hover:border-indigo-500/40 cursor-pointer transition-colors space-y-1.5"
+                      >
+                        <span className="text-[10px] font-mono text-indigo-400 font-bold block">
+                          {paper.role}
+                        </span>
+                        <h4 className="text-xs font-bold text-slate-100 line-clamp-2">
+                          {paper.title}
+                        </h4>
+                        {paper.key_methods && paper.key_methods.length > 0 && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {paper.key_methods.map((m, mIdx) => (
+                              <span key={mIdx} className="px-2 py-0.5 rounded bg-slate-850 text-slate-300 text-[10px]">
+                                {m}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
             </div>
 
             {/* C. WHAT APPEARS TO BE MISSING */}

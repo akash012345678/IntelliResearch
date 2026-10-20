@@ -99,8 +99,8 @@ class TestResearchGapService(unittest.TestCase):
     # 7. Underrepresentation calculation
     def test_07_underrepresentation_calculation(self):
         """Verify underrepresentation score is computed accurately."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN"], datasets=[], methodologies=[], application_domains=[])
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]
@@ -112,8 +112,8 @@ class TestResearchGapService(unittest.TestCase):
     # 8. Gap score formula
     def test_08_gap_score_formula(self):
         """Verify gap_score is bounded in [0.0, 1.0]."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN"], datasets=[], methodologies=[], application_domains=[])
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]
@@ -126,8 +126,8 @@ class TestResearchGapService(unittest.TestCase):
     # 9. Confidence thresholds
     def test_09_confidence_thresholds(self):
         """Verify confidence string is one of High, Moderate, Low."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN"], datasets=[], methodologies=[], application_domains=[])
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]
@@ -139,8 +139,8 @@ class TestResearchGapService(unittest.TestCase):
     # 10. Minimum two-signal requirement
     def test_10_minimum_two_signal_requirement(self):
         """Verify candidates with fewer than 2 active signals (> 0.1) are excluded."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN"], datasets=[], methodologies=[], application_domains=[])
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]
@@ -159,8 +159,8 @@ class TestResearchGapService(unittest.TestCase):
     # 11. Explanation generation
     def test_11_explanation_generation(self):
         """Verify explanation is a non-empty list of text strings."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN"], datasets=[], methodologies=[], application_domains=[])
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]
@@ -173,8 +173,8 @@ class TestResearchGapService(unittest.TestCase):
     # 12. Deterministic ranking
     def test_12_deterministic_ranking(self):
         """Verify gap results are sorted by gap_score DESC."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN", "RNN"], datasets=[], methodologies=[], application_domains=[])
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]
@@ -185,22 +185,22 @@ class TestResearchGapService(unittest.TestCase):
 
     # 13. Duplicate gap prevention
     def test_13_duplicate_gap_prevention(self):
-        """Verify candidate gap list contains no duplicate (source_paper_id, target_node_id) pairs."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN"], datasets=[], methodologies=[], application_domains=[])
+        """Verify candidate gap list contains no duplicate canonical relationship keys."""
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]
 
         gaps = self.gap_service.detect_gaps(mock_db, top_k=50)
-        pairs = [(g["source_paper_id"], g["target_node_id"]) for g in gaps]
-        self.assertEqual(len(pairs), len(set(pairs)))
+        keys = [g["evidence"]["canonical_relationship_key"] for g in gaps]
+        self.assertEqual(len(keys), len(set(keys)))
 
     # 14. top_k behavior
     def test_14_top_k_behavior(self):
         """Verify gap results list is truncated to top_k limit."""
-        p1 = ResearchPaper(id=1, title="P1", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=[])
-        p2 = ResearchPaper(id=2, title="P2", keywords=[], algorithms=["YOLO", "CNN", "RNN"], datasets=[], methodologies=[], application_domains=[])
+        p1 = ResearchPaper(id=1, title="Evaluating YOLO Object Detection", keywords=[], algorithms=["YOLO"], datasets=[], methodologies=[], application_domains=["Agriculture"])
+        p2 = ResearchPaper(id=2, title="Explainable AI for Plant Disease", keywords=[], algorithms=["CNN"], datasets=[], methodologies=["Explainable AI"], application_domains=["Agriculture"])
         self.kg_service.build_graph([p1, p2])
         mock_db = MagicMock()
         mock_db.query.return_value.all.return_value = [p1, p2]

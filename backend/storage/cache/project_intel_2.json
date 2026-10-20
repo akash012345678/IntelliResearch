@@ -1,0 +1,147 @@
+{
+  "project_id": 2,
+  "paper_ids": [
+    2
+  ],
+  "response": {
+    "project": {
+      "id": 2,
+      "name": "Traceability Test Project",
+      "description": "Testing dynamic traceability pipeline",
+      "status": "ACTIVE",
+      "created_at": "2026-10-06T05:04:39",
+      "updated_at": "2026-10-06T05:04:39"
+    },
+    "collection_summary": {
+      "total_papers": 1,
+      "total_nodes": 3,
+      "total_edges": 2,
+      "total_keywords": 2,
+      "total_algorithms": 0,
+      "total_datasets": 0,
+      "total_methodologies": 0,
+      "total_domains": 0,
+      "total_metrics": 0,
+      "total_tasks": 0,
+      "total_applications": 0
+    },
+    "paper_landscape": [
+      {
+        "id": 2,
+        "title": "Traceability Test Paper on Neural Networks",
+        "abstract": "Test paper abstract",
+        "year": null,
+        "authors": [],
+        "keywords": [
+          "Traceability Test",
+          "Neural Networks"
+        ],
+        "algorithms": [],
+        "datasets": [],
+        "methodologies": [],
+        "application_domains": [],
+        "metrics": [],
+        "tasks": [],
+        "applications": [],
+        "keyword_details": [
+          {
+            "name": "Traceability Test",
+            "keyword": "Traceability Test",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "Traceability Test Paper on Neural Networks",
+            "evidence_section": "Title",
+            "source": "title"
+          },
+          {
+            "name": "Neural Networks",
+            "keyword": "Neural Networks",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "Traceability Test Paper on Neural Networks",
+            "evidence_section": "Title",
+            "source": "title"
+          }
+        ],
+        "algorithm_details": [],
+        "dataset_details": [],
+        "methodology_details": []
+      }
+    ],
+    "shared_concepts": {
+      "keywords": [
+        {
+          "name": "Traceability Test",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 100.0,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Traceability Test Paper on Neural Networks"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Neural Networks",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 100.0,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Traceability Test Paper on Neural Networks"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "algorithms": [],
+      "datasets": [],
+      "methodologies": [],
+      "domains": [],
+      "metrics": [],
+      "tasks": [],
+      "applications": []
+    },
+    "paper_relationships": [],
+    "research_gaps": [],
+    "underrepresented_concepts": [
+      {
+        "name": "Traceability Test",
+        "type": "keyword",
+        "paper_count": 1,
+        "coverage_percentage": 100.0,
+        "related_paper_count": 1,
+        "explanation": "Concept 'Traceability Test' appears in only 1 out of 1 project papers (100.0% coverage)."
+      }
+    ],
+    "candidate_research_directions": [],
+    "proposal_traceability": [
+      {
+        "proposal_id": 2,
+        "proposal_uuid": "test-prop-uuid-2",
+        "title": "Proposed Neural Architecture Direction Proposal",
+        "status": "DRAFT",
+        "current_version_number": 1,
+        "source_direction_id": "dir_1",
+        "supporting_papers": [],
+        "supporting_concepts": []
+      }
+    ],
+    "insight_summary": "This research project contains 1 assigned paper(s) forming a project knowledge graph of 3 nodes and 2 connections. Most frequently referenced algorithms include Machine Learning. There are 1 underrepresented concept(s) and 0 potential research gap(s) identified strictly within this project collection, supporting 0 candidate research direction(s)."
+  }
+}

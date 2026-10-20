@@ -190,6 +190,8 @@ class ResearchProjectService:
         db.add(assoc)
         db.commit()
         db.refresh(assoc)
+        from app.services.project_intelligence_service import ProjectIntelligenceService
+        ProjectIntelligenceService.invalidate_cache(project_id)
         logger.info(f"Assigned paper_id={paper_id} to project_id={project_id}")
 
         return cls._build_project_paper_response(assoc)
@@ -222,6 +224,8 @@ class ResearchProjectService:
 
         if added:
             db.commit()
+            from app.services.project_intelligence_service import ProjectIntelligenceService
+            ProjectIntelligenceService.invalidate_cache(project_id)
             logger.info(f"Bulk assigned {len(added)} papers to project_id={project_id}")
 
         return BulkAddPapersResponse(
@@ -246,6 +250,8 @@ class ResearchProjectService:
 
         db.delete(assoc)
         db.commit()
+        from app.services.project_intelligence_service import ProjectIntelligenceService
+        ProjectIntelligenceService.invalidate_cache(project_id)
         logger.info(f"Removed paper_id={paper_id} from project_id={project_id}")
 
     @classmethod

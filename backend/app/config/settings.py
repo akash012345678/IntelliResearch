@@ -8,13 +8,15 @@ from pydantic import Field
 # Base directory of the backend folder
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+db_path = (BASE_DIR / "intelliresearch.db").as_posix()
+
 class Settings(BaseSettings):
     PROJECT_NAME: str = "IntelliResearch API"
     API_V1_STR: str = "/api"
     
     # Database Configuration
     DATABASE_URL: str = Field(
-        default="postgresql+psycopg2://postgres:postgres@localhost:5432/intelliresearch"
+        default=f"sqlite:///{db_path}"
     )
     
     # Upload Configurations

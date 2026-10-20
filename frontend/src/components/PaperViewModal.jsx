@@ -2,6 +2,90 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { apiService } from '../services/api';
 
+// Helper functions for paper view modal role grouping and provenance rendering
+function getEntitiesByRole(paper, category, targetRoles) {
+  if (!paper) return [];
+  const detailKey = `${category}_details`;
+  const legacyKey = category === 'keyword' ? 'keywords' : (category === 'domain' ? 'application_domains' : `${category}s`);
+
+  if (paper[detailKey] && Array.isArray(paper[detailKey]) && paper[detailKey].length > 0) {
+    return paper[detailKey].filter(item => {
+      const r = (item.role || '').toLowerCase();
+      return targetRoles.some(tr => r === tr.toLowerCase());
+    });
+  }
+
+  // Fallback to legacy string arrays
+  if (targetRoles.includes("primary") || targetRoles.includes("experimental")) {
+    const legacyList = paper[legacyKey] || [];
+    return legacyList.map(name => ({
+      name,
+      category,
+      role: targetRoles[0],
+      confidence: 0.90,
+      evidence_section: "Abstract",
+      source: "abstract",
+      evidence_text: `${name} extracted from paper text.`
+    }));
+  }
+  return [];
+}
+
+function hasAnyEntities(paper, category) {
+  if (!paper) return false;
+  const detailKey = `${category}_details`;
+  const legacyKey = category === 'keyword' ? 'keywords' : (category === 'domain' ? 'application_domains' : `${category}s`);
+  return (paper[detailKey] && paper[detailKey].length > 0) || (paper[legacyKey] && paper[legacyKey].length > 0);
+}
+
+function renderEntityPillGroup(groupLabel, items, colorTheme, badgeLabel, selectedEvidence, setSelectedEvidence) {
+  if (!items || items.length === 0) return null;
+
+  const themeStyles = {
+    emerald: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20",
+    amber: "bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20",
+    indigo: "bg-indigo-500/10 border-indigo-500/30 text-indigo-300 hover:bg-indigo-500/20",
+    rose: "bg-rose-500/10 border-rose-500/30 text-rose-300 hover:bg-rose-500/20",
+    slate: "bg-slate-800/40 border-slate-700/40 text-slate-300 hover:bg-slate-800/60"
+  };
+
+  const badgeStyles = {
+    emerald: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+    amber: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+    indigo: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
+    rose: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+    slate: "bg-slate-700/40 text-slate-400 border-slate-600/40"
+  };
+
+  return (
+    <div className="space-y-1 pt-1">
+      <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+        {groupLabel} ({items.length})
+      </span>
+      <div className="flex flex-wrap gap-1.5">
+        {items.map((item, idx) => {
+          const isSelected = selectedEvidence && selectedEvidence.name === item.name;
+          return (
+            <button
+              key={idx}
+              onClick={() => setSelectedEvidence(isSelected ? null : item)}
+              className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-all duration-200 flex items-center gap-1.5 cursor-pointer text-left ${
+                themeStyles[colorTheme] || themeStyles.slate
+              } ${isSelected ? 'ring-2 ring-indigo-400 scale-[1.02]' : ''}`}
+              title="Click to view evidence text and provenance"
+            >
+              <span>{item.name}</span>
+              <span className={`px-1.5 py-px rounded text-[9px] font-bold border uppercase tracking-tight ${badgeStyles[colorTheme] || badgeStyles.slate}`}>
+                {badgeLabel}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function PaperViewModal({ paperId, onClose }) {
   const [currentPaperId, setCurrentPaperId] = useState(paperId);
   const [paper, setPaper] = useState(null);
@@ -9,6 +93,9 @@ export default function PaperViewModal({ paperId, onClose }) {
   const [error, setError] = useState('');
   const [searchText, setSearchText] = useState('');
   const [matchCount, setMatchCount] = useState(0);
+
+  // Active evidence item for provenance inspector
+  const [selectedEvidence, setSelectedEvidence] = useState(null);
 
   // Related Papers state
   const [relatedPapers, setRelatedPapers] = useState([]);
@@ -195,79 +282,192 @@ export default function PaperViewModal({ paperId, onClose }) {
                 </div>
               )}
 
-              {/* Extracted Metadata Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/40 p-4 rounded-3xl border border-slate-850/80">
-                {/* Keywords */}
-                <div className="space-y-2">
-                  <h5 className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
-                    Keywords
-                  </h5>
-                  <div className="flex flex-wrap gap-1.5">
-                    {paper.keywords && paper.keywords.length > 0 ? (
-                      paper.keywords.map((kw, i) => (
-                        <span key={i} className="px-2 py-0.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-medium">
-                          {kw}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500 italic">None extracted</span>
+              {/* Extracted Metadata Grid with Role Classification & Provenance */}
+              <div className="space-y-4 bg-slate-900/50 p-5 rounded-3xl border border-slate-800/80">
+                <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                    <svg className="w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    Role-Aware Paper Metadata & Scientific Evidence
+                  </h4>
+                  <span className="text-[11px] text-slate-400 italic">Click entity to inspect provenance & evidence</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* ALGORITHMS */}
+                  <div className="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-850/60">
+                    <h5 className="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center justify-between">
+                      <span>Algorithms</span>
+                      <span className="text-[10px] text-slate-500 font-normal">Primary / Comparison / Mentioned</span>
+                    </h5>
+
+                    {renderEntityPillGroup(
+                      "Primary / Proposed",
+                      getEntitiesByRole(paper, "algorithm", ["primary", "proposed_model"]),
+                      "emerald",
+                      "PRIMARY",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {renderEntityPillGroup(
+                      "Comparison / Baselines",
+                      getEntitiesByRole(paper, "algorithm", ["comparison", "comparison_model", "baseline_model"]),
+                      "amber",
+                      "COMPARISON",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {renderEntityPillGroup(
+                      "Mentioned / Reference",
+                      getEntitiesByRole(paper, "algorithm", ["mentioned", "used_model", "mentioned_model"]),
+                      "slate",
+                      "MENTIONED",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {!hasAnyEntities(paper, "algorithm") && (
+                      <span className="text-xs text-slate-500 italic block">None extracted</span>
+                    )}
+                  </div>
+
+                  {/* DATASETS */}
+                  <div className="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-850/60">
+                    <h5 className="text-[11px] font-bold uppercase tracking-wider text-amber-400 flex items-center justify-between">
+                      <span>Datasets</span>
+                      <span className="text-[10px] text-slate-500 font-normal">Experimental / Benchmark / Mentioned</span>
+                    </h5>
+
+                    {renderEntityPillGroup(
+                      "Experimental Datasets",
+                      getEntitiesByRole(paper, "dataset", ["experimental", "experimental_dataset", "training_dataset", "test_dataset"]),
+                      "amber",
+                      "EXPERIMENTAL",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {renderEntityPillGroup(
+                      "Benchmark Datasets",
+                      getEntitiesByRole(paper, "dataset", ["benchmark", "benchmark_dataset"]),
+                      "indigo",
+                      "BENCHMARK",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {renderEntityPillGroup(
+                      "Mentioned Datasets",
+                      getEntitiesByRole(paper, "dataset", ["mentioned", "background_dataset"]),
+                      "slate",
+                      "MENTIONED",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {!hasAnyEntities(paper, "dataset") && (
+                      <span className="text-xs text-slate-500 italic block">None extracted</span>
+                    )}
+                  </div>
+
+                  {/* METHODOLOGIES */}
+                  <div className="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-850/60">
+                    <h5 className="text-[11px] font-bold uppercase tracking-wider text-rose-400">
+                      Methodologies
+                    </h5>
+
+                    {renderEntityPillGroup(
+                      "Primary Methodologies",
+                      getEntitiesByRole(paper, "methodology", ["primary", "primary_methodology"]),
+                      "rose",
+                      "PRIMARY",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {renderEntityPillGroup(
+                      "Mentioned Methodologies",
+                      getEntitiesByRole(paper, "methodology", ["mentioned", "used_methodology"]),
+                      "slate",
+                      "MENTIONED",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {!hasAnyEntities(paper, "methodology") && (
+                      <span className="text-xs text-slate-500 italic block">None extracted</span>
+                    )}
+                  </div>
+
+                  {/* KEYWORDS / RESEARCH CONCEPTS */}
+                  <div className="space-y-3 bg-slate-950/40 p-4 rounded-2xl border border-slate-850/60">
+                    <h5 className="text-[11px] font-bold uppercase tracking-wider text-indigo-400">
+                      Keywords & Research Concepts
+                    </h5>
+
+                    {renderEntityPillGroup(
+                      "Research Concepts",
+                      getEntitiesByRole(paper, "keyword", ["primary", "mentioned"]),
+                      "indigo",
+                      "CONCEPT",
+                      selectedEvidence,
+                      setSelectedEvidence
+                    )}
+
+                    {!hasAnyEntities(paper, "keyword") && (
+                      <span className="text-xs text-slate-500 italic block">None extracted</span>
                     )}
                   </div>
                 </div>
 
-                {/* Algorithms */}
-                <div className="space-y-2">
-                  <h5 className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-                    Algorithms
-                  </h5>
-                  <div className="flex flex-wrap gap-1.5">
-                    {paper.algorithms && paper.algorithms.length > 0 ? (
-                      paper.algorithms.map((algo, i) => (
-                        <span key={i} className="px-2 py-0.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-medium">
-                          {algo}
+                {/* PROVENANCE EVIDENCE INSPECTOR CARD */}
+                {selectedEvidence && (
+                  <div className="mt-3 p-4 rounded-2xl bg-indigo-950/40 border border-indigo-500/40 text-xs space-y-2 animate-fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-indigo-200 text-sm">{selectedEvidence.name}</span>
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                          {selectedEvidence.role ? selectedEvidence.role.toUpperCase() : 'EXTRACTED'}
                         </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500 italic">None extracted</span>
-                    )}
-                  </div>
-                </div>
+                        <span className="text-slate-400 text-[11px]">
+                          Category: <strong className="text-slate-200 capitalize">{selectedEvidence.category || 'Metadata'}</strong>
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setSelectedEvidence(null)}
+                        className="text-slate-400 hover:text-slate-200 text-xs px-2 py-0.5 rounded bg-slate-800/60"
+                      >
+                        Close
+                      </button>
+                    </div>
 
-                {/* Datasets */}
-                <div className="space-y-2">
-                  <h5 className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                    Datasets
-                  </h5>
-                  <div className="flex flex-wrap gap-1.5">
-                    {paper.datasets && paper.datasets.length > 0 ? (
-                      paper.datasets.map((ds, i) => (
-                        <span key={i} className="px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium">
-                          {ds}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500 italic">None extracted</span>
-                    )}
-                  </div>
-                </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-indigo-900/40 text-slate-300">
+                      <div>
+                        <span className="text-slate-500">Section:</span>{' '}
+                        <strong className="text-indigo-300">{selectedEvidence.evidence_section || selectedEvidence.source || 'Abstract'}</strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Confidence:</span>{' '}
+                        <strong className="text-emerald-400">
+                          {selectedEvidence.confidence ? `${(selectedEvidence.confidence * 100).toFixed(0)}%` : 'High'}
+                        </strong>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Source:</span>{' '}
+                        <strong className="text-slate-300 capitalize">{selectedEvidence.source || 'Text context'}</strong>
+                      </div>
+                    </div>
 
-                {/* Methodologies */}
-                <div className="space-y-2">
-                  <h5 className="text-[11px] font-bold uppercase tracking-wider text-rose-400">
-                    Methodologies
-                  </h5>
-                  <div className="flex flex-wrap gap-1.5">
-                    {paper.methodologies && paper.methodologies.length > 0 ? (
-                      paper.methodologies.map((method, i) => (
-                        <span key={i} className="px-2 py-0.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-medium">
-                          {method}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-xs text-slate-500 italic">None extracted</span>
+                    {selectedEvidence.evidence_text && (
+                      <div className="mt-2 p-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-slate-300 italic leading-relaxed">
+                        "{selectedEvidence.evidence_text}"
+                      </div>
                     )}
                   </div>
-                </div>
+                )}
               </div>
 
               {/* --- RELATED RESEARCH PAPERS SECTION --- */}

@@ -56,8 +56,14 @@ export default function PaperCard({ paper, onView, onDelete }) {
         </button>
 
         <button
-          onClick={() => onDelete(paper.id)}
-          className="flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-rose-400 transition-colors"
+          onClick={(e) => {
+            e.stopPropagation();
+            const paperId = paper.id || paper.paper_id;
+            if (onDelete && typeof onDelete === 'function') {
+              onDelete(paperId);
+            }
+          }}
+          className="flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
           title="Delete Research Paper"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">

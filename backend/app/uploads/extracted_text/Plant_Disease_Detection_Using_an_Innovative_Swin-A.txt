@@ -1,0 +1,2675 @@
+VOLUME XX, 2017
+1
+Date of publication xxxx 00, 0000, date of current version xxxx 00, 0000.
+Digital Object Identifier 10.1109/ACCESS.2024.Doi Number
+Plant Disease Detection Using an Innovative
+Swin-Axial Transformer
+AO ZHANG AND WEI LIU*
+School of Information Science and Engineering, Shenyang Ligong University, Shenyang 110158, China
+Corresponding author: Wei Liu (LiuWei19781020@126.com)
+This work was supported in part by the Fundamental Scientific Research Project of Liaoning Provincial Department of Education (JYTMS20230189) and
+the Research Support Plan for Introducing High-Level Talents to Shenyang Ligong University (No. 1010147001131).
+ABSTRACT Plant diseases are a significant threat to global agricultural production, and accurate and
+efficient disease detection is crucial for ensuring food security. With the rapid development of deep
+learning technology, Transformer architectures have demonstrated strong global feature extraction
+capabilities in image classification and detection tasks. However, traditional Transformer models still face
+high computational costs and large parameter volumes when handling multi-scale diseases and complex
+backgrounds. To address this challenge, this paper proposes the Swin-Axial Transformer model based on
+the Swin Transformer. By introducing the TokenEmbedder module, the number of tokens is reduced, and
+multi-scale deep convolution is used to efficiently extract image features, significantly lowering
+computational costs. Furthermore, the Axial Transformer module reduces computational complexity by
+restricting self-attention calculations to local regions along the axial direction. With the combination of the
+Axial Compression module and the Detail Enhancement module, the model can efficiently extract global
+semantic features and effectively supplement local detail information. Compared to traditional global self-
+attention mechanisms, the Axial Transformer successfully avoids computational bottlenecks through axial
+compression strategies. Experimental results show that the model achieves a precision of 79.52% on the
+PlantDoc dataset, 99.79% on the PlantVillage dataset, and 95.69% on a self-constructed fusion dataset. The
+model's parameter size is 14.87 M with a computational load of 2.96 GMac, which represents a reduction of
+46% and 32%, respectively, compared to the Swin Transformer-T model, significantly improving
+computational efficiency. The model presented in this paper provides an efficient and reliable solution for
+large-scale crop disease detection.
+INDEX TERMS Plant disease detection, deep learning, global feature extraction, multi-scale features.
+I. INTRODUCTION
+Plant diseases pose a significant challenge to modern
+agriculture, with globally estimated grain yield reduction
+caused by diseases exceeding 10%. Timely and effective
+disease detection is crucial for preventing the spread of
+diseases and mitigating their impacts. However, plant
+disease detection presents unique challenges compared to
+other object or pattern detection tasks. Disease symptoms
+often vary significantly across different plant species, and
+their
+manifestations
+are
+strongly
+influenced
+by
+environmental
+factors
+such
+as
+changes
+in
+light,
+temperature, and humidity. This makes plant disease
+detection more complex and challenging. Currently, most
+disease detection still relies on manual field evaluations
+by crop pathology experts, a process that is not only
+subjective, time-consuming, and labor-intensive but also
+prone
+to
+omissions
+and
+misjudgments.
+By
+contrast,
+machine learning, particularly deep learning methods, has
+emerged as a vital tool for plant disease diagnosis. In
+recent years, image classification techniques have been
+widely applied in crop disease detection. Traditional
+image classification methods often depend on manually
+designed
+features,
+whose
+selection
+and
+extraction
+accuracy
+directly
+affect
+classification
+performance.
+Factors such as lighting variations and background noise
+in natural environments further degrade image quality,
+exacerbating the impact on classification results.
+In recent years, machine learning methods, particularly
+those used for image classification, have emerged as vital
+tools for crop disease diagnosis. Common techniques
+include
+image
+segmentation,
+feature
+extraction,
+and
+pattern classification to categorize disease images. For
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+example, Kamal et al. [1] employed support vector
+machines (SVM) to classify palm oil leaf disease images,
+achieving an accuracy of 97%. Phadikar et al. [2]
+compared Bayesian classifiers with SVM for classifying
+rice leaf diseases, finding that the Bayesian classifier
+outperformed SVM in both recognition accuracy and
+processing
+speed.
+Furthermore,
+Panchal
+et
+al.
+[3]
+combined
+K-means
+clustering
+with
+HSV-dependent
+classification methods to improve the accuracy of leaf
+infection area recognition. Tabbakh et al. [4] introduced a
+machine
+learning
+approach
+that
+combines
+wavelet
+transforms, GLCM, and statistical features for plant
+disease classification. By applying the SMOTE method to
+address data imbalance and using the LGBM model, they
+achieved a classification accuracy of 94.39%. Bhargava et
+al. [5] employed logistic regression (LR) and SVM
+methods for classifying vegetable and fruit leaf varieties,
+improving accuracy via PCA feature selection. Their
+study also enhanced image quality through Gaussian
+filtering and utilized fuzzy C-means clustering and grab-
+cut
+methods
+for
+image
+segmentation,
+effectively
+extracting leaf features. However, traditional machine
+learning methods depend on manual feature extraction,
+and their performance is heavily influenced by the
+accuracy of feature selection. Additionally, manual feature
+design
+is
+subjective
+and
+struggles
+to
+manage
+the
+complexity of varying disease features. Disease images
+taken in natural environments are also often affected by
+factors such as uneven lighting, which degrades image
+quality and impacts classification results.
+In contrast to traditional machine learning methods,
+deep learning approaches have demonstrated stronger
+feature
+extraction
+capabilities
+in
+plant
+disease
+classification. Convolutional neural networks (CNNs) are
+widely regarded as one of the most effective methods for
+disease identification. CNNs can automatically extract
+relevant features from training data without the need for
+manual feature design, greatly simplifying the disease
+detection process. Falaschetti et al. [6] proposed a CNN-
+based
+classification
+model
+that
+enabled
+real-time
+classification on resource-constrained platforms. Vishnoi
+et al. [7] enhanced classification accuracy for apple leaf
+diseases through data augmentation and a lightweight
+design. Khattak et al. [8] introduced a deep learning
+model based on CNN for citrus fruit and leaf disease
+detection, achieving a classification accuracy of 94.55%.
+Roy et al. [9] proposed a crop growth stage detection
+model that fuses DenseNet with YOLOv4, demonstrating
+high precision and efficiency in complex environments.
+Liang et al. [10] designed a plant disease diagnosis and
+severity
+estimation
+network
+(PD2SE-Net)
+based
+on
+residual
+networks
+and
+Shuffle-Net,
+which
+improved
+disease detection accuracy by enhancing feature extraction
+capabilities. Johnson et al. [11] applied Mask R-CNN and
+residual networks to identify blight spots on potato leaves,
+effectively
+distinguishing
+infected
+areas
+from
+the
+background. Additionally, this study created independent
+models for each color space by converting the dataset into
+multiple color spaces. Hassan et al. [12] introduced a deep
+learning model based on Inception layers and residual
+connections, employing depthwise separable convolutions
+to
+reduce
+the
+number
+of
+parameters
+and
+lower
+computational costs. Due to its efficient feature extraction
+capabilities, CNN has become the dominant technology in
+plant disease classification.
+Recently, the Vision Transformer (ViT) model, inspired
+by the Transformer architecture, has achieved significant
+success in image classification [13]. Tabbakh et al. [14]
+introduced the TLMViT model, which combines transfer
+learning with ViT, enhancing plant disease classification
+through
+multi-stage
+feature
+extraction
+and
+data
+augmentation,
+resulting
+in
+validation
+accuracies
+of
+98.81% and 99.86%. Gole et al. [15] designed the
+lightweight
+ViT
+network
+TrIncNet,
+replacing
+the
+computationally
+expensive
+MLP
+module
+in
+ViT,
+significantly improving both computational efficiency and
+classification performance for plant disease detection
+tasks. Chen et al. [16] proposed the FasterViT model,
+which combines CNN's local learning with ViT's global
+information
+processing
+ability,
+achieving
+excellent
+performance on small sample plant disease datasets while
+reducing training time. Zhang et al. [17] applied the Swin-
+Transformer
+to
+rice disease diagnosis, achieving
+an
+accuracy of 93.4%. Roy et al. [18] developed the
+DenseSPH-YOLOv5 model, which integrates DenseNet
+and
+Swin-Transformer
+prediction
+heads,
+significantly
+improving crop disease detection, particularly in multi-
+scale and complex backgrounds. Thai et al. [19] proposed
+a ViT-based crop leaf disease detection model, applied to
+cassava leaf disease classification. Experimental results
+showed that this model improved accuracy by at least 1%
+compared to traditional CNN models such as EfficientNet
+and ResNet50d on the cassava leaf disease dataset.
+Borhani et al. [20] proposed a combined ViT and
+traditional CNN method, tested and evaluated for plant
+disease
+classification
+tasks,
+finding
+that
+while
+ViT
+improved accuracy, it reduced prediction speed. The
+approach effectively compensated for this speed reduction
+by combining attention blocks with CNN modules.
+Despite the significant progress made by Transformer-
+based models in plant disease detection, existing methods
+still face challenges such as high computational costs and
+model complexity, especially when handling complex
+backgrounds
+and
+multi-scale
+disease
+images,
+where
+traditional models tend to encounter issues with excessive
+computational resource consumption. To address these
+challenges,
+this
+paper
+proposes
+the
+Swin-Axial
+Transformer
+model based on
+the
+Swin
+Transformer
+architecture. The core innovation lies in combining the
+TokenEmbedder
+module
+and
+Axial
+Transformer,
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+successfully overcoming the shortcomings of existing
+methods in terms of computational efficiency, feature
+extraction, and multi-scale modeling. The details are as
+follows:
+1)
+Proposing the TokenEmbedder module: Traditional
+Transformer
+models
+experience
+a
+significant
+increase in computational complexity and memory
+consumption due to the large number of input
+tokens when handling high-resolution images. To
+solve
+this
+problem,
+this
+paper
+proposes
+the
+TokenEmbedder module. This module reduces the
+number
+of
+tokens
+and
+uses
+multi-scale
+deep
+convolutions to efficiently extract image features,
+thereby
+significantly
+reducing
+computational
+complexity
+and
+memory
+consumption.
+TokenEmbedder converts the input features into a
+fixed number of latent tokens, retaining key feature
+information while improving feature extraction
+efficiency, making it particularly suitable for high-
+resolution
+image
+processing.
+By
+reducing
+the
+number of tokens and using efficient convolution
+operations, the TokenEmbedder module provides
+more efficient input for subsequent Transformer
+modules, thereby improving overall computational
+efficiency.
+2)
+Introduction of the Axial Transformer Module:
+Traditional Transformer models use a global self-
+attention
+mechanism
+to
+capture
+long-range
+dependencies. However, when processing large-
+scale images, this approach significantly increases
+computational
+complexity,
+thus
+limiting
+its
+application scope. To address this issue, this paper
+introduces the Axial Transformer module. This
+module
+reduces
+computational
+complexity
+by
+restricting self-attention calculations to local regions
+along the axial directions. By combining the Axial
+Compression module and the Detail Enhancement
+module, it not only efficiently
+extracts
+global
+semantic features but also effectively supplements
+local detail information. The synergy of these two
+modules significantly enhances the feature modeling
+capabilities of the Axial Transformer module in
+complex backgrounds and multi-scale scenarios.
+3)
+Performance
+improvement:
+Compared
+with
+the
+existing
+state-of-the-art
+models,
+the
+Swin-Axial
+Transformer shows significant improvements in
+several quantitative metrics. For example, the Swin-
+Axial Transformer achieves 79.52% precision on the
+PlantDoc dataset, improving 5.08% over the T-CNN
+(ResNet-101) model's 74.44%; on the PlantVillage
+dataset, the model achieves 99.79% precision, 1.07%
+better than the TLMViT model's 98.72%; and on the
+self-constructed fusion dataset, the model achieves
+95.69% precision, 2.45% better than the Swin
+Transformer-T
+model's
+93.34%.
+The
+model's
+parameter size is 14.87 M, and the computation is
+2.96 GMac, reducing by 46% and 32%, respectively,
+compared
+to
+the
+Swin
+Transformer-T
+model,
+significantly improving computational efficiency.
+These experimental results show that the Swin-Axial
+Transformer not only surpasses several mainstream
+models in terms of accuracy but also shows a
+significant advantage in computational resource
+consumption.
+II. Swin-Axial Transformer Model
+The
+Swin-Axial
+Transformer
+model
+integrates
+the
+advantages of the Swin Transformer, TokenEmbedder,
+and Axial Transformer to create an efficient deep learning
+architecture. As depicted in Figure 1, the architecture
+consists of four stages. The first three stages for feature
+processing are inspired by the design philosophy of the
+Swin Transformer, incorporating the Shifted Window
+Attention mechanism to efficiently extract image features.
+By progressively reducing the image size and increasing
+the number of feature channels, hierarchical feature
+representation is achieved, enabling the extraction of rich
+semantic information at multiple levels.
+In Stage 1, the input image ( �× �× 3 ) is first
+divided into several non-overlapping 4 × 4 patches. Each
+patch is transformed into a high-dimensional feature
+representation via a Linear Embedding operation. These
+features are then passed through the Swin Transformer
+Block, where the Shifted Window Attention mechanism is
+applied
+for
+self-attention
+computation,
+effectively
+capturing local information. The processed output feature
+has the size
+H
+4
+×
+W
+4 × 48 , with 48 representing the
+embedding dimension.
+In Stage 2, a Patch Merging operation is performed,
+gradually reducing the size of the feature map while
+increasing the number of channels. This operation not
+only effectively reduces the computation load but also
+enhances the feature representation capabilities. After this
+operation, the feature map size becomes
+H
+8 ×
+W
+8 × 2C ,
+where C is the number of channels. Next, the features pass
+through another Swin Transformer Block and continue
+self-attention
+calculations
+with
+the
+Shifted
+Window
+Attention mechanism, further extracting deeper local
+features.
+In Stage 3, the feature map processed in the previous
+stages
+undergoes
+another
+Patch
+Merging
+operation,
+resulting in an output feature map of size
+�
+16 ×
+�
+16 × 4�. At
+this stage, the feature map dimensions further increase,
+strengthening the model's feature representation. Then, the
+features are processed through another Swin Transformer
+Block with multiple Shifted Window Attention operations
+(six times in this stage), extracting global information and
+enhancing the model's perception of global features.
+In
+Stage
+4,
+the
+features
+are
+passed
+to
+the
+TokenEmbedder module we designed. This module uses
+multi-scale
+deep
+convolution
+operations
+to
+further
+compress and extract features, converting them into token
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+representations suitable for subsequent classification tasks.
+By reducing the number of tokens, the TokenEmbedder
+effectively reduces the model's computational complexity
+while preserving its feature representation capacity. This
+module transforms the feature representations (B, C, H,
+W), where B is the batch size, C is the number of channels,
+and H and W are the height and width of the feature map,
+into a fixed-size token representation. The output size is
+(B, T, E), where T is the number of tokens generated, and
+E is the embedding dimension of each token.
+Finally, in the fourth stage, we introduce the Axial
+Transformer
+module.
+By
+combining
+Axial-Squeeze
+Attention, it achieves efficient fusion of local and global
+features, further improving the model's feature extraction
+capacity and classification performance. This design not
+only effectively captures global semantic information but
+also retains key local features, enhancing the model's
+adaptability and flexibility in various scenarios.
+The Swin-Axial Transformer model, by combining the
+Swin Transformer Block, TokenEmbedder module, and
+Axial Transformer module, significantly enhances the
+model's performance and computational efficiency. The
+Swin Transformer Block integrates a local self-attention
+mechanism with a window shifting strategy, effectively
+avoiding the high computational overhead associated with
+global self-attention mechanisms. Compared to traditional
+Transformer models with a computational complexity of
+O(N2)
+(where
+N
+is
+the
+number
+of
+tokens),
+Swin
+Transformer reduces the complexity to O(N × M), where
+M is the window size, making the model highly efficient
+for processing large-scale high-resolution images. The
+TokenEmbedder
+module
+enhances
+computational
+efficiency by reducing the number of tokens and using
+multi-scale deep convolution. It reduces computational
+complexity and memory consumption by converting input
+features into a fixed number of latent tokens while using
+deep convolution to effectively improve feature extraction
+efficiency, especially for high-resolution image processing.
+The
+Axial
+Transformer
+module
+further
+boosts
+computational
+efficiency
+by
+introducing
+the
+Axial-
+Squeeze Attention mechanism. Unlike traditional global
+self-attention mechanisms, the Axial Transformer limits
+attention computation to local regions along the axial
+directions (horizontal and vertical), significantly reducing
+computational
+complexity.
+This
+avoids
+the
+O(N2)
+computational cost and reduces it to O(N), enabling the
+model to run efficiently on larger datasets and higher-
+resolution images.
+FIGURE 1. Architecture diagram of the Swin-Axial Transformer model
+A. TokenEmbedder Module
+In plant disease detection tasks, the complexity and diversity
+of disease features impose higher requirements on feature
+extraction. Existing Transformer models typically divide
+images into fixed-size patches and transform them into
+tokens for processing. While this method is effective in
+capturing global features, it also introduces a significant
+amount of redundant computation, resulting in increased
+computational
+complexity
+and
+memory
+consumption.
+Additionally, traditional methods have limited performance
+when handling multi-scale and local features, making it
+difficult to meet the practical demands of plant disease
+detection tasks.
+In order to solve the issue, this paper proposes the
+TokenEmbedder module (Figure 2). It improves feature
+extraction efficiency and reduces the number of tokens to
+ensure that the Transformer model can process high-
+dimensional input features efficiently. Specifically, the
+TokenEmbedder
+module
+converts
+input
+features �∈
+ℝ�× �× �
+into
+a
+fixed
+number
+of
+latent
+tokens
+�∈ℝ�× �,where �, �, �denote the height, width, and
+channel number of the input features, �represents the
+number of tokens, and �is the embedding dimension.
+First, the module performs an initial processing of the
+input features �through a 3 × 3 convolution, extracting a
+feature map that captures basic spatial information and
+adjusting the channel number to match the subsequent
+embedding dimension, resulting in the preliminary feature
+�init. This initial convolution operation is expressed by the
+following formula:
+�init = Conv3×3(�), �init ∈ℝ�× �× �× �
+(1)
+Where �, �, �represent batch size, height, and width,
+respectively.
+On this basis, to capture multi-scale features, depthwise
+convolutions with different receptive fields are designed,
+including kernels of size 5 × 5, 7 × 7, and 9 × 9. An
+"Identity" path (identity mapping) is also retained to
+preserve the original features. The output feature �k is
+expressed by the following formula:
+�k = DWConvk×k  �init , �∈{5,7,9}
+(2)
+Subsequently, all output features are fused through
+channel concatenation, using a 1 × 1 convolution to
+complete the fusion process, resulting in the multi-scale
+feature �multi, which is expressed as:
+�multi = Conv1×1 Concat  �5, �7, �9, �identity
+,
+�multi ∈ℝ�× �× �× �
+(3)
+This design adopts a multi-scale convolution kernel
+structure without dilation. Compared to dilated or large
+kernel convolutions, it not only maintains sufficient
+receptive fields but also avoids background noise and
+feature sparsity issues. Additionally, by incorporating the
+"Identity"
+path,
+this
+module
+further
+enhances
+the
+consistency
+and
+balance
+of
+feature
+representations,
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+providing strong support for multi-scale feature modeling
+in complex scenarios.
+After obtaining the multi-scale feature �multi , the
+module introduces an attention mechanism to further
+highlight the key features. First, a 1 × 11 depthwise
+convolution is used to compute the feature weights in the
+channel direction, and then a 11 × 1 convolution is applied
+to capture the spatial relationships of the features. Next, a
+1 × 1 convolution is used for channel integration. Finally,
+the attention weights are mapped to the range of [0, 1]
+using the Sigmoid activation function, generating the final
+attention weights �, The expression is as follows:
+�= �DWConv1×11 Conv 1 ×
+1 DWConv11×1 �multi
+, �∈ℝ�× �multi × �× �(4)
+Subsequently, the attention weight �is multiplied with
+the multi-scale feature �multi to obtain the refined feature
+�att , The expression is as follows:
+�att = �⊙�multi
+(5)
+Finally, the module passes the enhanced feature through
+a linear transformation layer to map it to a fixed number
+of latent tokens, The expression is as follows:
+�T = Linear  �att , �∈ℝ�× �× �
+(6)
+Here, �represents the number of tokens, and �represents
+the embedding dimension of each token. Through this
+process, the TokenEmbedder module achieves significant
+reductions in computational complexity while retaining
+essential multi-scale and global features. This provides
+more efficient input representations for the subsequent
+Transformer
+module,
+enabling
+improved
+overall
+processing.
+FIGURE 2. TokenEmbedder module structure diagram
+B. Axial Transformer Module
+In complex tasks such as plant disease detection, models
+must be capable of performing both local and global
+feature modeling
+to enhance performance. However,
+traditional
+global
+self-attention
+mechanisms
+(e.g.,
+Transformers), while effective in capturing long-range
+dependencies, exhibit a computational complexity of
+O(N2), which grows quadratically with increasing input
+resolution. This significantly limits the applicability of
+traditional methods in high-resolution image processing
+tasks.
+To address this challenge, this paper introduces the
+Axial-Squeeze Attention module (shown in Figure 4),
+which combines an Axial Compression module with a
+Detail
+Enhancement
+module.
+The
+module
+aims
+to
+efficiently
+extract
+global
+semantic
+features
+while
+supplementing local detail information. The synergistic
+interaction
+between
+these
+two
+components
+greatly
+improves the network's feature modeling capabilities in
+complex backgrounds and multi-scale scenarios.
+Building upon this, the paper introduces the Axial
+Transformer (shown in Figure 3), which integrates a
+standard
+feedforward
+network
+(MLP)
+and
+layer
+normalization with thexial-Squeeze Attention mechanism.
+This integratio An enables the effective modeling of
+diverse
+features.
+While
+preserving
+efficient
+feature
+extraction capabilities, this approach significantly reduces
+computational complexity, providing an effective solution
+for feature representation in large-scale tasks.
+FIGURE 3. Axial Transformer module structure diagram
+1) AXIAL-SQUEEZE ATTENTION
+a：Axial Compression Module
+First, the input feature X ∈ℝC × H × W generates the Query (Q),
+Key (K), and Value (V) matrices through three linear layers,
+expressed by the formulas:
+�∈ℝ���× �× �= �q�
+(7)
+�∈ℝ���× �× �= �k�
+(8)
+�∈ℝ��× �× �= �v�
+(9)
+Where �q, �k, �v, are learnable parameters. Next, in the
+horizontal
+direction
+(i.e.,
+the
+W-direction),
+horizontal
+compression is achieved by extracting the average values of
+the �, �, �feature maps:
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+�(ℎ) ∈ℝ���× �=
+1
+��∈ℝ�qk × �× �⋅�W
+(10)
+�ℎ∈ℝ���× �=
+1
+��∈ℝ�qk × �× �⋅�W
+(11)
+�ℎ∈ℝ��× �=
+1
+��∈ℝ�v × �× �⋅�W
+(12)
+Here, �W ∈ℝW×1 is a vector of all 1s with length W. The
+matrix multiplication sums the elements in the W-direction
+and then divides by
+1
+�to obtain the average value of all
+features in the W-direction.
+In the vertical direction (i.e., the H-direction), vertica
+l compression is achieved by extracting the average values
+of the Q, K, and V feature maps:
+�(v) ∈ℝ�qk × �=
+1
+��∈ℝ�qk × �× �⋅�H
+(13)
+�v ∈ℝ�qk × �=
+1
+��∈ℝ�qk × �× �⋅�H
+(14)
+�v ∈ℝ�v × �=
+1
+��∈ℝ��× �× �⋅�H
+(15)
+Where, IH ∈ℝH×1 is a vector of all 1s with length H. The
+matrix multiplication sums the elements in the H-direction
+and then divides by
+1
+H to obtain the average value of all
+features in the H-direction.
+The compressed Query, Key, and Value matrices model
+the long-term dependencies of the corresponding axes
+through the self-attention mechanism in the horizontal and
+vertical directions, respectively:
+�(h) = softmax 
+�(h)�(h)
+⊤
+��
+�(h)
+(16)
+�(v) = softmax 
+�(v)�(v)
+⊤
+��
+�(v)
+(17)
+Where �k is the scaling factor of the feature dimension, used
+to balance the attention distribution.
+Finally, the enhanced features in the horizontal and
+vertical directions are integrated through a fusion operation,
+and then a 3 × 3 depth-wise convolution layer further
+compresses the channel information to generate the final
+output feature �global：
+�global = DWConv3×3 �h + �v
+(18)
+This design reduces the computational complexity of th
+e traditional self-attention mechanism from O(N2) to O(N)，
+while still retaining the ability to capture global dependen
+cy relationships.
+b：Detail Enhancement Module
+While the axial compression operation obtains global
+features, it may ignore some local details. To solve this
+problem, a detail-enhancement module is designed to
+enhance spatial detail features. As shown in Figure 4, first, a
+set of additional parameters �q
+e , �k
+e ,and �v
+e are applied
+to the input �∈ℝ�× �× �to obtain the corresponding �e ,
+�e , �e :
+��∈ℝ�qk × �× �= �q
+e �
+(19)
+K e ∈ℝCqk × H × W = Wk
+e X
+(20)
+��∈ℝ�v × �× �= �v
+e �
+(21)
+Then, the three are concatenated in the channel dimension
+and passed to 1 × 3 and 3 × 1 depthwise-convolution
+modules to complete the detail enhancement:
+�qkv ∈ℝ2�qk + �v × �× �=
+Concat �e + �e + �e
+(21)
+�qkv ∈ℝ2�qk + �v × �× �=
+DWConv3×1 DWConv1×3 �qkv
+(22)
+Among them, the 1 × 3 depthwise-convolution is used to
+capture spatial details in the width direction, and the 3 × 1
+depthwise-convolution is used to capture spatial details in the
+height direction. In this way, more fine-grained local
+information can be extracted from the auxiliary Q, K, V
+features.
+Then this module compresses the features from 2�qk + �v
+dimensions to �dimensions through a 1 × 1 convolution and
+generates the detail-enhanced feature �enhanced：
+�enhanced ∈ℝ�× �× �= Conv1×1 �qkv
+(23)
+Finally, the output �global of the axial-compression module
+generates a weight through the Sigmoid function, and then
+performs
+a
+point-wise
+multiplication
+with
+the
+detail-
+enhanced feature �enhanced to obtain the fused output. The
+calculation formula is:
+������= sigmoid �global ⊙�enhanced
+(24)
+FIGURE 4. Axial-Squeeze attention model architecture
+III. Experiments
+A. Experimental Datasets
+This study selected three datasets to validate the effectiveness
+and robustness of the proposed model. First, the PlantDoc
+dataset was used as the primary experimental dataset to
+assess the model's performance in complex scenarios [21].
+Secondly, the PlantVillage dataset and a self-constructed
+fusion dataset were chosen to further verify the model's
+feature extraction capability and generalization ability in
+standardized environments. By testing on these three datasets,
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+we comprehensively analyzed the model's effectiveness and
+adaptability in real-world applications.
+1) PLANTDOC DATASET
+The PlantDoc dataset is designed for plant disease detection
+and is based on real-world field scenarios. It comprises 13
+major crops and 27 disease types, totaling 2,598 high-
+resolution, clearly annotated images. Collected from natural
+environments, the dataset includes complex backgrounds,
+lighting variations, and occluded leaves, making it highly
+representative of real-world application scenarios. Due to its
+diverse disease types and unique environmental conditions,
+the PlantDoc dataset is widely used to evaluate the
+performance of deep learning models in plant disease
+classification and detection tasks. It serves as a valuable
+resource for agricultural disease diagnosis research. Figure 5
+presents some sample images from the PlantDoc dataset.
+FIGURE 5. Image examples from the PlantVillage dataset
+2) PLANTVILLAGE DATASET
+The PlantVillage dataset is a publicly available resource
+specifically
+designed
+for
+plant
+disease
+detection
+and
+classification tasks. It consists of 14 crop types and 38
+disease types, totaling 54,306 high-quality, clearly annotated
+leaf images. The dataset was collected under controlled
+laboratory conditions, featuring a uniform background with
+minimal noise, which makes it well-suited for studies
+involving supervised learning and transfer learning. However,
+due to its idealized environment, the dataset's generalization
+to real-world scenarios is limited. It is widely used for
+evaluating the performance of models in plant disease
+classification and serves as one of the key benchmark
+datasets in plant disease research. Figure 6 presents some
+representative image samples from the PlantVillage dataset.
+FIGURE 6. Image examples from the PlantVillage dataset
+3) SELF-CONSTRUCTED FUSION DATASET
+The self-constructed fusion dataset is created by integrating
+public datasets of healthy and diseased samples from three
+crops: lemon, rice, and wheat. It encompasses 16 disease
+types, with images sourced from various origins involving
+different plant species. The dataset accounts for factors such
+as lighting variations, background changes, and seasonal
+transitions. This approach aims to enhance the model's
+generalization ability, improving its adaptability to a wide
+range of scenarios. Figure 7 presents some representative
+image samples from the self-constructed fusion dataset.
+FIGURE 7. Image examples from the Self-Constructed Fusion dataset
+B. Experimental Environment and Parameter Settings
+The experimental environment for this study was based on
+PyTorch 1.11.0 and Python 3.8, running on the Ubuntu 20.04
+operating system. In terms of hardware configuration, the
+experiment utilized an RTX 4090 GPU with 24GB of video
+memory and a 16-core Intel(R) Xeon(R) Platinum 8481C
+CPU. During the experiment, the input image size was
+uniformly set to 224×224, the number of training epochs was
+40, the initial learning rate was set to 5e-5, the weight decay
+coefficient was 0.005, and the AdamW optimizer was
+selected. A learning rate scheduler was introduced to
+dynamically adjust the learning rate, thereby improving the
+model's convergence speed and overall performance. To
+further optimize the model's performance, multiple sets of
+comparative
+experiments
+were
+conducted
+for
+key
+hyperparameters such as the learning rate and batch size. The
+impact of different parameter configurations on the model's
+performance was systematically evaluated, and the optimal
+hyperparameter combination was ultimately determined.
+Through this process, the model was ensured to achieve the
+best balance between performance and efficiency in plant
+disease recognition tasks.
+C. Evaluation Metrics
+In this experiment, in order to comprehensively evaluate the
+performance of the Swin-Axial Transformer model in the
+plant disease detection task, the following key evaluation
+metrics were used: Precision, Recall, F1, model parameters,
+and GMAC. The comprehensive analysis of these metrics
+helps to thoroughly assess the performance of the Swin-Axial
+Transformer model in plant disease detection.
+D. Experimental Results
+The Swin-Axial Transformer model proposed in this paper
+underwent comprehensive experimental validation on the
+PlantDoc dataset, and its classification performance and
+convergence behavior
+were thoroughly
+evaluated. The
+specific results are analyzed as follows.
+The overall classification performance of the Swin-Axial
+Transformer model, as shown in Table 1, yielded an average
+precision of 79.52%, recall of 76.69%, and F1 score of
+77.78% on the PlantDoc dataset. This result indicates that the
+Swin-Axial
+Transformer
+model
+can
+provide
+high
+classification accuracy in multi-class plant disease detection
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+tasks while ensuring good model robustness and recall ability.
+The classification performance for different categories is
+presented in Table 1. Among them, categories 16 and 23
+achieved a precision, recall, and F1 score of 100%, clearly
+demonstrating that the model's classification ability for these
+categories reached an optimal level. This is likely due to the
+high significance of the features in these categories, which
+the model could capture more effectively. In contrast,
+category 7 has the lowest F1 score at 25.00%, which could be
+influenced by an imbalanced data distribution or the
+complexity of the features. To mitigate the impact of data
+imbalance,
+future
+research
+could
+consider
+using
+data
+augmentation techniques such as rotation, flipping, cropping,
+and color jitter to increase the sample size of minority
+categories or apply class balancing methods to enhance the
+model's ability to recognize these categories. Moreover, the
+F1 scores of most categories are concentrated in the range of
+70%-95%,
+indicating
+that
+the
+model
+exhibits
+good
+adaptability for fine-grained classification tasks.
+The specific distribution of classification performance is
+shown in Figure 8. The confusion matrix visually reflects the
+classification results of the model on the validation set. The
+prediction results for most categories are concentrated along
+the main diagonal, indicating that the model can accurately
+classify these categories. However, a few categories (such as
+category 7 and category 11) exhibit a higher misclassification
+frequency in the non-diagonal positions of the confusion
+matrix, indicating some shortcomings in feature extraction
+and discrimination capabilities for these categories. To
+address this issue, future research could consider using data
+augmentation techniques (such as rotation, flipping, cropping,
+color jitter, etc.) or class balancing methods to improve the
+model's ability to recognize these categories.
+The trends in classification precision and loss function on
+the validation set are shown in Figures 9 and 10, respectively.
+Figure 9 illustrates the change in validation precision during
+the training process, which rises rapidly during the first 10
+training epochs and gradually stabilizes after the 10th epoch,
+reaching its peak at the 37th epoch. Figure 10 displays the
+change in loss on the validation set, with the loss value
+decreasing quickly in the early stages and then remaining
+steady in the later stages. This trend indicates that the Swin-
+Axial
+Transformer
+model
+has
+good
+convergence
+and
+generalization
+ability,
+achieving
+stable
+and
+excellent
+performance in a short training time.
+FIGURE 8. Confusion matrix
+FIGURE 9. Validation precision curve
+FIGURE 10. Validation loss curve
+TABLE I
+PLANTDOC CLASSIFICATION PERFORMANCE OF THE DATASET
+Class
+Precision
+Recall
+F1
+0
+87.50
+70.00
+77.78
+1
+66.67
+88.89
+76.19
+2
+100
+90.00
+94.74
+3
+71.43
+62.50
+66.67
+4
+66.67
+66.67
+66.67
+5
+71.43
+90.91
+80.00
+6
+77.78
+70.00
+73.69
+7
+25.00
+25.00
+25.00
+8
+76.92
+83.33
+80.00
+9
+100
+90.00
+94.74
+10
+87.50
+77.78
+82.35
+11
+75.00
+37.50
+50.00
+12
+50.00
+62.50
+55.56
+13
+87.50
+100
+93.33
+14
+66.67
+75.00
+70.59
+15
+100
+83.33
+90.91
+16
+100
+100
+100
+17
+75.00
+100
+85.71
+18
+60.00
+81.82
+69.23
+19
+100
+50.00
+66.67
+20
+75.00
+100
+85.71
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+Class
+Precision
+Recall
+F1
+21
+70.00
+70.00
+70.00
+22
+100
+60.00
+75.00
+23
+100
+100
+100
+24
+43.67
+83.33
+57.31
+25
+100
+91.67
+95.65
+26
+80.00
+100
+88.89
+ALL
+79.52
+76.69
+78.08
+E. Comparative Experiments
+To comprehensively validate the performance of the propose
+d Swin-Axial Transformer model in plant disease detection ta
+sks, detailed comparative experiments were conducted agains
+t state-of-the-art deep learning models. The comparison inclu
+ded classic network architectures such as EfficientNet [22],
+ShuffleNet [23], ResNet [24], GoogLeNet [25], MobileNet
+[26], DenseNet [27], MobileViT [28], ConvNeXt[29], Swin
+Transformer[30], and models specifically designed for plant
+disease detection tasks, such as T-cnn(ResNet-101) [31] and
+ICVT [32].
+As shown in Table 2, the Swin-Axial Transformer
+outperformed
+its
+competitors
+on
+key
+classification
+performance metrics: Precision, Recall, and F1 Score. The F1
+Score of the Swin-Axial Transformer reached 78.08%,
+exceeding
+that
+of
+DenseNet-201
+(75.13%)
+and
+Swin
+Transformer Ting (75.00%). Additionally, compared to
+models
+with
+similar
+performance,
+the
+Swin-Axial
+Transformer demonstrated significant efficiency advantages
+in terms of computational resource usage, with a parameter
+count of 14.87 M and computational complexity of 2.96
+GMac, which are substantially lower than those of DenseNet-
+201 (18.14 M, 4.39 GMac) and Swin Transformer Ting
+(27.54M, 4.38 GMac). This indicates that the Swin-Axial
+Transformer
+achieves
+a
+superior
+balance
+between
+performance and efficiency.
+Compared to other Transformer-based deep learning
+models,
+the
+Swin-Axial
+Transformer
+achieved
+further
+optimization
+in
+both
+classification
+performance
+and
+computational efficiency. Its F1 Score improved by 2.45%
+over Swin Transformer Ting, while reducing the parameter
+count by 46%. This improvement is attributed to the effective
+design of the TokenEmbedder and AxialFormer Block
+modules, which significantly enhance the model's ability to
+model multi-scale features. In contrast, the Transformer base
+model performed poorly, with an F1 Score of only 55.58%, a
+parameter count of 85.82 M, and computational complexity
+of 16.88 GMac, demonstrating its limited suitability for plant
+disease detection tasks.
+When
+compared
+to
+the
+DenseNet
+series,
+although
+DenseNet-201 achieved an F1 Score of 75.13%, close to that
+of the Swin-Axial Transformer, it required 18.14 M
+parameters and 4.39 GMac computational complexity, both
+of
+which
+are
+higher
+than
+those
+of
+the
+Swin-Axial
+Transformer. Similarly, DenseNet-161 achieved an F1 Score
+of
+74.98%,
+but
+its
+parameter
+count
+(26.53
+M)
+and
+computational complexity (7.85 GMac) were significantly
+higher than those of the Swin-Axial Transformer.
+For lightweight models, MobileNetV3 Small and the
+ShuffleNet
+series
+have
+smaller
+parameter
+counts
+and
+computational complexity. For example, ShuffleNet v1.0 has
+only 1.28 M parameters, but its F1 Score was just 58.52%,
+which
+is
+insufficient
+for
+high-accuracy
+plant
+disease
+detection tasks. Similarly, MobileNetV3 Small achieved an
+F1 Score of 52.48%, significantly lagging behind the Swin-
+Axial Transformer. While these lightweight models offer
+advantages
+in
+resource-constrained
+scenarios,
+their
+classification performance is far below that of the Swin-Axial
+Transformer. By contrast, the Swin-Axial Transformer
+delivers significant performance improvements under low
+computational
+complexity
+conditions,
+demonstrating
+its
+strong practicality.
+The T-CNN(ResNet-101) and ICVT models, specifically
+designed for plant disease detection tasks, perform well in
+classification, with T-CNN achieving a precision of 74.44%
+and ICVT(ResNet-101) achieving 77.23%. In comparison,
+the Swin-Axial Transformer outperforms both T-CNN and
+ICVT(ResNet-101)
+in
+precision,
+further
+validating
+its
+superior performance in plant disease detection tasks.
+As shown in Table 2, the Swin-Axial Transformer
+demonstrates
+excellent
+classification
+performance
+and
+significant computational efficiency advantages in plant
+disease detection tasks. Compared to high-performance
+models such as DenseNet and Swin Transformer, the Swin-
+Axial
+Transformer
+not
+only
+improved
+classification
+performance but also significantly reduced parameter count
+and computational complexity. Furthermore, compared to
+lightweight models and task-specific plant disease detection
+models, the Swin-Axial Transformer achieved a better
+balance between performance and efficiency. This makes it
+particularly
+suitable for
+resource-constrained
+real-world
+scenarios, providing an efficient and reliable solution for
+large-scale plant disease detection tasks.
+TABLE Ⅱ
+PCOMPARES THE EXPERIMENTAL RESULTS
+Model
+Precision
+Recall
+F1
+parameters
+（M）
+Glops
+（GMac）
+EfficientNet-
+B0
+69.78
+69.92
+69.85
+4.04
+0.406
+EfficientNet -
+B1
+73.09
+70.76
+71.90
+6.55
+0.599
+EfficientNet-
+B2
+73.24
+69.92
+71.54
+7.72
+0.689
+ShufflenetV2
+×1.0
+70.21
+66.91
+58.52
+1.28
+0.151
+ShufflenetV2
+×2.0
+72.82
+69.15
+70.93
+5.4
+0.594
+ResNet-34
+70.08
+66.52
+68.25
+21.3
+3.68
+ResNet-50
+72.58
+68.64
+70.55
+23.56
+4.13
+GoogLeNet
+70.10
+68.22
+69.15
+10.01
+1.51
+MobileNetV3-
+Small
+55.23
+50.00
+52.48
+1.55
+59.63
+MobileNetV3-
+Large
+62.04
+58.05
+59.98
+4.24
+229.47
+DenseNet-121
+74.64
+72.03
+73.31
+6.98
+2.9
+DenseNet-201
+77.05
+73.31
+75.13
+18.14
+4.39
+DenseNet-161
+76.28
+73.73
+74.98
+26.53
+7.85
+MobileViT-S
+73.22
+71.62
+72.41
+4.95
+1.56
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+Model
+Precision
+Recall
+F1
+parameters
+（M）
+Glops
+（GMac）
+MobileViT-
+XS
+74.17
+69.92
+71.98
+1.94
+0.80
+ConvNeXt-
+Tiny
+73.15
+73.74
+73.44
+27.84
+4.49
+ConvNeXt-
+Small
+71.54
+70.71
+71.12
+49.48
+8.73
+Swin
+Transformer-T
+76.80
+73.30
+75.00
+27.54
+4.38
+Transformer-
+base
+54.43
+56.77
+55.58
+85.82
+16.88
+T-
+cnn(ResNet-
+101)
+74.44
+-
+-
+-
+-
+ICVT
+77.23
+-
+-
+-
+-
+Swin-Axial
+Transformer
+79.52
+76.69
+78.08
+14.87
+2.96
+F. Ablation Experiments
+To evaluate the impact of different modules in the Swin-
+Axial Transformer model on the overall classification
+performance, this study designed eight sets of comparative
+experiments. By systematically removing or replacing key
+modules, the contribution of each module to the model's
+performance was carefully analyzed. The experimental
+results detailed the impact of these modifications on model
+parameters, computational complexity, and F1 score (see
+Table 3).
+The first experiment used Swin-T as the baseline model,
+with an F1 score of 75.02%, a parameter count of 27.54 M,
+and a computational complexity of 4.38GMac. Although the
+baseline model demonstrated strong global feature extraction
+ability, its parameter count and computational complexity
+were relatively high.
+The second experiment further verified the importance of
+the TokenEmbedder module by removing it. The results
+showed that the F1 score dropped to 71.68%, highlighting the
+crucial role of the TokenEmbedder module in enhancing
+model performance. Although the model's parameter count
+decreased to 15.14 M and computational complexity dropped
+to 3.16 GMac, the absence of this module significantly
+affected the classification performance.
+Experiments 3 to 6 deeply verified the unique advantages
+of the module in this paper in plant disease feature modeling
+by replacing the TokenEmbedder module with mainstream
+attention mechanisms such as CBAM [33], EMA [34],
+ECA[35], and CoTAttention [36]. The comparison results
+showed that existing attention mechanisms have significant
+limitations in balancing multi-scale feature fusion efficiency
+and
+computational
+complexity.
+The
+CBAM
+module
+(Experiment 3), as a combination of channel and spatial
+attention, although it enhanced feature selection ability
+through a dual attention mechanism, its F1 score (74.32%)
+was still 3.76% lower than the model in this paper. This is
+because CBAM relies on independent attention calculations
+for each channel and each spatial location. When dealing
+with multi-scale disease spots commonly found in plant
+disease images (such as the coexistence of millimeter-level
+spots and centimeter-level spots), it is difficult to achieve
+efficient cross-scale feature interaction, and its computational
+complexity (3.16GMac) is not significantly lower than that of
+the TokenEmbedder module. The performance decline of the
+EMA and ECA modules (Experiments 4 and 5) was more
+obvious, with F1 scores of 72.12% and 71.87% respectively,
+exposing the limitations of single-dimensional attention
+mechanisms: EMA only focuses on weight adjustment
+between channels, ignoring the key role of spatial features
+such as disease spot morphology and texture; although ECA
+optimizes computational efficiency through dimensionality
+reduction, it is limited by a fixed receptive field and cannot
+capture the structural associations of disease regions at
+different
+scales,
+resulting
+in
+insufficient
+feature
+discrimination
+under
+complex
+backgrounds.
+The
+CoTAttention module (Experiment 6) learns a dynamic
+attention matrix by mining contextual information around the
+key, effectively strengthening the model's representation
+ability, achieving an F1 score of 72.64%, which outperforms
+the EMA and ECA modules. However, this module has
+obvious
+disadvantages
+in
+computational
+resource
+consumption. Both the parameter count (16.40 M) and
+computational complexity (3.42 GMac) are higher than those
+of the model in this paper, failing to achieve a good balance
+between feature expression and computational efficiency.
+In contrast, the TokenEmbedder module, through a multi-
+scale depth convolution kernel group and a fixed-number
+token
+generation
+mechanism,
+while
+improving
+feature
+extraction
+efficiency,
+maintains
+low
+computational
+complexity. This module can efficiently fuse multi-scale
+features when processing plant disease images and avoids the
+deficiencies of a single attention mechanism in cross-scale
+feature interaction and computational resource consumption,
+thus achieving a good balance between F1 score and
+computational efficiency.
+The seventh experiment replaced the Axial Transformer
+module with the standard Transformer module, providing a
+direct performance comparison between the Axial-Squeeze
+Attention mechanism and the traditional multi-head attention
+mechanism. The experimental results showed that although
+the standard Transformer module, with a global self-attention
+mechanism, achieved an F1 score of 76.53%, which is lower
+than the proposed model, it had a significant disadvantage in
+computational efficiency. Its parameter count was 15.58 M,
+and the computational complexity was 3.01 GMac, both of
+which were higher than the proposed model's 14.87 M and
+2.96 GMac, respectively.
+Unlike the standard Transformer's global self-attention
+mechanism (with a computational complexity of O(N²), the
+Axial Transformer module proposed in this paper uses the
+Axial-Squeeze Attention mechanism, which limits self-
+attention calculations to local regions along the horizontal
+and vertical axes. By compressing features along each axis
+and fusing information across axes, the computational
+complexity is optimized to O(N). Moreover, the Axial-
+Squeeze Attention combines the Axial Compression module
+and the Detail Enhancement module, which efficiently
+extracts global semantic features and supplements local detail
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+information. The synergy of these two modules significantly
+enhances the model's feature modeling capabilities in
+complex backgrounds and multi-scale scenarios.
+TABLE Ⅲ
+RESULTS OF THE ABLATION EXPERIMENTS
+Experiments
+Precision
+Recall
+F1
+Parameters
+（M）
+Glops
+（GMac)
+1
+76.80
+73.30
+75.02
+27.54
+4.38
+2
+74.01
+69.49
+71.68
+15.14
+3.16
+3
+75.36
+73.30
+74.32
+15.11
+3.16
+4
+74.47
+69.91
+72.12
+15.11
+3.17
+5
+73.81
+70.03
+71.87
+15.11
+3.16
+6
+74.15
+71.18
+72.64
+16.40
+3.42
+7
+77.80
+75.30
+76.53
+15.58
+3.01
+8
+79.52
+76.69
+78.08
+14.87
+2.96
+G. The Impact of Regularization Methods on Model
+Performance
+In deep learning models, regularization methods enhance
+the model's generalization ability by mitigating overfitting.
+To
+investigate
+the
+impact
+of
+regularization
+on
+the
+performance of the Swin-Axial Transformer model in plant
+disease detection tasks, this study compared the model's
+performance under L1 regularization, L2 regularization,
+and without regularization. The detailed experimental
+results are shown in Table 4.
+When using L1 regularization, the model achieved an F1
+Score of 78.08%, with Precision of 79.52% and Recall of
+76.69%, representing the best performance among the tested
+conditions. The results indicate that L1 regularization
+effectively suppresses overfitting by sparsifying parameters,
+thereby
+improving
+model
+performance.With
+L2
+regularization, the model achieved an F1 Score of 76.29%,
+with Precision of 78.55% and Recall of 74.16%, slightly
+lower than L1 regularization. This suggests that while L2
+regularization effectively penalizes weights to enhance
+generalization
+ability,
+its
+impact
+is
+somewhat
+less
+pronounced than L1 regularization in this model.In the
+absence of regularization, the model achieved an F1 Score of
+75.96%, with Precision of 78.53% and Recall of 75.45%.
+Compared to L1 regularization, the F1 Score decreased by
+2.12%, demonstrating the critical role of regularization
+methods in improving model performance and preventing
+overfitting.
+TABLE Ⅳ
+EFFECT OF THE REGULARIZATION METHOD ON THE MODEL PERFORMANCE
+Regularization
+Methods
+Precision
+Recall
+F1
+L1
+79.52
+76.69
+78.08
+L2
+78.55
+74.16
+76.29
+No
+78.53
+75.45
+75.96
+H. Exploration of the Impact of Token Dimensions and
+Quantities on Model Performance
+In this study, we systematically explored the effects of
+different Token Dimensions and Token Quantities in the
+TokenEmbedder
+module
+on
+model
+classification
+performance, parameter
+count, and computational
+cost
+(GFLOPs). By adjusting the Token Dimensions (128, 256,
+512, and 768) and Token Quantities (36, 64, 100, and 225),
+we analyzed the changes in Precision, Recall, F1 Score,
+model parameters, and GFLOPs. The experimental results
+demonstrate that both Token Dimensions and Quantities
+significantly influence model performance, especially with
+clear
+trade-offs
+between
+classification
+accuracy,
+computational complexity, and resource consumption.
+With Token Dimensions increasing from 128 to 768, the
+F1 Score and resource consumption showed significant
+changes. When the Token Dimension was 256, the model
+achieved its best performance, with an F1 Score of 78.08%,
+Precision of 79.52%, and Recall of 76.69%. Further increases
+in dimensions to 512 and 768 caused F1 Scores to drop to
+76.14%
+and
+73.09%,
+respectively,
+suggesting
+that
+excessively large dimensions lead to feature redundancy,
+thereby
+affecting
+classification
+performance.
+Increasing
+Token Dimensions also significantly raised parameter count
+and GFLOPs. For example, as the Token Dimension
+increased from 128 to 768, the parameter count rose from
+13.23 M to 27.97 M, and GFLOPs increased from 2.74
+GMac to 4.31 GMac. However, performance gains were
+limited. A Token Dimension of 256 achieved the optimal F1
+Score
+while
+maintaining
+relatively
+low
+computational
+complexity (2.93 GMac), striking the best balance between
+performance and resource consumption.
+With Token Dimensions fixed at 256, increasing the
+Token Quantity from 36 to 225 improved the F1 Score from
+75.73% to 76.44%, with simultaneous increases in Precision
+and Recall. A greater number of tokens helped capture fine-
+grained
+features,
+thereby
+improving
+classification
+performance. However, increasing the Token Quantity also
+raised GFLOPs. For instance, as Token Quantity increased
+from 36 to 225, GFLOPs rose from 2.89 GMac to 3.17
+GMac. The balance between performance and resource
+consumption depends on the specific scenario. At a Token
+Quantity of 64, the F1 Score reached 78.08%, and GFLOPs
+were 2.93 GMac, achieving a favorable trade-off between
+performance and resource efficiency.
+TABLE Ⅴ
+EFFECT OF TOKEN SIZE AND COUNT ON MODEL PERFORMANCE AND COMPUTATIONAL EFFICIENCY
+Dimension
+Quantity
+Precision
+Recall
+F1
+Parameters（M）
+Glops（GMac)
+64
+128
+76.02
+73.72
+74.85
+13.23
+2.74
+64
+256
+79.52
+76.69
+78.08
+14.87
+2.93
+64
+512
+78.23
+74.15
+76.14
+20.11
+3.5
+64
+768
+75.10
+71.19
+73.09
+27.97
+4.31
+36
+256
+77.37
+74.15
+75.73
+14.86
+2.89
+100
+256
+77.56
+74.15
+75.82
+14.87
+2.98
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+2
+VOLUME XX, 2017
+225
+256
+77.93
+75.00
+76.44
+14.90
+3.17
+I. Impact of different depthwise convolution kernels in
+the TokenEmbedder module on model performance
+To explore the impact of deep convolution kernel sizes on
+the performance of the Swin-Axial Transformer model, this
+study designed comparative experiments using the control
+variable method. The aim was to analyze the feature
+extraction capabilities and classification performance of
+different convolution kernel combinations (dual-scale and
+triple-scale) in plant disease detection tasks.
+As shown in Table 6, the experimental results indicate that
+when using 5 × 5, 7 × 7, and 9 × 9 triple-scale deep
+convolution kernels, the model achieved a precision of
+79.52%, recall of 76.69%, and an F1 score of 78.08% on the
+PlantDoc dataset, showing a significant improvement over
+other kernel combinations. Compared to combinations with
+larger kernels (such as 11 × 11) or smaller kernels (such as 3
+× 3), the medium-sized kernel configuration (5 × 5, 7 × 7, 9 ×
+9)
+strikes
+an
+optimal
+balance
+between
+computational
+efficiency and feature representation. This configuration
+avoids the fragmentation of local features caused by
+insufficient receptive fields with smaller kernels and the risk
+of increased background noise and computational complexity
+with larger kernels. The experimental conclusion validates
+the crucial role of multi-scale deep convolution kernels in the
+TokenEmbedder module, indicating that the fusion of
+features
+with
+differentiated
+receptive
+fields
+effectively
+enhances disease detection accuracy in complex scenarios.
+TABLE Ⅵ
+COMPARISON OF MODEL PERFORMANCE UNDER DIFFERENT DEPTHWISE
+CONVOLUTION KERNEL CONFIGURATIONS
+Convolution kernel configuration
+Precision
+Recall
+F1
+3 × 3, 5 × 5
+76.10
+73.72
+74.89
+3 × 3, 7 × 7
+77.18
+73.30
+75.19
+3 × 3, 5×5
+76.09
+74.23
+75.15
+3 × 3, 5 × 5, 7 × 7
+78.24
+75.02
+76.60
+7 × 7, 9 × 9, 11 × 11
+77.41
+73.72
+75.52
+5 × 5, 7 × 7, 9 × 9
+79.52
+76.69
+78.08
+J. Generalization Ability and Real-Time Performance
+Testing
+This paper evaluates the generalization ability and stability of
+the
+Swin-Axial
+Transformer
+model
+using
+both
+the
+PlantVillage dataset and a custom fusion dataset, comparing
+its performance with that of other existing models. In the
+experiment conducted on the PlantVillage dataset, as shown
+in
+Table
+7,
+the
+Swin-Axial
+Transformer
+performed
+exceptionally well, achieving an precision of 99.79%, a recall
+rate of 99.78%, and
+an F1 score of 99.78, clearly
+outperforming other comparative models. These results
+demonstrate that the Swin-Axial Transformer not only
+effectively balances classification precision and recall but
+also offers significant advantages in plant disease detection
+tasks, providing strong evidence of its powerful application
+potential in solving standardized problems.
+In the experiment conducted on the custom fusion dataset,
+as
+shown
+in
+Table
+8,
+the
+Swin-Axial
+Transformer
+demonstrated
+outstanding
+classification
+performance,
+achieving a precision of 95.69%, a recall rate of 95.38%, and
+an F1 score of 95.53%. Additionally, it exhibited strong real-
+time processing capabilities, achieving a frame rate (FPS) of
+176. Compared to other models such as Transformer-base
+(FPS: 78) and Swin Transformer Ting (FPS: 136), the Swin-
+Axial
+Transformer
+showed
+a
+clear
+advantage
+in
+computational efficiency, excelling in applications that
+require a balance between high accuracy and low latency.
+Although ResNet-50 achieved a higher FPS of 214, the
+Swin-Axial
+Transformer
+delivered
+near
+real-time
+performance while maintaining high classification accuracy
+and low computational complexity. In contrast, the Swin-
+Axial Transformer offers a significant advantage in terms of
+model parameter count and computational complexity,
+making it particularly well-suited for environments with
+limited computational resources. Therefore, the Swin-Axial
+Transformer provides an efficient solution for real-time plant
+disease detection tasks, achieving an excellent balance
+between accuracy and efficiency.
+TABLE ⅥI
+PLANTVILLAGE DATASET EXPERIMENTAL RESULTS
+Model
+Precision
+Recall
+F1
+CNN [37]
+98.27
+98.01
+98.14
+Attention and
+theresidual
+network [38]
+96.20
+95.60
+95.90
+DenseNet along
+with
+attention
+approach [39]
+89.59
+86.71
+88.13
+PlantViT [40]
+98.24
+98.33
+98.28
+ConvViT-S [41]
+97.80
+98.54
+98.17
+TLMViT
+98.72
+98.76
+98.74
+Swin-Axial
+Transformer
+99.79
+99.78
+99.78
+TABLE ⅥII
+SELF-CONSTRUCTED FUSION DATASET EXPERIMENTAL RESULTS
+Model
+Precision
+Recall
+F1
+FPS
+Transformer-base
+85.02
+84.93
+84.97
+78
+Swin Transformer-T
+93.34
+93.28
+93.31
+136
+Resnet-50
+92.86
+92.64
+92.75
+214
+Swin-Axial
+Transformer
+95.69
+95.38
+95.53
+176
+IV. Conclusion
+The Swin-Axial Transformer model proposed in this paper
+effectively addresses the high computational costs, complex
+backgrounds, and multi-scale feature extraction challenges in
+plant disease detection tasks. Unlike traditional object or
+pattern detection tasks, plant disease detection not only
+requires identifying and classifying disease types but also
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+VOLUME XX, 2017
+7
+must deal with complex natural environmental backgrounds,
+diverse disease characteristics, and differences across plants'
+various growth stages and species. Plant leaves, fruits, or
+stems may exhibit different disease symptoms under varying
+environmental
+conditions,
+and
+these
+symptoms
+often
+intertwine with complex backgrounds, further complicating
+disease detection.To effectively tackle this challenge, this
+paper introduces the TokenEmbedder module, which reduces
+the number of tokens and combines multi-scale deep
+convolution to efficiently extract image features. This
+improvement significantly lowers computational complexity
+while optimizing the feature extraction process. The module
+provides a more compact and efficient input for subsequent
+models, further enhancing overall computational efficiency.
+Furthermore, the Axial Transformer module introduced in
+this paper reduces computational complexity by restricting
+self-attention calculations to local regions along the axial
+directions. At the same time, by combining the Axial
+Compression module and the Detail Enhancement module,
+the Axial Transformer efficiently extracts global semantic
+features and supplements local detail information. The
+synergistic
+effect
+of
+these
+two
+modules
+significantly
+enhances the feature modeling capabilities of the Axial
+Transformer
+in
+complex
+backgrounds
+and
+multi-scale
+scenarios.
+Experimental
+results
+show
+that
+the
+Swin-Axial
+Transformer outperforms multiple datasets with significant
+advantages. For instance, on the PlantDoc dataset, the model
+achieved a precision of 79.52%, which is 5.02% higher than
+the
+T-CNN
+(ResNet-101)
+model
+at
+74.50%;
+on
+the
+PlantVillage dataset, the precision was 99.79%, which is an
+improvement of 1.91% over the ConvViT-S model; on the
+self-constructed fusion dataset, the precision was 95.69%,
+which is 3.45% higher than the Swin Transformer-T model.
+Additionally, the model has 14.87 M parameters and a
+computational load of 2.96 GMac, which represents a 46%
+reduction
+in
+parameters
+and
+a
+32%
+reduction
+in
+computational load compared to the Swin Transformer-T
+model, significantly improving computational efficiency.
+These results indicate that the Swin-Axial Transformer not
+only surpasses several mainstream models in classification
+accuracy but also demonstrates significant advantages in
+terms of computational resource consumption. The model
+presented in this paper provides an efficient and reliable
+solution for large-scale crop disease detection, with broad
+application prospects.
+However, this study also acknowledges certain limitations.
+First,
+although
+the
+Swin-Axial
+Transformer
+has
+been
+optimized for computational efficiency, it still requires
+substantial computational resources when processing high-
+resolution images and large-scale datasets. Second, the
+current model architecture is primarily optimized for specific
+datasets, and there may be a risk of performance degradation
+when
+extended
+to
+more
+diverse
+diseases
+and
+crops.
+Furthermore, although the model performs excellently on
+several experimental datasets, its robustness may be affected
+in more complex backgrounds, lighting changes, and other
+scenarios, leading to unstable performance in real-world
+applications. Finally, although the Swin-Axial Transformer
+has made progress in real-time processing, its real-time
+response capability may still be constrained by computational
+resources in resource-limited environments, especially in
+real-time disease monitoring systems, where it may not fully
+meet the demands for low latency and efficient inference.
+Future research can improve the Swin-Axial Transformer
+model's generalization and scalability in several directions.
+First, to further optimize computational efficiency and real-
+time performance, lightweight model techniques such as
+pruning,
+quantization,
+and
+model
+distillation
+can
+be
+employed to reduce computational resource consumption,
+while combining hardware acceleration (such as GPUs or
+TPUs) to improve inference speed. These optimizations will
+make the model suitable not only for plant disease detection
+tasks but also extend its applicability to real-time inference
+fields, such as video surveillance, autonomous driving, and
+more.
+Additionally,
+adopting
+distributed
+computing
+architectures and edge computing strategies can distribute
+computational tasks across multiple nodes, reducing the
+burden on a single device and ensuring low-latency and
+efficient inference in resource-constrained environments,
+further enhancing the model's versatility.Second, to enhance
+the
+model's
+scalability
+and
+generalizability,
+multi-task
+learning and cross-domain transfer learning strategies can be
+implemented, allowing
+the Swin-Axial Transformer to
+maintain high performance and stability when handling a
+broader range of object and pattern detection tasks. For
+example, pretraining the model on different object detection
+datasets and fine-tuning it for new tasks will help the model
+handle complex backgrounds and multi-scale issues in plant
+disease detection, as well as perform excellently in fields like
+medical imaging, industrial defect detection, and others.
+Through this approach, the model can more flexibly adapt to
+variations across different domains.Finally, to improve the
+model's robustness, future research can focus on optimizing
+data augmentation techniques and self-supervised learning
+methods,
+ensuring
+that
+the
+model
+maintains
+efficient
+detection capabilities even in complex backgrounds, lighting
+changes, and partial occlusions. These improvements will
+enhance the Swin-Axial Transformer's adaptability and
+generalization
+across
+various
+complex
+environments,
+meeting the needs of a wider range of object and pattern
+detection tasks, and providing more stable and precise
+solutions for large-scale, real-time monitoring systems.
+REFERENCES
+[1]
+M. M. Kamal, A. N. I. Masazhar, and F. A. Rahman, "Classification
+of leaf disease from image processing technique," Indonesian
+Journal of Electrical Engineering and Computer Science., vol. 10, no.
+1, pp. 191–200, 2018.
+[2]
+S. Phadikar, J. Sil, and A. K. Das, "Classification of rice leaf diseases
+based
+on
+morphological
+changes,"
+International
+Journal
+of
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+VOLUME XX, 2017
+7
+Information and Electronics Engineering., vol. 2, no. 3, pp. 460–463,
+2012.
+[3]
+P. Panchal, V. C. Raman, and S. Mantri, "Plant diseases detection
+and classification using machine learning models," in Proc. 4th Int.
+Conf. Comput. Syst. Inf. Technol. Sustain. Solut. (CSITSS), IEEE,
+2019, pp. 1–6.
+[4]
+A. Tabbakh A and S. S. Barpanda, "Evaluation of machine learning
+models for plant disease classification using modified GLCM and
+wavelet based statistical features," Traitement du Signal., vol. 39, no.
+6, p. 1893, 2022.
+[5]
+A. Bhargava, A. Bansal, and V. Goyal, "Machine learning – based
+detection and sorting of multiple vegetables and fruits," Food
+Analytical Methods., vol. 15, no. 1, pp. 228–242, 2022.
+[6]
+L. Falaschetti, L. Manoni, D. Di Leo, D. Pau, V. Tomaselli, and C.
+Turchetti, "A CNN-based image detector for plant leaf diseases
+classification," HardwareX., vol. 10, p. e00363, 2022.
+[7]
+V. K. Vishnoi, K. Kumar, B. Kumar, S. Mohan, and A. A. Khan,
+"Detection of apple plant diseases using leaf images through
+convolutional neural network," IEEE Access., vol. 11, pp. 6594–6609,
+2023.
+[8]
+A. Khattak, M. U. Asghar, U. Batool, M. Z. Asghar, H. Ullah, M. Al-
+Rakhami, and A. Gumaei, "Automatic detection of citrus fruit and
+leaves diseases using deep neural network model," IEEE Access., vol.
+9, pp. 112942–112954, 2021.
+[9]
+A. M. Roy and J. Bhaduri, "Real-time growth stage detection model
+for high degree of occultation using DenseNet-fused YOLOv4,"
+Computers and Electronics in Agriculture., vol. 193, p. 106694,
+2022.
+[10] Q. Liang, S. Xiang, Y. Hu, G. Coppola, D. Zhang, and W. Sun,
+"PD2SE-Net: Computer-assisted plant disease diagnosis and severity
+estimation network," Computers and Electronics in Agriculture., vol.
+157, pp. 518–529, 2019.
+[11] J. Johnson, G. Sharma, S. Srinivasan, S. K. Masakapalli, S. Sharma,
+J. Sharma, and V. K. Dua, "Enhanced field-based detection of potato
+blight
+in
+complex
+backgrounds
+using
+deep
+learning,"
+Plant
+Phenomics., 2021.
+[12] S. M. Hassan and A. K. Maji, "Plant disease identification using a
+novel convolutional neural network," IEEE Access., vol. 10, pp.
+5390–5401, 2022.
+[13] A. Vaswani, "Attention is all you need," Adv. Neural Inf. Process.
+Syst., 2017.
+[14] A. Tabbakh and S. S. Barpanda, "A deep features extraction model
+based on the transfer learning model and vision transformer
+'TLMViT' for plant disease classification," IEEE Access., vol. 11, pp.
+45377–45392, 2023.
+[15] P. Gole, P. Bedi, S. Marwaha, M. A. Haque, and C. K. Deb,
+"TrIncNet:
+A
+lightweight
+vision
+transformer
+network
+for
+identification of plant diseases," Front. Plant Sci., vol. 14, Art.
+1221557, 2023.
+[16] J. Chen, S. Wang, J. Guo, F. Chen, Y. Li, and H. Qiu, "Improved
+FasterViT model for citrus disease diagnosis," Heliyon., vol. 10, no.
+16, Art. e36092, 2024.
+[17] Z. Zhang, Z. Gong, Q. Hong, and L. Jiang, "Swin-transformer based
+classification for rice diseases recognition," in Proc. Int. Conf.
+Comput. Inf. Sci. Artif. Intell. (CISAI), IEEE, 2021, pp. 153–156.
+[18] A. M. Roy and J. Bhaduri, "DenseSPH-YOLOv5: An automated
+damage detection model based on DenseNet and Swin-Transformer
+prediction
+head-enabled
+YOLOv5
+with
+attention
+mechanism,"
+Advanced Engineering Informatics., vol. 56, p. 102007, 2023.
+[19] H. T. Thai, N. Y. Tran-Van, and K. H. Le, "Artificial cognition for
+early leaf disease detection using vision transformers," in 2021
+International
+Conference
+on
+Advanced
+Technologies
+for
+Communications (ATC), IEEE, 2021, pp. 33–38.
+[20] Y. Borhani, J. Khoramdel J, and E. Najafi, "A deep learning based
+approach for automated plant disease classification using vision
+transformer," Scientific Reports., vol. 12, no. 1, p. 11554, 2022.
+[21] D. Singh, N. Jain, P. Jain, P. Kayal, S. Kumawat, and N. Batra,
+"PlantDoc: A dataset for visual plant disease detection," in Proc. 7th
+ACM IKDD CoDS and 25th COMAD., 2020, pp. 249–253.
+[22] B. Koonce, "EfficientNet," Conv. Neural Netw. Swift Tensorflow
+Image Recogn. Dataset Categorization., pp. 109–123, 2021.
+[23] X. Zhang, X. Zhou, M. Lin, and J. Sun, "Shufflenet: An extremely
+efficient convolutional neural network for mobile devices," in Proc.
+IEEE Conf. Comput. Vis. Pattern Recognit., 2018, pp. 6848–6856.
+[24] S. Targ, D. Almeida, and K. Lyman, "Resnet in resnet: Generalizing
+residual architectures," arXiv preprint arXiv:1603.08029, 2016.
+[25] M. Al-Qizwini, I. Barjasteh, H. Al-Qassab, and H. Radha, "Deep
+learning algorithm for autonomous driving using GoogLeNet," in
+Proc. IEEE Intell. Vehicles Symp. (IV), IEEE, 2017, pp. 89–96.
+[26] W. Liu and L. Zhu, "Scene identification based on MobileNetV2,"
+Adv. Eng. Technol. Res., vol. 12, no. 1, p. 920, 2024.
+[27] Y. Zhu and S. Newsam, "Densenet for dense flow," in Proc. IEEE
+Int. Conf. Image Process. (ICIP), IEEE, 2017, pp. 790–794.
+[28] S. Mehta and M. Rastegari, "MobileViT: Light-weight, general-
+purpose, and mobile-friendly vision transformer," arXiv preprint
+arXiv:2110.02178, 2021.
+[29] S. Deng, Y. Yang, J. Wang, A. Li, and Z. Li, "Efficient SpineUNetX
+for X-ray: A spine segmentation network based on ConvNeXt and
+UNet," J. Vis. Commun. Image Represent., vol. 103, p. 104245, 2024.
+[30] Z. Liu, Y. Lin, Y. Cao, H. Hu, Y. Wei, Z. Zhang, and B. Guo, "Swin
+transformer: Hierarchical vision transformer using shifted windows,"
+in Proc. IEEE/CVF Int. Conf. Comput. Vis., 2021, pp. 10012–10022.
+[31] D. Wang, J. Wang, W. Li, and P. Guan, "T-CNN: Trilinear
+convolutional neural networks model for visual detection of plant
+diseases," Comput. Electron. Agric., vol. 190, p. 106468, 2021.
+[32] S. Yu, L. Xie, and Q. Huang, "Inception convolutional vision
+transformers for plant disease identification," Internet Things., vol.
+21, p. 100650, 2023.
+[33] S. Woo, J. Park, J. Y. Lee, et al., "CBAM: Convolutional block
+attention module," in Proc. European Conf. Comput. Vis. (ECCV),
+2018, pp. 3–19.
+[34] D. Ouyang, S. He, G. Zhang, et al., "Efficient multi-scale attention
+module with cross-spatial learning," in Proc. IEEE Int. Conf.
+Acoustics, Speech Signal Process. (ICASSP), IEEE, 2023, pp. 1–5.
+[35] Q. Wang, B. Wu, P. Zhu, et al., "ECA-Net: Efficient channel
+attention
+for
+deep
+convolutional
+neural
+networks,"
+in
+Proc.
+IEEE/CVF Conf. Comput. Vis. Pattern Recognit., 2020, pp. 11534–
+11542.
+[36] Y. Li, T. Yao, Y. Pan, et al., "Contextual transformer networks for
+visual recognition," IEEE Trans. Pattern Anal. Mach. Intell., vol. 45,
+no. 2, pp. 1489–1500, 2022.
+[37] M. A. Jasim and J. M. Al-Tuwaijari, "Plant leaf diseases detection
+and classification using image
+processing and deep learning
+techniques," in Proc. 2020 Int. Conf. Comput. Sci. Softw. Eng.
+(CSASE), IEEE, 2020, pp. 259–265.
+[38] R. Karthik, M. Hariharan, S. Anand, P. Mathikshara, A. Johnson, and
+R. Menaka, "Attention embedded residual CNN for disease detection
+in tomato leaves," Appl. Soft Comput., vol. 86, p. 105933, 2020.
+[39] J. Chen, W. Wang, D. Zhang, A. Zeb, and Y. A. Nanehkaran,
+"Attention
+embedded
+lightweight
+network
+for
+maize
+disease
+recognition," Plant Pathol., vol. 70, no. 3, pp. 630–642, 2021.
+[40] P. S. Thakur, P. Khanna, T. Sheorey, and A. Ojha, "Vision
+transformer for plant disease detection: PlantViT," in Proc. Int. Conf.
+Comput. Vis. Image Process., Cham, Switzerland: Springer, 2021, pp.
+501–511.
+[41] X. Li, X. Chen, J. Yang, and S. Li, "Transformer helps identify
+kiwifruit diseases in complex natural environments," Comput.
+Electron. Agric., vol. 200, p. 107258, 2022.
+Ao Zhang, male, was born on October 10, 2000, in
+Siping City, Jilin Province. Since September 2023, he
+has been pursuing a Master's degree in Communication
+Engineering
+at
+Shenyang
+Ligong
+University.
+His
+research focuses on the application of deep learning in
+agriculture. In terms of academic achievements, Zhang
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/
+
+Author Name: Preparation of Papers for IEEE Access (February 2017)
+8
+VOLUME XX, 2017
+Ao has published one paper in an SCI journal and another in a Chinese
+core journal.
+Wei Liu, female, born in October 1978, is a member of
+the Jiusan Society. Professor, Doctor of Engineering,
+postdoctoral
+fellow
+of
+Shenyang
+Institute
+of
+Automation, Chinese Academy of Sciences, external
+doctoral tutor of Changchun University of Science and
+Technology. Presided over the national natural science
+fund, 2 provincial projects, departmental projects, five
+horizontal projects, as the main person to participate in
+the provincial project 4, enterprise cooperation projects: won the
+provincial teaching achievement prize 1, city science and technology
+progress prize 4, the first author published papers by SCI, EI retrieval
+more than 30.
+This article has been accepted for publication in IEEE Access. This is the author's version which has not been fully edited and 
+content may change prior to final publication. Citation information: DOI 10.1109/ACCESS.2025.3578486
+This work is licensed under a Creative Commons Attribution 4.0 License. For more information, see https://creativecommons.org/licenses/by/4.0/

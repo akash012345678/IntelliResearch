@@ -1,0 +1,2759 @@
+{
+  "project_id": 1,
+  "paper_ids": [
+    1,
+    2,
+    3
+  ],
+  "response": {
+    "project": {
+      "id": 1,
+      "name": "Plant Diseases Prediction",
+      "description": "To predict the diseases in the plants",
+      "status": "ACTIVE",
+      "created_at": "2026-10-06T04:08:17",
+      "updated_at": "2026-10-06T04:08:17"
+    },
+    "collection_summary": {
+      "total_papers": 3,
+      "total_nodes": 43,
+      "total_edges": 64,
+      "total_keywords": 10,
+      "total_algorithms": 15,
+      "total_datasets": 3,
+      "total_methodologies": 8,
+      "total_domains": 2,
+      "total_metrics": 11,
+      "total_tasks": 2,
+      "total_applications": 4
+    },
+    "paper_landscape": [
+      {
+        "id": 1,
+        "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+        "abstract": "\u2014Early and accurate detection of plant diseases is crucial for ensuring food security and minimizing crop losses. Deep learning-based object detection models, particularly those based on the You Only Look Once (YOLO) architecture, have shown promise in this area. This study compares the perfor- mance of five recent YOLO models - YOLOv5, YOLOv5-p6, YOLOv6, YOLOv8, and YOLOv9 - for plant disease detection using the PlantDoc dataset. The models were evaluated based on their accuracy, speed, and resource requirements. Our results indicate that YOLOv9-C and YOLOv8s demonstrated superior performance in terms of F1-Score, Recall, and mAP metrics. These models achieved an F1-Score of 0.39 and 0.37 respectively, with YOLOv9-C leading in Recall at 0.51 and both models tying at a Best mAP@50 of 46%. Moreover, the highest F1-Score was achieved by YOLOv5s at 0.42, indicating that this model also has potential for further exploration and optimization. The highest mAP50-95 was achieved by YOLOv8s at 36%, suggesting that this model may be particularly effective at detecting a wide range of plant diseases across different thresholds.",
+        "year": null,
+        "authors": [],
+        "keywords": [
+          "Plant Disease Detection"
+        ],
+        "algorithms": [
+          "YOLO",
+          "YOLOv9",
+          "YOLOv8",
+          "YOLOv6",
+          "YOLOv5",
+          "CNN"
+        ],
+        "datasets": [
+          "PlantDoc"
+        ],
+        "methodologies": [
+          "Object Detection",
+          "Deep Learning",
+          "Transfer Learning"
+        ],
+        "application_domains": [
+          "Agriculture",
+          "Plant Diseases",
+          "Computer Vision"
+        ],
+        "metrics": [],
+        "tasks": [],
+        "applications": [],
+        "keyword_details": [
+          {
+            "name": "Plant Disease Detection",
+            "keyword": "Plant Disease Detection",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+            "evidence_section": "Title",
+            "source": "title"
+          }
+        ],
+        "algorithm_details": [
+          {
+            "name": "YOLO",
+            "algorithm": "YOLO",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.85,
+            "evidence_text": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+            "evidence_section": "Title",
+            "source": "title"
+          },
+          {
+            "name": "YOLOv9",
+            "algorithm": "YOLOv9",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "This study compares the perfor- mance of five recent YOLO models - YOLOv5, YOLOv5-p6, YOLOv6, YOLOv8, and YOLOv9 - for plant disease detection using the PlantDoc dataset",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "YOLOv8",
+            "algorithm": "YOLOv8",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "This study compares the perfor- mance of five recent YOLO models - YOLOv5, YOLOv5-p6, YOLOv6, YOLOv8, and YOLOv9 - for plant disease detection using the PlantDoc dataset",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "YOLOv6",
+            "algorithm": "YOLOv6",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "This study compares the perfor- mance of five recent YOLO models - YOLOv5, YOLOv5-p6, YOLOv6, YOLOv8, and YOLOv9 - for plant disease detection using the PlantDoc dataset",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "YOLOv5",
+            "algorithm": "YOLOv5",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "This study compares the perfor- mance of five recent YOLO models - YOLOv5, YOLOv5-p6, YOLOv6, YOLOv8, and YOLOv9 - for plant disease detection using the PlantDoc dataset",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "CNN",
+            "algorithm": "CNN",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "(FPS), while a two-stage detector like Faster R-CNN [6]",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ],
+        "dataset_details": [
+          {
+            "name": "PlantDoc",
+            "dataset": "PlantDoc",
+            "category": "dataset",
+            "role": "experimental",
+            "confidence": 0.99,
+            "evidence_text": "This study compares the perfor- mance of five recent YOLO models - YOLOv5, YOLOv5-p6, YOLOv6, YOLOv8, and YOLOv9 - for plant disease detection using the PlantDoc dataset",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "MS COCO",
+            "dataset": "MS COCO",
+            "category": "dataset",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "achieved state-of-the-art performance on the MS COCO",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "COCO",
+            "dataset": "COCO",
+            "category": "dataset",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "achieved state-of-the-art performance on the MS COCO",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ],
+        "methodology_details": [
+          {
+            "name": "Object Detection",
+            "methodology": "Object Detection",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "Deep learning-based object detection models, particularly those based on the You Only Look Once (YOLO) architecture, have shown promise in this area",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Deep Learning",
+            "methodology": "Deep Learning",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "Deep learning-based object detection models, particularly those based on the You Only Look Once (YOLO) architecture, have shown promise in this area",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Transfer Learning",
+            "methodology": "Transfer Learning",
+            "category": "methodology",
+            "role": "mentioned",
+            "confidence": 0.7,
+            "evidence_text": "\u2022 Transfer Learning and Domain Adaptation:",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+        "abstract": "Plant diseases are a significant threat to global agricultural production, and accurate and efficient disease detection is crucial for ensuring food security. With the rapid development of deep learning technology, Transformer architectures have demonstrated strong global feature extraction capabilities in image classification and detection tasks. However, traditional Transformer models still face high computational costs and large parameter volumes when handling multi-scale diseases and complex backgrounds. To address this challenge, this paper proposes the Swin-Axial Transformer model based on the Swin Transformer. By introducing the TokenEmbedder module, the number of tokens is reduced, and multi-scale deep convolution is used to efficiently extract image features, significantly lowering computational costs. Furthermore, the Axial Transformer module reduces computational complexity by restricting self-attention calculations to local regions along the axial direction. With the combination of the Axial Compression module and the Detail Enhancement module, the model can efficiently extract global semantic features and effectively supplement local detail information. Compared to traditional global self- attention mechanisms, the Axial Transformer successfully avoids computational bottlenecks through axial compression strategies. Experimental results show that the model achieves a precision of 79.52% on the PlantDoc dataset, 99.79% on the PlantVillage dataset, and 95.69% on a self-constructed fusion dataset. The model's parameter size is 14.87 M with a computational load of 2.96 GMac, which represents a reduction of 46% and 32%, respectively, compared to the Swin Transformer-T model, significantly improving computational efficiency. The model presented in this paper provides an efficient and reliable solution for large-scale crop disease detection.",
+        "year": null,
+        "authors": [],
+        "keywords": [
+          "Plant Disease Detection",
+          "Crop Disease Detection",
+          "Plant Disease Classification",
+          "Leaf Disease Classification",
+          "Edge Computing",
+          "Axial Compression",
+          "Computational Efficiency",
+          "Attention Mechanisms",
+          "Deep Convolution"
+        ],
+        "algorithms": [
+          "Swin-Axial Transformer",
+          "Swin Transformer",
+          "Axial Transformer",
+          "Transformer",
+          "CNN",
+          "SVM",
+          "Vision Transformer",
+          "YOLOv5",
+          "ResNet",
+          "DenseNet"
+        ],
+        "datasets": [
+          "Fusion Dataset",
+          "PlantVillage",
+          "PlantDoc"
+        ],
+        "methodologies": [
+          "Feature Extraction",
+          "Image Classification",
+          "Deep Learning",
+          "Object Detection",
+          "Transfer Learning",
+          "Machine Learning"
+        ],
+        "application_domains": [
+          "Agriculture",
+          "Plant Diseases",
+          "Computer Vision"
+        ],
+        "metrics": [],
+        "tasks": [],
+        "applications": [],
+        "keyword_details": [
+          {
+            "name": "Plant Disease Detection",
+            "keyword": "Plant Disease Detection",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+            "evidence_section": "Title",
+            "source": "title"
+          },
+          {
+            "name": "Crop Disease Detection",
+            "keyword": "Crop Disease Detection",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "The model presented in this paper provides an efficient and reliable solution for large-scale crop disease detection",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Plant Disease Classification",
+            "keyword": "Plant Disease Classification",
+            "category": "keyword",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "plant disease classification",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Leaf Disease Classification",
+            "keyword": "Leaf Disease Classification",
+            "category": "keyword",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "cassava leaf disease classification",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Edge Computing",
+            "keyword": "Edge Computing",
+            "category": "keyword",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "architectures and edge computing strategies can distribute",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Axial Compression",
+            "keyword": "Axial Compression",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "With the combination of the Axial Compression module and the Detail Enhancement module, the model can efficiently extract global semantic features and effectively supplement local detail information",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Computational Efficiency",
+            "keyword": "Computational Efficiency",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "96 GMac, which represents a reduction of 46% and 32%, respectively, compared to the Swin Transformer-T model, significantly improving computational efficiency",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Attention Mechanisms",
+            "keyword": "Attention Mechanisms",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "Compared to traditional global self- attention mechanisms, the Axial Transformer successfully avoids computational bottlenecks through axial compression strategies",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Deep Convolution",
+            "keyword": "Deep Convolution",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "By introducing the TokenEmbedder module, the number of tokens is reduced, and multi-scale deep convolution is used to efficiently extract image features, significantly lowering computational costs",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          }
+        ],
+        "algorithm_details": [
+          {
+            "name": "Swin-Axial Transformer",
+            "algorithm": "Swin-Axial Transformer",
+            "category": "algorithm",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "to address this challenge, this paper proposes the swin-axial transformer model based on the swin transformer",
+            "evidence_section": "Title",
+            "source": "title"
+          },
+          {
+            "name": "Swin Transformer",
+            "algorithm": "Swin Transformer",
+            "category": "algorithm",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "to address this challenge, this paper proposes the swin-axial transformer model based on the swin transformer",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Axial Transformer",
+            "algorithm": "Axial Transformer",
+            "category": "algorithm",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "to address this challenge, this paper proposes the swin-axial transformer model based on the swin transformer",
+            "evidence_section": "Title",
+            "source": "title"
+          },
+          {
+            "name": "Transformer",
+            "algorithm": "Transformer",
+            "category": "algorithm",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "to address this challenge, this paper proposes the swin-axial transformer model based on the swin transformer",
+            "evidence_section": "Title",
+            "source": "title"
+          },
+          {
+            "name": "CNN",
+            "algorithm": "CNN",
+            "category": "algorithm",
+            "role": "comparison",
+            "confidence": 0.85,
+            "evidence_text": "the swin-axial transformer outperforms both t-cnn and",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "SVM",
+            "algorithm": "SVM",
+            "category": "algorithm",
+            "role": "comparison",
+            "confidence": 0.85,
+            "evidence_text": "outperformed svm in both recognition accuracy and",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Vision Transformer",
+            "algorithm": "Vision Transformer",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "Recently, the Vision Transformer (ViT) model, inspired",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "YOLOv5",
+            "algorithm": "YOLOv5",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "DenseSPH-YOLOv5 model, which integrates DenseNet",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "ResNet",
+            "algorithm": "ResNet",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "(ResNet-101) model's 74",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "DenseNet",
+            "algorithm": "DenseNet",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "model that fuses DenseNet with YOLOv4, demonstrating",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ],
+        "dataset_details": [
+          {
+            "name": "Fusion Dataset",
+            "dataset": "Fusion Dataset",
+            "category": "dataset",
+            "role": "experimental",
+            "confidence": 0.99,
+            "evidence_text": "69% on a self-constructed fusion dataset",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "PlantVillage",
+            "dataset": "PlantVillage",
+            "category": "dataset",
+            "role": "experimental",
+            "confidence": 0.99,
+            "evidence_text": "79% on the PlantVillage dataset, and 95",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "PlantDoc",
+            "dataset": "PlantDoc",
+            "category": "dataset",
+            "role": "experimental",
+            "confidence": 0.99,
+            "evidence_text": "52% on the PlantDoc dataset, 99",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          }
+        ],
+        "methodology_details": [
+          {
+            "name": "Feature Extraction",
+            "methodology": "Feature Extraction",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "With the rapid development of deep learning technology, Transformer architectures have demonstrated strong global feature extraction capabilities in image classification and detection tasks",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Image Classification",
+            "methodology": "Image Classification",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "With the rapid development of deep learning technology, Transformer architectures have demonstrated strong global feature extraction capabilities in image classification and detection tasks",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Deep Learning",
+            "methodology": "Deep Learning",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "With the rapid development of deep learning technology, Transformer architectures have demonstrated strong global feature extraction capabilities in image classification and detection tasks",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Object Detection",
+            "methodology": "Object Detection",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "example, pretraining the model on different object detection",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Transfer Learning",
+            "methodology": "Transfer Learning",
+            "category": "methodology",
+            "role": "mentioned",
+            "confidence": 0.7,
+            "evidence_text": "involving supervised learning and transfer learning",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Machine Learning",
+            "methodology": "Machine Learning",
+            "category": "methodology",
+            "role": "mentioned",
+            "confidence": 0.7,
+            "evidence_text": "machine learning, particularly deep learning methods, has",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+        "abstract": "Plant diseases can have profound effects on the economy, impacting both local and global scales. These diseases can lead to substantial losses in agricultural productivity, affecting crop yields and quality. In this context, deep learning algorithms are widely acknowledged as effective solutions. However, the use of these black-box approaches raises concerns about trust in interpreting and validating the decisions generated by the models. This study proposes an explainable artificial intelligence (XAI) based plant disease classification system to classify and identify distinct ailments with improved accuracy. The system correctly identifies 38 different plant diseases with accuracy, precision, and recall as 99.69%, 98.27%, and 98.26%, respectively. These predictions are subjected to additional analysis employing the local interpretable model- agnostic explanations (LIME) framework to produce visual explanations aligning with prior beliefs and adhering to established best practices in explanations. This system will serve as a promising avenue for revolutionizing disease detection, fostering informed decision-making, and ultimately contributing to global food security.",
+        "year": null,
+        "authors": [],
+        "keywords": [
+          "Plant Disease Classification",
+          "Plant Disease Detection",
+          "AI",
+          "Visual Explanations"
+        ],
+        "algorithms": [
+          "CNN",
+          "ResNet",
+          "Random Forest",
+          "SVM"
+        ],
+        "datasets": [
+          "PlantVillage"
+        ],
+        "methodologies": [
+          "Explainable Artificial Intelligence",
+          "LIME",
+          "Deep Learning",
+          "Object Detection",
+          "Image Classification",
+          "Feature Extraction",
+          "Transfer Learning",
+          "Machine Learning"
+        ],
+        "application_domains": [
+          "Agriculture",
+          "Plant Diseases"
+        ],
+        "metrics": [],
+        "tasks": [],
+        "applications": [],
+        "keyword_details": [
+          {
+            "name": "Plant Disease Classification",
+            "keyword": "Plant Disease Classification",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+            "evidence_section": "Title",
+            "source": "title"
+          },
+          {
+            "name": "Plant Disease Detection",
+            "keyword": "Plant Disease Detection",
+            "category": "keyword",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "INDEX TERMS Plant disease detection, deep learning, explainable artificial intelligence, prediction model",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "AI",
+            "keyword": "AI",
+            "category": "keyword",
+            "role": "mentioned",
+            "confidence": 0.75,
+            "evidence_text": "the overall efficacy of plant disease classification in AI",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Visual Explanations",
+            "keyword": "Visual Explanations",
+            "category": "keyword",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "These predictions are subjected to additional analysis employing the local interpretable model- agnostic explanations (LIME) framework to produce visual explanations aligning with prior beliefs and adhering to established best practices in explanations",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          }
+        ],
+        "algorithm_details": [
+          {
+            "name": "CNN",
+            "algorithm": "CNN",
+            "category": "algorithm",
+            "role": "comparison",
+            "confidence": 0.85,
+            "evidence_text": "efficientnetb0 [7] is a state-of-the-art cnn architecture",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "ResNet",
+            "algorithm": "ResNet",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "Residual network (ResNet) [11] is one of the most",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Random Forest",
+            "algorithm": "Random Forest",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "[19] employed Random Forest for clas-",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "SVM",
+            "algorithm": "SVM",
+            "category": "algorithm",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "employs Support Vector Machine (SVM) [29], K-Nearest",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ],
+        "dataset_details": [
+          {
+            "name": "PlantVillage",
+            "dataset": "PlantVillage",
+            "category": "dataset",
+            "role": "mentioned",
+            "confidence": 0.6,
+            "evidence_text": "The Plant Village [17] dataset",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ],
+        "methodology_details": [
+          {
+            "name": "Explainable Artificial Intelligence",
+            "methodology": "Explainable Artificial Intelligence",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "This study proposes an explainable artificial intelligence (XAI) based plant disease classification system to classify and identify distinct ailments with improved accuracy",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "LIME",
+            "methodology": "LIME",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "These predictions are subjected to additional analysis employing the local interpretable model- agnostic explanations (LIME) framework to produce visual explanations aligning with prior beliefs and adhering to established best practices in explanations",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Deep Learning",
+            "methodology": "Deep Learning",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.99,
+            "evidence_text": "In this context, deep learning algorithms are widely acknowledged as effective solutions",
+            "evidence_section": "Abstract",
+            "source": "abstract"
+          },
+          {
+            "name": "Object Detection",
+            "methodology": "Object Detection",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "such as image classification, object detection, and facial",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Image Classification",
+            "methodology": "Image Classification",
+            "category": "methodology",
+            "role": "primary",
+            "confidence": 0.9,
+            "evidence_text": "such as image classification, object detection, and facial",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Feature Extraction",
+            "methodology": "Feature Extraction",
+            "category": "methodology",
+            "role": "mentioned",
+            "confidence": 0.7,
+            "evidence_text": "feature extraction and model training",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Transfer Learning",
+            "methodology": "Transfer Learning",
+            "category": "methodology",
+            "role": "mentioned",
+            "confidence": 0.7,
+            "evidence_text": "outperformed well-known deep transfer learning models,",
+            "evidence_section": "Body",
+            "source": "body"
+          },
+          {
+            "name": "Machine Learning",
+            "methodology": "Machine Learning",
+            "category": "methodology",
+            "role": "mentioned",
+            "confidence": 0.7,
+            "evidence_text": "recognition using machine learning (ML), has shown promise",
+            "evidence_section": "Body",
+            "source": "body"
+          }
+        ]
+      }
+    ],
+    "shared_concepts": {
+      "keywords": [
+        {
+          "name": "Plant Disease Detection",
+          "type": "keyword",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Plant Disease Classification",
+          "type": "keyword",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Crop Disease Detection",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Leaf Disease Classification",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Edge Computing",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Axial Compression",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Computational Efficiency",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Attention Mechanisms",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Deep Convolution",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Visual Explanations",
+          "type": "keyword",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "algorithms": [
+        {
+          "name": "CNN",
+          "type": "algorithm",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "comparison",
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "YOLOv5",
+          "type": "algorithm",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "SVM",
+          "type": "algorithm",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned",
+            "comparison"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "ResNet",
+          "type": "algorithm",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "YOLO",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "YOLOv9",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "YOLOv8",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "YOLOv6",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Swin-Axial Transformer",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Swin Transformer",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Axial Transformer",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Transformer",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Vision Transformer",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "DenseNet",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Random Forest",
+          "type": "algorithm",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "datasets": [
+        {
+          "name": "PlantDoc",
+          "type": "dataset",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned",
+            "experimental"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "PlantVillage",
+          "type": "dataset",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned",
+            "experimental"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Fusion Dataset",
+          "type": "dataset",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "experimental"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "methodologies": [
+        {
+          "name": "Object Detection",
+          "type": "methodologie",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Deep Learning",
+          "type": "methodologie",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Transfer Learning",
+          "type": "methodologie",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Feature Extraction",
+          "type": "methodologie",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned",
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Image Classification",
+          "type": "methodologie",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Machine Learning",
+          "type": "methodologie",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Explainable Artificial Intelligence",
+          "type": "methodologie",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "LIME",
+          "type": "methodologie",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "domains": [
+        {
+          "name": "Agriculture",
+          "type": "domain",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "primary"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Computer Vision",
+          "type": "domain",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "mentioned",
+            "secondary"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "metrics": [
+        {
+          "name": "Accuracy",
+          "type": "metric",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Precision",
+          "type": "metric",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Recall",
+          "type": "metric",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "F1",
+          "type": "metric",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "mAP",
+          "type": "metric",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "FPS",
+          "type": "metric",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Sensitivity",
+          "type": "metric",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "mAP50",
+          "type": "metric",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "IoU (Intersection over Union)",
+          "type": "metric",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Latency",
+          "type": "metric",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Computational Complexity",
+          "type": "metric",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "EVALUATION_METRIC"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "tasks": [
+        {
+          "name": "Object Detection",
+          "type": "task",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Image Classification",
+          "type": "task",
+          "paper_count": 2,
+          "coverage_percentage": 66.7,
+          "classification": "COMMON",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ],
+      "applications": [
+        {
+          "name": "Food Security",
+          "type": "application",
+          "paper_count": 3,
+          "coverage_percentage": 100.0,
+          "classification": "COMMON",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Real-Time Monitoring",
+          "type": "application",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Mobile Application",
+          "type": "application",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        },
+        {
+          "name": "Agricultural Productivity",
+          "type": "application",
+          "paper_count": 1,
+          "coverage_percentage": 33.3,
+          "classification": "UNDERREPRESENTED",
+          "roles": [
+            "RESEARCH_CONCEPT"
+          ],
+          "papers": [
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "evidence_text": null,
+          "evidence_section": null
+        }
+      ]
+    },
+    "paper_relationships": [
+      {
+        "source_paper_id": 1,
+        "source_paper_title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+        "target_paper_id": 2,
+        "target_paper_title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+        "similarity_score": 63.0,
+        "shared_concepts": [
+          "Agriculture",
+          "CNN",
+          "Computer Vision",
+          "Deep Learning",
+          "Object Detection",
+          "Plant Disease Detection",
+          "Plant Diseases",
+          "PlantDoc",
+          "Transfer Learning",
+          "YOLOv5"
+        ]
+      },
+      {
+        "source_paper_id": 1,
+        "source_paper_title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+        "target_paper_id": 3,
+        "target_paper_title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+        "similarity_score": 59.8,
+        "shared_concepts": [
+          "Agriculture",
+          "CNN",
+          "Deep Learning",
+          "Object Detection",
+          "Plant Disease Detection",
+          "Plant Diseases",
+          "Transfer Learning"
+        ]
+      },
+      {
+        "source_paper_id": 2,
+        "source_paper_title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+        "target_paper_id": 3,
+        "target_paper_title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+        "similarity_score": 51.5,
+        "shared_concepts": [
+          "Agriculture",
+          "CNN",
+          "Deep Learning",
+          "Feature Extraction",
+          "Image Classification",
+          "Machine Learning",
+          "Object Detection",
+          "Plant Disease Classification",
+          "Plant Disease Detection",
+          "Plant Diseases",
+          "PlantVillage",
+          "ResNet",
+          "SVM",
+          "Transfer Learning"
+        ]
+      }
+    ],
+    "research_gaps": [
+      {
+        "gap_id": "gap_1",
+        "gap_type": "METHODOLOGY_ARCHITECTURE_GAP",
+        "title": "Application of Explainable AI to YOLO-family Plant Disease Analysis",
+        "description": "Paper ID 1 investigates YOLO-family, while Paper ID 3 evaluates Explainability Methods. The indexed collection does not directly evaluate Explainability Methods for YOLO-family in Plant Diseases Prediction.",
+        "source_paper_id": 1,
+        "source_paper_title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+        "source_papers": [
+          {
+            "paper_id": 1,
+            "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+          },
+          {
+            "paper_id": 3,
+            "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+          }
+        ],
+        "supported_paper_count": 2,
+        "related_concepts": [
+          "Explainability Methods",
+          "YOLO-family"
+        ],
+        "missing_concept": "Explainability Methods + YOLO-family",
+        "concept_type": "research_relationship",
+        "relationship_type": "unassessed_canonical_relationship",
+        "gap_score": 0.8945,
+        "confidence": "High",
+        "eligibility_status": "QUALIFIED_POTENTIAL_GAP",
+        "evidence": {
+          "canonical_relationship_key": "FAMILY_EXPLAINABILITY___FAMILY_YOLO",
+          "canonical_components": [
+            "Explainability Methods",
+            "YOLO-family"
+          ],
+          "evidence_aliases": [
+            "Explainable Artificial Intelligence",
+            "LIME",
+            "YOLO",
+            "YOLO-family models",
+            "YOLOv5",
+            "YOLOv6",
+            "YOLOv8",
+            "YOLOv9"
+          ],
+          "supporting_papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "supporting_paper_ids": [
+            1,
+            3
+          ],
+          "supported_paper_count": 2,
+          "supporting_evidence": [
+            "Paper ID 1 investigates YOLO-family, while Paper ID 3 evaluates Explainability Methods. The indexed collection does not directly evaluate Explainability Methods for YOLO-family in Plant Diseases Prediction."
+          ],
+          "relationship_type": "unassessed_canonical_relationship",
+          "gap_type": "METHODOLOGY_ARCHITECTURE_GAP",
+          "role_compatibility": 0.88,
+          "methodological_compatibility": 0.88,
+          "task_relevance": 0.83,
+          "textual_evidence": 0.5,
+          "cross_paper_support": 1.0,
+          "semantic_evidence": 0.0521,
+          "future_work_evidence": 0.0,
+          "underrepresentation": 0.0,
+          "underrepresentation_score": 0.0,
+          "relationship_evidence_score": 0.8155,
+          "final_gap_score": 0.8945,
+          "confidence": "High",
+          "eligibility_status": "QUALIFIED_POTENTIAL_GAP",
+          "link_prediction_score": 0.8,
+          "relationship_absence": 1.0,
+          "evidence_richness": 1.0,
+          "evidence_classification": "UNASSESSED_RELATIONSHIP"
+        },
+        "gap_reasoning": {
+          "supported_paper_count": 2,
+          "supporting_paper_ids": [
+            1,
+            3
+          ],
+          "component_a": {
+            "name": "Explainability Methods",
+            "papers": [
+              3
+            ],
+            "evidence": "Paper ID 3 evaluates Explainability Methods."
+          },
+          "component_a_papers": [
+            3
+          ],
+          "component_b": {
+            "name": "YOLO-family",
+            "papers": [
+              1
+            ],
+            "evidence": "Paper ID 1 evaluates YOLO-family."
+          },
+          "component_b_papers": [
+            1
+          ],
+          "relationship_not_found": "Within the indexed collection, no paper directly evaluates Explainability Methods with YOLO-family.",
+          "task_alignment": {
+            "score": 0.83,
+            "description": "Both components align with the project domain 'Plant Diseases Prediction'."
+          },
+          "scientific_compatibility": {
+            "score": 0.88,
+            "pattern": "METHODOLOGY_ARCHITECTURE_GAP",
+            "description": "The proposed relationship represents a scientifically plausible methodology architecture gap."
+          },
+          "evidence_limitation": {
+            "statement": "This potential gap represents an unassessed relationship within the reviewed paper collection, not proof of global novelty."
+          },
+          "collection_limitation": {
+            "statement": "This potential gap represents an unassessed relationship within the reviewed paper collection, not proof of global novelty."
+          },
+          "evidence_aliases": [
+            "Explainable Artificial Intelligence",
+            "LIME",
+            "YOLO",
+            "YOLO-family models",
+            "YOLOv5",
+            "YOLOv6",
+            "YOLOv8",
+            "YOLOv9"
+          ],
+          "component_a_evidence": {
+            "concept": "Explainability Methods",
+            "paper_ids": [
+              3
+            ],
+            "indexed_papers": [
+              "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            ],
+            "description": "Component 'Explainability Methods' is evaluated in indexed paper(s): 3."
+          },
+          "component_b_evidence": {
+            "concept": "YOLO-family",
+            "paper_ids": [
+              1
+            ],
+            "indexed_papers": [
+              "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            ],
+            "description": "Component 'YOLO-family' is evaluated in indexed paper(s): 1."
+          },
+          "missing_relationship": {
+            "description": "The indexed collection does not directly evaluate Explainability Methods and YOLO-family together in any single paper.",
+            "evaluated_together_in_collection": false
+          }
+        },
+        "explanation": "Paper ID 1 investigates YOLO-family, while Paper ID 3 evaluates Explainability Methods. The indexed collection does not directly evaluate Explainability Methods for YOLO-family in Plant Diseases Prediction."
+      },
+      {
+        "gap_id": "gap_2",
+        "gap_type": "CROSS_PAPER_COMPARISON",
+        "title": "Unified Comparative Evaluation of Transformer-family and YOLO-family",
+        "description": "The indexed collection evaluates Transformer-family (Paper ID 2) and YOLO-family (Paper ID 1) separately, but does not provide a unified comparative benchmark under common evaluation conditions.",
+        "source_paper_id": 1,
+        "source_paper_title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+        "source_papers": [
+          {
+            "paper_id": 1,
+            "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+          },
+          {
+            "paper_id": 2,
+            "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+          }
+        ],
+        "supported_paper_count": 2,
+        "related_concepts": [
+          "Transformer-family",
+          "YOLO-family"
+        ],
+        "missing_concept": "Transformer-family + YOLO-family",
+        "concept_type": "research_relationship",
+        "relationship_type": "unassessed_canonical_relationship",
+        "gap_score": 0.8162,
+        "confidence": "High",
+        "eligibility_status": "QUALIFIED_POTENTIAL_GAP",
+        "evidence": {
+          "canonical_relationship_key": "FAMILY_TRANSFORMER___FAMILY_YOLO",
+          "canonical_components": [
+            "Transformer-family",
+            "YOLO-family"
+          ],
+          "evidence_aliases": [
+            "Axial Transformer",
+            "Swin Transformer",
+            "Swin-Axial Transformer",
+            "Transformer",
+            "Transformer Architectures",
+            "Vision Transformer",
+            "YOLO",
+            "YOLO-family models",
+            "YOLOv5",
+            "YOLOv6",
+            "YOLOv8",
+            "YOLOv9"
+          ],
+          "supporting_papers": [
+            {
+              "paper_id": 1,
+              "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            },
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            }
+          ],
+          "supporting_paper_ids": [
+            1,
+            2
+          ],
+          "supported_paper_count": 2,
+          "supporting_evidence": [
+            "The indexed collection evaluates Transformer-family (Paper ID 2) and YOLO-family (Paper ID 1) separately, but does not provide a unified comparative benchmark under common evaluation conditions."
+          ],
+          "relationship_type": "unassessed_canonical_relationship",
+          "gap_type": "CROSS_PAPER_COMPARISON",
+          "role_compatibility": 0.9,
+          "methodological_compatibility": 0.9,
+          "task_relevance": 0.83,
+          "textual_evidence": 0.5,
+          "cross_paper_support": 0.6667,
+          "semantic_evidence": 0.3071,
+          "future_work_evidence": 0.0,
+          "underrepresentation": 0.0,
+          "underrepresentation_score": 0.0,
+          "relationship_evidence_score": 0.7558,
+          "final_gap_score": 0.8162,
+          "confidence": "High",
+          "eligibility_status": "QUALIFIED_POTENTIAL_GAP",
+          "link_prediction_score": 0.8,
+          "relationship_absence": 1.0,
+          "evidence_richness": 1.0,
+          "evidence_classification": "UNASSESSED_RELATIONSHIP"
+        },
+        "gap_reasoning": {
+          "supported_paper_count": 2,
+          "supporting_paper_ids": [
+            1,
+            2
+          ],
+          "component_a": {
+            "name": "Transformer-family",
+            "papers": [
+              2
+            ],
+            "evidence": "Paper ID 2 evaluates Transformer-family."
+          },
+          "component_a_papers": [
+            2
+          ],
+          "component_b": {
+            "name": "YOLO-family",
+            "papers": [
+              1
+            ],
+            "evidence": "Paper ID 1 evaluates YOLO-family."
+          },
+          "component_b_papers": [
+            1
+          ],
+          "relationship_not_found": "Within the indexed collection, no paper directly evaluates Transformer-family with YOLO-family.",
+          "task_alignment": {
+            "score": 0.83,
+            "description": "Both components align with the project domain 'Plant Diseases Prediction'."
+          },
+          "scientific_compatibility": {
+            "score": 0.9,
+            "pattern": "CROSS_PAPER_COMPARISON",
+            "description": "The proposed relationship represents a scientifically plausible cross paper comparison."
+          },
+          "evidence_limitation": {
+            "statement": "This potential gap represents an unassessed relationship within the reviewed paper collection, not proof of global novelty."
+          },
+          "collection_limitation": {
+            "statement": "This potential gap represents an unassessed relationship within the reviewed paper collection, not proof of global novelty."
+          },
+          "evidence_aliases": [
+            "Axial Transformer",
+            "Swin Transformer",
+            "Swin-Axial Transformer",
+            "Transformer",
+            "Transformer Architectures",
+            "Vision Transformer",
+            "YOLO",
+            "YOLO-family models",
+            "YOLOv5",
+            "YOLOv6",
+            "YOLOv8",
+            "YOLOv9"
+          ],
+          "component_a_evidence": {
+            "concept": "Transformer-family",
+            "paper_ids": [
+              2
+            ],
+            "indexed_papers": [
+              "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            ],
+            "description": "Component 'Transformer-family' is evaluated in indexed paper(s): 2."
+          },
+          "component_b_evidence": {
+            "concept": "YOLO-family",
+            "paper_ids": [
+              1
+            ],
+            "indexed_papers": [
+              "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection"
+            ],
+            "description": "Component 'YOLO-family' is evaluated in indexed paper(s): 1."
+          },
+          "missing_relationship": {
+            "description": "The indexed collection does not directly evaluate Transformer-family and YOLO-family together in any single paper.",
+            "evaluated_together_in_collection": false
+          }
+        },
+        "explanation": "The indexed collection evaluates Transformer-family (Paper ID 2) and YOLO-family (Paper ID 1) separately, but does not provide a unified comparative benchmark under common evaluation conditions."
+      },
+      {
+        "gap_id": "gap_3",
+        "gap_type": "METHODOLOGY_ARCHITECTURE_GAP",
+        "title": "Application of Explainable AI to Transformer-family Plant Disease Analysis",
+        "description": "Paper ID 2, 3 investigates Transformer-family, while Paper ID 3 evaluates Explainability Methods. The indexed collection does not directly evaluate Explainability Methods for Transformer-family in Plant Diseases Prediction.",
+        "source_paper_id": 2,
+        "source_paper_title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+        "source_papers": [
+          {
+            "paper_id": 2,
+            "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+          },
+          {
+            "paper_id": 3,
+            "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+          }
+        ],
+        "supported_paper_count": 2,
+        "related_concepts": [
+          "Explainability Methods",
+          "Transformer-family"
+        ],
+        "missing_concept": "Explainability Methods + Transformer-family",
+        "concept_type": "research_relationship",
+        "relationship_type": "unassessed_canonical_relationship",
+        "gap_score": 0.8112,
+        "confidence": "High",
+        "eligibility_status": "QUALIFIED_POTENTIAL_GAP",
+        "evidence": {
+          "canonical_relationship_key": "FAMILY_EXPLAINABILITY___FAMILY_TRANSFORMER",
+          "canonical_components": [
+            "Explainability Methods",
+            "Transformer-family"
+          ],
+          "evidence_aliases": [
+            "Axial Transformer",
+            "Explainable Artificial Intelligence",
+            "LIME",
+            "Swin Transformer",
+            "Swin-Axial Transformer",
+            "Transformer",
+            "Transformer Architectures",
+            "Vision Transformer"
+          ],
+          "supporting_papers": [
+            {
+              "paper_id": 2,
+              "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer"
+            },
+            {
+              "paper_id": 3,
+              "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            }
+          ],
+          "supporting_paper_ids": [
+            2,
+            3
+          ],
+          "supported_paper_count": 2,
+          "supporting_evidence": [
+            "Paper ID 2, 3 investigates Transformer-family, while Paper ID 3 evaluates Explainability Methods. The indexed collection does not directly evaluate Explainability Methods for Transformer-family in Plant Diseases Prediction."
+          ],
+          "relationship_type": "unassessed_canonical_relationship",
+          "gap_type": "METHODOLOGY_ARCHITECTURE_GAP",
+          "role_compatibility": 0.88,
+          "methodological_compatibility": 0.88,
+          "task_relevance": 0.83,
+          "textual_evidence": 0.5,
+          "cross_paper_support": 0.6667,
+          "semantic_evidence": 0.05,
+          "future_work_evidence": 0.0,
+          "underrepresentation": 0.0,
+          "underrepresentation_score": 0.0,
+          "relationship_evidence_score": 0.7488,
+          "final_gap_score": 0.8112,
+          "confidence": "High",
+          "eligibility_status": "QUALIFIED_POTENTIAL_GAP",
+          "link_prediction_score": 0.8,
+          "relationship_absence": 1.0,
+          "evidence_richness": 1.0,
+          "evidence_classification": "UNASSESSED_RELATIONSHIP"
+        },
+        "gap_reasoning": {
+          "supported_paper_count": 2,
+          "supporting_paper_ids": [
+            2,
+            3
+          ],
+          "component_a": {
+            "name": "Explainability Methods",
+            "papers": [
+              3
+            ],
+            "evidence": "Paper ID 3 evaluates Explainability Methods."
+          },
+          "component_a_papers": [
+            3
+          ],
+          "component_b": {
+            "name": "Transformer-family",
+            "papers": [
+              2,
+              3
+            ],
+            "evidence": "Paper ID 2, 3 evaluates Transformer-family."
+          },
+          "component_b_papers": [
+            2,
+            3
+          ],
+          "relationship_not_found": "Within the indexed collection, no paper directly evaluates Explainability Methods with Transformer-family.",
+          "task_alignment": {
+            "score": 0.83,
+            "description": "Both components align with the project domain 'Plant Diseases Prediction'."
+          },
+          "scientific_compatibility": {
+            "score": 0.88,
+            "pattern": "METHODOLOGY_ARCHITECTURE_GAP",
+            "description": "The proposed relationship represents a scientifically plausible methodology architecture gap."
+          },
+          "evidence_limitation": {
+            "statement": "This potential gap represents an unassessed relationship within the reviewed paper collection, not proof of global novelty."
+          },
+          "collection_limitation": {
+            "statement": "This potential gap represents an unassessed relationship within the reviewed paper collection, not proof of global novelty."
+          },
+          "evidence_aliases": [
+            "Axial Transformer",
+            "Explainable Artificial Intelligence",
+            "LIME",
+            "Swin Transformer",
+            "Swin-Axial Transformer",
+            "Transformer",
+            "Transformer Architectures",
+            "Vision Transformer"
+          ],
+          "component_a_evidence": {
+            "concept": "Explainability Methods",
+            "paper_ids": [
+              3
+            ],
+            "indexed_papers": [
+              "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            ],
+            "description": "Component 'Explainability Methods' is evaluated in indexed paper(s): 3."
+          },
+          "component_b_evidence": {
+            "concept": "Transformer-family",
+            "paper_ids": [
+              2,
+              3
+            ],
+            "indexed_papers": [
+              "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+              "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence"
+            ],
+            "description": "Component 'Transformer-family' is evaluated in indexed paper(s): 2, 3."
+          },
+          "missing_relationship": {
+            "description": "The indexed collection does not directly evaluate Explainability Methods and Transformer-family together in any single paper.",
+            "evaluated_together_in_collection": false
+          }
+        },
+        "explanation": "Paper ID 2, 3 investigates Transformer-family, while Paper ID 3 evaluates Explainability Methods. The indexed collection does not directly evaluate Explainability Methods for Transformer-family in Plant Diseases Prediction."
+      }
+    ],
+    "underrepresented_concepts": [
+      {
+        "name": "YOLO",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'YOLO' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "YOLOv9",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'YOLOv9' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "YOLOv8",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'YOLOv8' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "YOLOv6",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'YOLOv6' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "Swin-Axial Transformer",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'Swin-Axial Transformer' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "Swin Transformer",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'Swin Transformer' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "Axial Transformer",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'Axial Transformer' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "Transformer",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'Transformer' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "Vision Transformer",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'Vision Transformer' appears in only 1 out of 3 project papers (33.3% coverage)."
+      },
+      {
+        "name": "DenseNet",
+        "type": "algorithm",
+        "paper_count": 1,
+        "coverage_percentage": 33.3,
+        "related_paper_count": 1,
+        "explanation": "Concept 'DenseNet' appears in only 1 out of 3 project papers (33.3% coverage)."
+      }
+    ],
+    "candidate_research_directions": [
+      {
+        "direction_id": "dir_1",
+        "opportunity_family_id": "FAMILY_EXPLAINABILITY___FAMILY_YOLO",
+        "parent_gap_id": "gap_1",
+        "gap_relationship_key": "FAMILY_EXPLAINABILITY___FAMILY_YOLO",
+        "gap_type": "METHODOLOGY_ARCHITECTURE_GAP",
+        "gap_evidence_class": "UNASSESSED_RELATIONSHIP",
+        "gap_evidence_score": 0.8945,
+        "source_paper_ids": [
+          1,
+          3
+        ],
+        "title": "Incorporate Explainable Artificial Intelligence into YOLO-Family Object Detection",
+        "research_question": "How can Explainable Artificial Intelligence methods be integrated into YOLO-family object detection pipelines to provide spatial attribution and diagnostic transparency for plant disease localization?",
+        "description": "Investigate incorporating Explainable Artificial Intelligence attribution and saliency techniques into YOLO-family object detection frameworks to enhance diagnostic interpretability.",
+        "research_problem": "Paper ID 14 evaluates real-time YOLO-family object detection models, while Paper ID 16 investigates Explainable Artificial Intelligence feature attribution. Explainable AI integration for YOLO object detection remains unassessed in the collection.",
+        "motivation": "Derived from qualified research gap 'gap_1' (FAMILY_EXPLAINABILITY___FAMILY_YOLO) evaluating Explainable Artificial Intelligence and YOLO-family models.",
+        "missing_aspect": "Integrated evaluation of Explainable Artificial Intelligence and YOLO-family models is unassessed across indexed project papers.",
+        "proposed_direction": "Investigate incorporating Explainable Artificial Intelligence attribution and saliency techniques into YOLO-family object detection frameworks to enhance diagnostic interpretability.",
+        "supporting_papers": [
+          {
+            "paper_id": 1,
+            "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+            "role": "Implements algorithm 'YOLO-family models' in indexed paper metadata."
+          },
+          {
+            "paper_id": 3,
+            "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+            "role": "Applies methodology 'Explainable Artificial Intelligence' in indexed paper metadata."
+          }
+        ],
+        "supporting_concepts": [
+          "Explainable Artificial Intelligence",
+          "YOLO-family models"
+        ],
+        "candidate_algorithms": [
+          {
+            "name": "YOLO-family models",
+            "supporting_paper_count": 1,
+            "reason": "Model architecture component derived from parent gap 'gap_1'."
+          }
+        ],
+        "candidate_datasets": [],
+        "evidence": {
+          "gap_score": 0.8945,
+          "opportunity_score": 0.8945,
+          "semantic_evidence": 0.0521,
+          "link_prediction_score": 0.8,
+          "collection_coverage": 66.7,
+          "underrepresentation_score": 0.3,
+          "evidence_classification": "UNASSESSED_RELATIONSHIP"
+        },
+        "confidence": "Moderate",
+        "disclaimer": "This direction is generated strictly from papers assigned to this research project."
+      },
+      {
+        "direction_id": "dir_2",
+        "opportunity_family_id": "FAMILY_TRANSFORMER___FAMILY_YOLO",
+        "parent_gap_id": "gap_4",
+        "gap_relationship_key": "FAMILY_TRANSFORMER___FAMILY_YOLO",
+        "gap_type": "CROSS_PAPER_COMPARISON",
+        "gap_evidence_class": "UNASSESSED_RELATIONSHIP",
+        "gap_evidence_score": 0.8162,
+        "source_paper_ids": [
+          1,
+          2
+        ],
+        "title": "Unified Comparative Evaluation of Transformer-Family and YOLO-Family Models for Plant Disease Analysis",
+        "research_question": "How do Transformer-family and YOLO-family models compare under standardized plant disease evaluation conditions?",
+        "description": "Execute a unified comparative benchmark evaluating global self-attention (Transformer) and real-time object detection (YOLO) under standardized plant disease evaluation metrics.",
+        "research_problem": "Paper ID 14 evaluates YOLO-family object detectors and Paper ID 15 evaluates Swin-Axial Transformers in isolation. A unified comparative evaluation between Transformer-family and YOLO-family model paradigms is unassessed.",
+        "motivation": "Derived from qualified research gap 'gap_4' (FAMILY_TRANSFORMER___FAMILY_YOLO) evaluating Transformer Architectures and YOLO-family models.",
+        "missing_aspect": "Integrated evaluation of Transformer Architectures and YOLO-family models is unassessed across indexed project papers.",
+        "proposed_direction": "Execute a unified comparative benchmark evaluating global self-attention (Transformer) and real-time object detection (YOLO) under standardized plant disease evaluation metrics.",
+        "supporting_papers": [
+          {
+            "paper_id": 1,
+            "title": "Evaluating the Performance YOLO Object Detectors for Plant Disease Detection",
+            "role": "Implements algorithm 'YOLO-family models' in indexed paper metadata."
+          },
+          {
+            "paper_id": 2,
+            "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+            "role": "Implements algorithm 'Transformer Architectures' in indexed paper metadata."
+          }
+        ],
+        "supporting_concepts": [
+          "Transformer Architectures",
+          "YOLO-family models"
+        ],
+        "candidate_algorithms": [
+          {
+            "name": "Transformer Architectures",
+            "supporting_paper_count": 1,
+            "reason": "Model architecture component derived from parent gap 'gap_4'."
+          },
+          {
+            "name": "YOLO-family models",
+            "supporting_paper_count": 1,
+            "reason": "Model architecture component derived from parent gap 'gap_4'."
+          }
+        ],
+        "candidate_datasets": [],
+        "evidence": {
+          "gap_score": 0.8162,
+          "opportunity_score": 0.8162,
+          "semantic_evidence": 0.3071,
+          "link_prediction_score": 0.8,
+          "collection_coverage": 66.7,
+          "underrepresentation_score": 0.3,
+          "evidence_classification": "UNASSESSED_RELATIONSHIP"
+        },
+        "confidence": "Moderate",
+        "disclaimer": "This direction is generated strictly from papers assigned to this research project."
+      },
+      {
+        "direction_id": "dir_3",
+        "opportunity_family_id": "FAMILY_EXPLAINABILITY___FAMILY_TRANSFORMER",
+        "parent_gap_id": "gap_5",
+        "gap_relationship_key": "FAMILY_EXPLAINABILITY___FAMILY_TRANSFORMER",
+        "gap_type": "METHODOLOGY_ARCHITECTURE_GAP",
+        "gap_evidence_class": "UNASSESSED_RELATIONSHIP",
+        "gap_evidence_score": 0.8112,
+        "source_paper_ids": [
+          2,
+          3
+        ],
+        "title": "Incorporate Explainable Artificial Intelligence into Transformer-Based Plant Disease Analysis",
+        "research_question": "How do Explainable Artificial Intelligence saliency methods interpret self-attention feature maps of Transformer models in agricultural disease diagnosis?",
+        "description": "Investigate applying Explainable Artificial Intelligence attribution techniques to Transformer self-attention architectures to assess diagnostic transparency.",
+        "research_problem": "Paper ID 15 evaluates Swin-Axial Transformer architectures, while Paper ID 16 evaluates Explainable Artificial Intelligence on CNN models. Attention-map explainability for Transformers remains unassessed.",
+        "motivation": "Derived from qualified research gap 'gap_5' (FAMILY_EXPLAINABILITY___FAMILY_TRANSFORMER) evaluating Explainable Artificial Intelligence and Transformer Architectures.",
+        "missing_aspect": "Integrated evaluation of Explainable Artificial Intelligence and Transformer Architectures is unassessed across indexed project papers.",
+        "proposed_direction": "Investigate applying Explainable Artificial Intelligence attribution techniques to Transformer self-attention architectures to assess diagnostic transparency.",
+        "supporting_papers": [
+          {
+            "paper_id": 2,
+            "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+            "role": "Implements algorithm 'Transformer Architectures' in indexed paper metadata."
+          },
+          {
+            "paper_id": 3,
+            "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+            "role": "Applies methodology 'Explainable Artificial Intelligence' in indexed paper metadata."
+          }
+        ],
+        "supporting_concepts": [
+          "Explainable Artificial Intelligence",
+          "Transformer Architectures"
+        ],
+        "candidate_algorithms": [
+          {
+            "name": "Transformer Architectures",
+            "supporting_paper_count": 1,
+            "reason": "Model architecture component derived from parent gap 'gap_5'."
+          }
+        ],
+        "candidate_datasets": [],
+        "evidence": {
+          "gap_score": 0.8112,
+          "opportunity_score": 0.8112,
+          "semantic_evidence": 0.05,
+          "link_prediction_score": 0.8,
+          "collection_coverage": 66.7,
+          "underrepresentation_score": 0.3,
+          "evidence_classification": "UNASSESSED_RELATIONSHIP"
+        },
+        "confidence": "Moderate",
+        "disclaimer": "This direction is generated strictly from papers assigned to this research project."
+      }
+    ],
+    "proposal_traceability": [
+      {
+        "proposal_id": 1,
+        "proposal_uuid": "prop_c3217158",
+        "title": "Incorporate Explainable Artificial Intelligence into Transformer-Based Plant Disease Analysis",
+        "status": "DRAFT",
+        "current_version_number": 1,
+        "source_direction_id": "dir_3",
+        "supporting_papers": [
+          {
+            "paper_id": 2,
+            "title": "Plant Disease Detection Using an Innovative Swin-Axial Transformer",
+            "role": "Implements algorithm 'Transformer Architectures' in indexed paper metadata."
+          },
+          {
+            "paper_id": 3,
+            "title": "Improving Plant Disease Classification With Deep-Learning-Based Prediction Model Using Explainable Artificial Intelligence",
+            "role": "Applies methodology 'Explainable Artificial Intelligence' in indexed paper metadata."
+          }
+        ],
+        "supporting_concepts": [
+          "Transformer Architectures",
+          "Fusion Dataset",
+          "PlantVillage",
+          "PlantDoc"
+        ]
+      }
+    ],
+    "insight_summary": "This research project contains 3 assigned paper(s) forming a project knowledge graph of 43 nodes and 64 connections. Most frequently referenced algorithms include CNN. There are 10 underrepresented concept(s) and 3 potential research gap(s) identified strictly within this project collection, supporting 3 candidate research direction(s)."
+  }
+}

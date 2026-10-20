@@ -1,6 +1,15 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, field_validator
+
+class EntityDetailResponse(BaseModel):
+    name: str
+    category: str
+    role: str
+    confidence: float = 0.0
+    evidence_text: Optional[str] = None
+    evidence_section: Optional[str] = None
+    source: Optional[str] = None
 
 class PaperResponse(BaseModel):
     id: int
@@ -12,8 +21,12 @@ class PaperResponse(BaseModel):
     datasets: List[str] = Field(default_factory=list)
     methodologies: List[str] = Field(default_factory=list)
     application_domains: List[str] = Field(default_factory=list)
+    keyword_details: List[Dict[str, Any]] = Field(default_factory=list)
+    algorithm_details: List[Dict[str, Any]] = Field(default_factory=list)
+    dataset_details: List[Dict[str, Any]] = Field(default_factory=list)
+    methodology_details: List[Dict[str, Any]] = Field(default_factory=list)
 
-    @field_validator("keywords", "algorithms", "datasets", "methodologies", "application_domains", mode="before")
+    @field_validator("keywords", "algorithms", "datasets", "methodologies", "application_domains", "keyword_details", "algorithm_details", "dataset_details", "methodology_details", mode="before")
     @classmethod
     def default_empty_list(cls, v):
         return v if v is not None else []
@@ -33,8 +46,12 @@ class PaperDetailResponse(BaseModel):
     datasets: List[str] = Field(default_factory=list)
     methodologies: List[str] = Field(default_factory=list)
     application_domains: List[str] = Field(default_factory=list)
+    keyword_details: List[Dict[str, Any]] = Field(default_factory=list)
+    algorithm_details: List[Dict[str, Any]] = Field(default_factory=list)
+    dataset_details: List[Dict[str, Any]] = Field(default_factory=list)
+    methodology_details: List[Dict[str, Any]] = Field(default_factory=list)
 
-    @field_validator("keywords", "algorithms", "datasets", "methodologies", "application_domains", mode="before")
+    @field_validator("keywords", "algorithms", "datasets", "methodologies", "application_domains", "keyword_details", "algorithm_details", "dataset_details", "methodology_details", mode="before")
     @classmethod
     def default_empty_list(cls, v):
         return v if v is not None else []
@@ -55,8 +72,12 @@ class PaperMetadataResponse(BaseModel):
     datasets: List[str] = Field(default_factory=list)
     methodologies: List[str] = Field(default_factory=list)
     application_domains: List[str] = Field(default_factory=list)
+    keyword_details: List[Dict[str, Any]] = Field(default_factory=list)
+    algorithm_details: List[Dict[str, Any]] = Field(default_factory=list)
+    dataset_details: List[Dict[str, Any]] = Field(default_factory=list)
+    methodology_details: List[Dict[str, Any]] = Field(default_factory=list)
 
-    @field_validator("keywords", "algorithms", "datasets", "methodologies", "application_domains", mode="before")
+    @field_validator("keywords", "algorithms", "datasets", "methodologies", "application_domains", "keyword_details", "algorithm_details", "dataset_details", "methodology_details", mode="before")
     @classmethod
     def default_empty_list(cls, v):
         return v if v is not None else []

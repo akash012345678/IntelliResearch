@@ -1,5 +1,6 @@
 import logging
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
@@ -25,6 +26,7 @@ router = APIRouter(
 )
 def get_project_results_analysis(
     project_id: int = Path(..., description="ID of the research project"),
+    direction_id: Optional[str] = Query(None, description="Optional Opportunity/Direction ID to scope analysis"),
     db: Session = Depends(get_db)
 ):
     """
@@ -32,7 +34,7 @@ def get_project_results_analysis(
     Read-only intelligence layer over student-entered experiment records.
     """
     try:
-        return ResearchResultsAnalysisService.get_project_results_analysis(db, project_id)
+        return ResearchResultsAnalysisService.get_project_results_analysis(db, project_id, direction_id=direction_id)
     except HTTPException:
         raise
     except Exception as e:

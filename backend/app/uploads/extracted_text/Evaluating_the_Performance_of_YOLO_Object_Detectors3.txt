@@ -1,0 +1,609 @@
+Evaluating the Performance of YOLO Object
+Detectors for Plant Disease Detection
+Youssef NATIJ
+Laboratory of Electrical Engineering and Energy Systems,
+Faculty Of Sciences, Ibn Tofail University
+Kenitra, Morocco
+youssef.natij@uit.ac.ma
+Hajar EL KARCH
+Laboratory of Advanced Systems Engineering
+National School Of Applied Sciences, Ibn Tofail University
+Kenitra, Morocco
+hajar.elkarch@uit.ac.ma
+Ayyad MAAFIRI
+Engineering Science Laboratory, National School Of
+Applied Sciences (ENSA), Ibn Tofail University
+Kenitra, Morocco
+maafiri.ayyad@gmail.com
+Abdelkader MEZOUARI
+Laboratory of Electrical Engineering and Energy Systems
+Faculty Of Sciences, Ibn Tofail University
+Kenitra, Morocco
+abdelkader.mezouari1@uit.ac.ma
+Abstract—Early and accurate detection of plant diseases is
+crucial for ensuring food security and minimizing crop losses.
+Deep learning-based object detection models, particularly those
+based on the You Only Look Once (YOLO) architecture, have
+shown promise in this area. This study compares the perfor-
+mance of five recent YOLO models - YOLOv5, YOLOv5-p6,
+YOLOv6, YOLOv8, and YOLOv9 - for plant disease detection
+using the PlantDoc dataset. The models were evaluated based
+on their accuracy, speed, and resource requirements. Our
+results indicate that YOLOv9-C and YOLOv8s demonstrated
+superior performance in terms of F1-Score, Recall, and mAP
+metrics. These models achieved an F1-Score of 0.39 and 0.37
+respectively, with YOLOv9-C leading in Recall at 0.51 and
+both models tying at a Best mAP@50 of 46%. Moreover, the
+highest F1-Score was achieved by YOLOv5s at 0.42, indicating
+that this model also has potential for further exploration and
+optimization. The highest mAP50-95 was achieved by YOLOv8s
+at 36%, suggesting that this model may be particularly effective
+at detecting a wide range of plant diseases across different
+thresholds.
+Index
+Terms—Object
+detection,
+Precision
+agriculture,
+YOLO, Crop health monitoring, Computer vision, Deep learn-
+ing
+I. INTRODUCTION
+Plant diseases pose a significant threat to global food
+security [1], causing substantial crop losses and economic
+damage. Early and accurate detection of diseases is crucial
+for implementing timely and effective management strategies
+to mitigate these losses and ensure food sustainability [2].
+Traditional methods for disease detection rely on visual
+inspection by experts, which is time-consuming, subjective,
+and often impractical for large-scale applications. The de-
+velopment of deep learning models has revolutionized plant
+disease detection by offering automated, accurate, and effi-
+cient solutions [3]. These models can analyze large datasets
+of images with high accuracy and speed, surpassing the
+limitations of manual inspection [4]. In particular, object de-
+tection algorithms have proven highly effective in identifying
+and localizing disease symptoms on plants. Among object
+detection algorithms, one-stage detectors like the You Only
+Look Once (YOLO) [5] series offer significant advantages
+over two-stage detectors. One-stage detectors perform object
+detection and classification in a single step, resulting in
+faster inference speeds crucial for real-time applications.
+This is in contrast to two-stage detectors, which first gen-
+erate region proposals and then classify them, leading to
+slower processing times. For example, YOLOv5 can achieve
+real-time detection speeds of over 100 frames per second
+(FPS), while a two-stage detector like Faster R-CNN [6]
+typically operates at around 10 FPS. This speed advantage
+makes YOLO models particularly suitable for deployment on
+resource-constrained devices in the field. This study presents
+a comparative analysis of five recent YOLO models for
+plant disease detection: YOLOv5, YOLOv5-P6, YOLOv6,
+YOLOv8, and YOLOv9. These models were evaluated on
+the PlantDoc dataset, which contains images of various
+plant species with diverse disease and healthy conditions.
+This study aims to provide valuable insights for researchers
+and practitioners in selecting the optimal YOLO model for
+plant disease detection based on their specific requirements
+and constraints. By analyzing the performance of these
+models across different metrics, this study can guide the
+development and deployment of efficient and accurate plant
+disease detection systems, contributing to improved crop
+health and global food security.
+II. YOLO (YOU ONLY LOOK ONCE) AND FRAMEWORKS
+YOLO (You Only Look Once) represents a seminal frame-
+work in the realm of real-time object detection. Unlike its
+979-8-3503-7786-6/24/31.00 © 2024 IEEE
+
+predecessors, YOLO reframes object detection as a regres-
+sion problem, directly predicting bounding boxes and class
+probabilities from full images within a single evaluation
+[7]. This unified approach circumvents the complexities of
+traditional multi-stage object detectors. While YOLO can
+be implemented within various frameworks, Darknet was the
+most common framework for versions prior to YOLOv5 [8].
+Successive iterations of YOLO (from YOLOv5 to YOLOv9)
+have demonstrated continuous evolution and refinement.
+These enhancements often focus on architectural modifica-
+tions, novel loss functions, and advanced training techniques.
+YOLO’s speed and adaptability have propelled its adoption
+across diverse applications, including autonomous vehicles,
+medical image analysis, and precision agriculture [9] [10].
+2020
+2022
+2023
+2024
+YOLOv5
+YOLOv6 | YOLOv7
+YOLOv8
+YOLOv9
+Fig. 1. YOLO Evolution
+A. YOLOv5
+YOLOv5 [11] built upon the strengths of its predecessors
+while offering greater flexibility and ease of use. It pro-
+vided various model sizes (Nano, Small, Medium, Large,
+XLarge) to cater to different speed-accuracy requirements
+and adopted the PyTorch framework for easier implemen-
+tation and modification. YOLOv5 also implemented Effi-
+cientDet [12] inspired scaling rules for adjusting model
+size and employed the YOLOv3 head for objectness and
+classification prediction. Due to its ease of use, flexibility,
+and performance, YOLOv5 became widely adopted within
+the computer vision community.
+B. YOLOv6
+YOLOv6 [13] focused on deployment efficiency while
+maintaining competitive performance. It introduced the
+RepVGG backbone [14], which utilizes re-parameterization
+for efficient inference, and replaced the YOLOv3 head
+with a decoupled head for objectness and classification.
+Additionally, YOLOv6 utilized SimOTA label assignment
+for improved target selection and employed various training
+techniques like head decoupling and auxiliary head to boost
+accuracy.
+C. YOLOv8
+YOLOv8 [15] introduced a unified architecture for ob-
+ject detection and instance segmentation, employing task-
+specific heads for different tasks while sharing a common
+backbone and neck. It utilized an anchor-free detection head
+for efficient inference and offered various model sizes for
+different speed-accuracy trade-offs. YOLOv8 achieved com-
+petitive performance in both object detection and instance
+segmentation tasks.
+D. YOLOv9
+YOLOv9 [16] focused on addressing information loss dur-
+ing the feedforward process in deep networks. It introduced
+the concept of programmable gradient information (PGI) to
+generate reliable gradients and designed the Generalized Ef-
+ficient Layer Aggregation Network (GELAN) for improved
+parameter utilization and accuracy. Notably, YOLOv9 uti-
+lized conventional convolution operators to achieve better
+performance than depth-wise convolution based designs. It
+achieved state-of-the-art performance on the MS COCO
+dataset, surpassing previous train-from-scratch methods.
+III. MATERIALS AND METHODS
+This section will explore the materials and methods em-
+ployed in our study. Specifically, we will discuss the dataset
+used, the training process, and the evaluation metrics. These
+details are crucial for understanding the foundation of our
+research and the methodology behind our YOLO-based plant
+disease recognition model.
+A. Data Collection and Labelling
+The PlantDoc dataset [17] is a valuable resource for
+developing visual plant disease detection systems. To op-
+timize its performance, we leveraged a modified version
+enhanced by the Roboflow team [18]. These enhancements
+included the correction of 28 annotation inconsistencies, the
+manual labeling of five previously unlabeled images, and
+the provision of format conversion capabilities for seamless
+integration with various YOLO versions and other machine
+learning frameworks. These modifications augmented the
+original PlantDoc dataset—comprising 2669 images across
+13 plant species and up to 17 disease classes representing ap-
+proximately 300 human hours of annotation effort—thereby
+
+TABLE I
+QUANTITATIVE RESULTS OF THE TRAINING PROCESS.
+Models
+F1-Score
+Recall
+Last mAP@50
+Best mAP@50
+mAP50-95
+Yolov5s
+0.42
+0.49
+45%
+46%
+34%
+Yolov5s6
+0.28
+0.42
+34%
+34%
+26%
+Yolov6-s
+0.18
+0.39
+23%
+23%
+17%
+Yolov8s
+0.37
+0.45
+43.4%
+43.6%
+33%
+Yolov9-C
+0.39
+0.51
+45%
+46%
+36%
+creating a more robust foundation for training plant disease
+detection models.
+TABLE II
+TRAIN AND VALIDATION COMPOSITION OF THE DATASET
+Set
+Size
+Train
+2330
+Validation
+239
+Totale
+2669
+B. Training, Validation and performance metrics
+The YOLO models (v5, v5-p6, v6, v7, v8 and v9) were
+subjected to a training process utilizing the dataset described
+in this study. This dataset was partitioned into a training set
+and a validation set as described in table II to ensure robust
+model training and evaluation. The training process for each
+model was executed employing the pre-trained weights given
+by the developers of YOLO. The YOLO configuration file
+facilitates the alteration of hyperparameters. However, in
+the context of this study, we opted to employ the default
+hyperparameters across all models.
+In the process of evaluating the research, a variety of
+performance metrics were employed, each of which is com-
+monly utilized in detection tasks such as the recognition of
+plant diseases.
+• Recall, also referred to as the Detection Rate or
+Sensitivity. This metric gauges the model’s capacity
+to correctly classify images into different predefined
+classes or categories 1.
+Recall =
+True Positives
+Total Number of Actual Positives
+=
+TP
+TP + FN
+(1)
+• F-measure, F-Score, or F1 score was employed. This
+is the harmonic mean of recall and precision. It ranges
+from 0 as the worst value to 1 as the best. Using this
+metric is advantageous when classes are imbalanced
+and false negatives have serious consequences 2.
+F1score = 2 × Precision × Recall
+Precision + Recall
+(2)
+• mAP@50, stands for Mean Average Precision at an
+Intersection over Union (IoU) threshold of 0.50, is
+frequently employed in object detection assignments.
+This metric quantifies the model’s average precision
+when the IoU threshold is set to 0.50. In other words,
+any predictions made by the model that achieve an
+IoU of 0.50 or more with the ground truth are deemed
+accurate 3.
+mAP@50 =
+1
+|Q|
+X
+q∈Q
+max
+d∈D P(q, d) · IoU(q, d) ≥0.50
+(3)
+• mAP@50:95 This metric computes the Mean Average
+Precision over a spectrum of Intersection over Union
+(IoU) thresholds, ranging from 0.50 to 0.95, with an
+increment of 0.05 at each step. It offers a more holistic
+assessment of the model’s performance by considering
+various degrees of overlap between the predicted and
+actual bounding boxes. This metric is especially valu-
+able for gauging the model’s effectiveness in situations
+that demand a high level of precision in object local-
+ization 4.
+mAP@50:95 =
+1
+|Q|
+X
+q∈Q
+max
+d∈D
+(
+1,
+if 0.50 ≤IoU(q, d) ≤0.95
+0,
+otherwise
+(4)
+These metrics collectively provide a comprehensive eval-
+uation of the model’s performance across various aspects,
+ensuring a robust assessment of its effectiveness in rec-
+ognizing plant diseases. They facilitate the identification
+of areas where the model excels, as well as those where
+improvements may be needed. This, in turn, can guide
+future efforts to refine and optimize the model. This rigorous
+evaluation methodology underscores the academic rigor of
+this research.
+IV. RESULTS
+A. Evaluating the Precision of Predictions on the Validation
+Set
+The F1-score comparison in Figure 2 shows that Yolov9-
+C leads with a score of 0.39, indicating its superior balance
+in identifying true positives while minimizing false positives
+and negatives. This is followed by Yolov8s and Yolov5s. The
+
+TABLE III
+TRAINING DETAILS AND HYPERPARAMETERS.
+Models
+Epoch
+Framework
+Billions of Flops
+Yolov5s
+75
+PyTorch
+13.2
+Yolov5s6
+75
+PyTorch
+24.6
+Yolov6-s
+75
+PyTorch
+45.3
+Yolov8s
+75
+PyTorch
+28.6
+Yolov9-C
+75
+PyTorch
+102.8
+F1-score is a measure of a model’s accuracy and considers
+both precision and recall. The lower score of Yolov6s at 0.18
+suggests that there is room for improvement in its precision-
+recall balance.
+YOLOv5s
+YOLOv5s-P6
+YOLOv6s
+YOLOv8s
+YOLOv9-C
+Models
+0.00
+0.05
+0.10
+0.15
+0.20
+0.25
+0.30
+0.35
+0.40
+Recall
+Recall Comparison of Models
+Fig. 2. F1-score comparison using the validation dataset
+In the mAP@50 and mAP@50:95 comparison, shown in
+Figure 3 both Yolov8s and Yolov9-C are tied at the top with
+a 46% score each. This metric assesses the Mean Average
+Precision at an Intersection over Union (IoU) threshold of
+0.50, which mirrors each model’s capability to accurately
+detect objects with a substantial overlap between the pre-
+dicted and actual bounding boxes. The diminished scores
+of other models, such as Yolov6s at 23%, suggest a lower
+accuracy in object detection at this specific IoU threshold.
+This is indicative of the model’s performance in scenarios
+that require high precision in object detection.
+Fig. 3. mAP@50 and mAP@50:95 comparison
+The recall comparison graph in Figure 4 shows that
+Yolov9-C stands out with a leading score of 0.51, indicating
+that it identifies over half of all relevant objects effectively.
+Recall measures the model’s ability to identify all relevant
+instances. The second highest is Yolov5s at 0.49 recall value
+indicating its effectiveness but still slightly less competent
+than Yolov9-C
+YOLOv5s
+YOLOv5s-P6
+YOLOv6s
+YOLOv8s
+YOLOv9-C
+Models
+0.0
+0.1
+0.2
+0.3
+0.4
+0.5
+Recall
+Recall Comparison of Models
+Fig. 4. Recall comparison
+B. Precision-Recall
+Graphs
+and
+Optimal
+Confidence
+Threshold Explanation
+The Best Confidence Threshold in the context of object
+detection models refers to the optimal point on the Precision-
+Recall curve that yields the highest F1 score. The F1 score is
+the harmonic mean of precision and recall, and it measures
+the balance between these two metrics. The calculation
+of the area beneath the curve was executed utilizing the
+mAP@50 metric. As illustrated in Figure 4B, the confidence
+thresholds underwent optimization and adjustment to ensure
+the F-1 score for each model was at its peak. This process
+underscores the importance of fine-tuning model parameters
+to achieve optimal performance.Following this optimization
+process, the optimal confidence thresholds were determined
+to be 0.20, 0.11, 0.07, 0.31, and 0.18 for the v5, v5-p6, v6,
+v8 and v9 models, respectively 5.
+Precision-recall curves [19] provide a visual representa-
+tion of the trade-off between precision and recall at different
+decision thresholds. A model with high precision but low
+recall may be conservative in its predictions, while a model
+with high recall but low precision may be more aggressive
+in identifying diseased plants. Figure 6 shows the preci-
+sion–recall curves for each trained YOLO model.
+V. DISCUSSION
+The benchmark results for plant disease recognition using
+various YOLO models on the PlantDoc dataset provide
+insightful observations. Among the evaluated models, the
+YOLOv9-C and YOLOv8s models have demonstrated su-
+perior performance in terms of F1-Score, Recall, and mAP
+metrics. Specifically, YOLOv9-C achieved an F1-Score of
+0.39 and a leading Recall of 0.51, while both YOLOv9-C
+and YOLOv8s tied for the highest Best mAP@50 of 46%.
+
+Fig. 5. Best Confidence Threshold
+Fig. 6. Precision-Recall curves
+These metrics indicate a promising direction for enhancing
+the accuracy and efficiency of plant disease identification
+using these advanced YOLO models.
+Interestingly, the YOLOv5s model attained the highest
+overall F1-Score at 0.42, highlighting its potential for fur-
+ther exploration and optimization. Additionally, the highest
+mAP50-95 was recorded by YOLOv8s at 36%, suggest-
+ing that this model is particularly effective at detecting a
+wide range of plant diseases across different thresholds.
+This versatility across varying mAP thresholds underscores
+YOLOv8s’s robustness in diverse detection scenarios.
+These results collectively suggest that while YOLOv9-
+C and YOLOv8s excel in certain metrics, YOLOv5s also
+shows considerable promise, particularly in achieving a
+higher F1-Score. This variability across different models
+indicates that the choice of YOLO architecture may depend
+on specific application needs and performance priorities.
+VI. FUTURE DIRECTIONS
+Future research could focus on several key areas to build
+upon these findings:
+• Model Optimization:
+– Architecture Exploration: Further investigation into
+alternative architectures and modifications to the
+YOLO framework could yield improvements in
+detection performance. This could include experi-
+menting with different layers, activation functions,
+and hyperparameter tuning.
+– Feature Integration: Incorporating additional fea-
+tures such as multi-spectral imaging data or en-
+vironmental factors (e.g., humidity, temperature)
+could enhance model accuracy. The integration of
+domain-specific knowledge about plant diseases
+might also contribute to better performance.
+• Dataset Expansion:
+– Diverse Plant Species: Expanding the dataset to
+include a broader range of plant species and dis-
+ease types can improve the model’s generalization
+capabilities. Ensuring a balanced representation of
+different disease severities and stages is crucial.
+– High-Resolution Imagery: Utilizing higher resolu-
+tion images might help in capturing finer details,
+aiding in the detection of early-stage diseases
+which are often more challenging to identify.
+• Real-Time Application:
+– Field Deployment: Developing lightweight, real-
+time versions of these models suitable for deploy-
+ment on mobile devices or drones can facilitate
+early detection in agricultural settings. This would
+enable farmers to take timely action, thereby min-
+imizing crop loss and enhancing food security.
+– Automated Monitoring Systems: Integrating these
+models into automated monitoring systems can
+provide continuous surveillance of crops, leading
+to more proactive and precise disease management.
+• Transfer Learning and Domain Adaptation:
+– Transfer Learning: Applying transfer learning
+techniques to leverage pre-trained models on
+larger, more diverse datasets can enhance the detec-
+tion performance on specific plant disease datasets
+like PlantDoc.
+
+– Domain Adaptation: Adapting models trained on
+synthetic or related datasets to the target domain
+(real-world agricultural settings) can improve their
+robustness and applicability.
+• Collaborative Approaches:
+– Interdisciplinary
+Collaboration:
+Collaborating
+with plant pathologists, agronomists, and data
+scientists can provide a multidisciplinary approach
+to refining these models. This collaboration can
+ensure that the models are both scientifically
+accurate and practically useful.
+VII. CONCLUSION
+These benchmark results provide a valuable foundation
+for future research in plant disease recognition using YOLO
+models. By continuing to refine and optimize these models,
+we can strive towards more accurate, efficient, and real-
+time plant disease detection, contributing to sustainable
+agriculture and food security. The findings provide valuable
+guidance for selecting the optimal YOLO model for plant
+disease detection based on specific needs and constraints.
+Future research can explore further optimization and cus-
+tomization of these models for specific plant species and
+diseases. This endeavor aligns with the broader objective
+of harnessing the power of artificial intelligence to address
+pressing global challenges.
+REFERENCES
+[1] H. N. Fones, D. P. Bebber, T. M. Chaloner, W. T. Kay, G. Steinberg,
+and S. J. Gurr, “Threats to global food security from emerging fungal
+and oomycete crop pathogens,” Nature Food, vol. 1, no. 6, pp. 332–
+342, 2020.
+[2] J. B. Ristaino, P. K. Anderson, D. P. Bebber, K. A. Brauman, N. J.
+Cunniffe, N. V. Fedoroff, C. Finegold, K. A. Garrett, C. A. Gilligan,
+C. M. Jones et al., “The persistent threat of emerging plant disease
+pandemics to global food security,” Proceedings of the National
+Academy of Sciences, vol. 118, no. 23, p. e2022239118, 2021.
+[3] L. C. Ngugi, M. Abelwahab, and M. Abo-Zahhad, “Recent advances
+in image processing techniques for automated leaf pest and disease
+recognition–a review,” Information processing in agriculture, vol. 8,
+no. 1, pp. 27–51, 2021.
+[4] L. Li, S. Zhang, and B. Wang, “Plant disease detection and classifi-
+cation by deep learning—a review,” IEEE Access, vol. 9, pp. 56 683–
+56 698, 2021.
+[5] T. Diwan, G. Anirudh, and J. V. Tembhurne, “Object detection using
+yolo: Challenges, architectural successors, datasets and applications,”
+multimedia Tools and Applications, vol. 82, no. 6, pp. 9243–9275,
+2023.
+[6] R. Girshick, “Fast r-cnn,” in Proceedings of the IEEE international
+conference on computer vision, 2015, pp. 1440–1448.
+[7] J. Redmon, S. Divvala, R. Girshick, and A. Farhadi, “You only look
+once: Unified, real-time object detection,” in Proceedings of the IEEE
+conference on computer vision and pattern recognition, 2016, pp.
+779–788.
+[8] A. Bochkovskiy, C.-Y. Wang, and H.-Y. M. Liao, “Yolov4: Op-
+timal speed and accuracy of object detection,” arXiv preprint
+arXiv:2004.10934, 2020.
+[9] N. Rane, “Yolo and faster r-cnn object detection for smart industry
+4.0 and industry 5.0: applications, challenges, and opportunities,”
+Available at SSRN 4624206, 2023.
+[10] C. Chen, Z. Zheng, T. Xu, S. Guo, S. Feng, W. Yao, and Y. Lan, “Yolo-
+based uav technology: A review of the research and its applications,”
+Drones, vol. 7, no. 3, p. 190, 2023.
+[11] G.
+Jocher,
+“Ultralytics
+yolov5,”
+2020.
+[Online].
+Available:
+https://github.com/ultralytics/yolov5
+[12] M. Tan, R. Pang, and Q. V. Le, “Efficientdet: Scalable and efficient
+object detection,” in Proceedings of the IEEE/CVF conference on
+computer vision and pattern recognition, 2020, pp. 10 781–10 790.
+[13] C. Li, L. Li, Y. Geng, H. Jiang, M. Cheng, B. Zhang, Z. Ke, X. Xu,
+and X. Chu, “Yolov6 v3.0: A full-scale reloading,” 2023.
+[14] X. Ding, X. Zhang, N. Ma, J. Han, G. Ding, and J. Sun, “Repvgg:
+Making vgg-style convnets great again,” in Proceedings of the
+IEEE/CVF conference on computer vision and pattern recognition,
+2021, pp. 13 733–13 742.
+[15] G. Jocher, A. Chaurasia, and J. Qiu, “Ultralytics yolov8,” 2023.
+[Online]. Available: https://github.com/ultralytics/ultralytics
+[16] C.-Y. Wang and H.-Y. M. Liao, “YOLOv9: Learning what you want
+to learn using programmable gradient information,” 2024.
+[17] D. Singh, N. Jain, P. Jain, P. Kayal, S. Kumawat, and N. Batra,
+“Plantdoc: A dataset for visual plant disease detection,” 2019.
+[18] B.
+Dwyer,
+J.
+Nelson,
+T.
+Hansen
+et
+al.,
+“Roboflow
+(version
+1.0)
+[software],”
+2024,
+computer
+vision.
+[Online].
+Available:
+[1](https://roboflow.com)
+[19] A. Beger, “Precision-recall curves,” 2016.
