@@ -27,8 +27,9 @@ build/
 .vite/
 
 # Temporary / Generated test outputs & scratches
-scratch/
-backend/scratch/
+/scratch/
+backend/scratch/*
+!backend/scratch/benchmark_suite.py
 backend/app/scratch/
 backend/live_audit*.py
 backend/storage/
