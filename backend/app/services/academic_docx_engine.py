@@ -34,11 +34,16 @@ class AcademicDocxEngine:
     ) -> bytes:
         config = config or {}
         proj_name = getattr(project, "name", "Research Project")
-        author_name = getattr(project, "author", None) or getattr(project, "student_name", None) or config.get("student_name") or "Student Researcher"
-        guide_name = getattr(project, "guide", None) or getattr(project, "supervisor_name", None) or config.get("guide_name") or "Faculty Supervisor"
-        institution_name = getattr(project, "institution", None) or config.get("institution") or "University Department of Computer Science"
-        register_num = config.get("register_number") or getattr(project, "register_number", "REG-2026-001")
+        author_name = config.get("student_name") or getattr(project, "author", None) or getattr(project, "student_name", None) or "Student Researcher"
+        guide_name = config.get("guide_name") or getattr(project, "guide", None) or getattr(project, "supervisor_name", None) or "Faculty Supervisor"
+        institution_name = config.get("institution") or getattr(project, "institution", None) or "National Engineering College"
+        register_num = config.get("register_number") or getattr(project, "register_number", None) or "Not Provided"
         timestamp = datetime.now(timezone.utc).strftime("%B %Y")
+        profile = config.get("profile", "COLLEGE_PROJECT")
+        profile_title = (
+            "A COLLEGE PROJECT REPORT" if profile == "COLLEGE_PROJECT" else
+            ("AN ACADEMIC RESEARCH PAPER" if profile == "RESEARCH_PAPER" else "A UNIVERSITY THESIS REPORT")
+        )
 
         sections = getattr(manuscript_res, "sections", []) or []
         manuscript_title = getattr(manuscript_res, "title", f"Academic Thesis: {proj_name}")
@@ -56,11 +61,11 @@ class AcademicDocxEngine:
         doc_xml_parts.append(cls._p_xml("", space_after=720))
         # Title
         doc_xml_parts.append(cls._p_xml(manuscript_title.upper(), font_size=36, bold=True, align="center", space_after=360))
-        doc_xml_parts.append(cls._p_xml("A PROJECT / RESEARCH REPORT", font_size=24, bold=True, align="center", space_after=240))
+        doc_xml_parts.append(cls._p_xml(profile_title, font_size=24, bold=True, align="center", space_after=240))
         doc_xml_parts.append(cls._p_xml("Submitted in partial fulfillment of the requirements for the degree", font_size=22, italic=True, align="center", space_after=720))
 
         doc_xml_parts.append(cls._p_xml(f"Submitted by: {author_name}", font_size=24, bold=True, align="center", space_after=120))
-        doc_xml_parts.append(cls._p_xml(f"Register Number: {register_num}", font_size=22, align="center", space_after=360))
+        doc_xml_parts.append(cls._p_xml(f"Register / Roll Number: {register_num}", font_size=22, align="center", space_after=360))
 
         doc_xml_parts.append(cls._p_xml(f"Under the Guidance of: {guide_name}", font_size=24, bold=True, align="center", space_after=720))
         doc_xml_parts.append(cls._p_xml(institution_name, font_size=24, bold=True, align="center", space_after=120))

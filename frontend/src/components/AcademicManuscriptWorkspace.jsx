@@ -45,6 +45,8 @@ export default function AcademicManuscriptWorkspace({ projectId }) {
   const [showVersionModal, setShowVersionModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportingFormat, setExportingFormat] = useState(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [saveSettingsSuccess, setSaveSettingsSuccess] = useState(false);
 
   // Version Restore & Compare States
   const [versions, setVersions] = useState([]);
@@ -62,12 +64,12 @@ export default function AcademicManuscriptWorkspace({ projectId }) {
     setLoading(true);
     setError(null);
     try {
-      const [manuRes, refRes, qualRes, valRes, prevRes] = await Promise.all([
+      const [manuRes, refRes, qualRes, valRes, settingsRes] = await Promise.all([
         apiService.getProjectManuscript(projectId),
         apiService.getManuscriptCitations(projectId),
         apiService.getManuscriptQuality(projectId),
         apiService.validateAcademicDocument(projectId),
-        apiService.getDocumentPreview(projectId, docConfig),
+        apiService.getDocumentSettings(projectId).catch(() => null),
       ]);
       setManuscript(manuRes.data);
       setSections(manuRes.data.sections || []);
@@ -75,6 +77,11 @@ export default function AcademicManuscriptWorkspace({ projectId }) {
       setReferences(refRes.data || []);
       setQualityData(qualRes.data);
       setValidationData(valRes.data);
+
+      const activeConfig = settingsRes?.data || manuRes.data.formatting_settings || docConfig;
+      setDocConfig(prev => ({ ...prev, ...activeConfig }));
+
+      const prevRes = await apiService.getDocumentPreview(projectId, activeConfig);
       setPreviewData(prevRes.data);
 
       if (manuRes.data.available_versions && manuRes.data.available_versions.length > 0) {
@@ -100,6 +107,24 @@ export default function AcademicManuscriptWorkspace({ projectId }) {
       setPreviewData(res.data);
     } catch (err) {
       console.error('Failed to update preview layout:', err);
+    }
+  };
+
+  const handleSaveFormattingConfig = async (newConfig = docConfig) => {
+    setSavingSettings(true);
+    setSaveSettingsSuccess(false);
+    try {
+      const res = await apiService.saveDocumentSettings(projectId, newConfig);
+      setDocConfig(res.data);
+      setSaveSettingsSuccess(true);
+      const prevRes = await apiService.getDocumentPreview(projectId, res.data);
+      setPreviewData(prevRes.data);
+      setTimeout(() => setSaveSettingsSuccess(false), 4000);
+    } catch (err) {
+      console.error('Failed to save document formatting settings:', err);
+      alert('Failed to save formatting settings to the project database.');
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -531,7 +556,14 @@ export default function AcademicManuscriptWorkspace({ projectId }) {
 
       {/* MODE 4: FORMATTING SETTINGS */}
       {activeTabMode === 'formatting' && (
-        <AcademicDocumentSettings config={docConfig} onConfigChange={handleConfigChange} />
+        <AcademicDocumentSettings
+          config={docConfig}
+          onConfigChange={handleConfigChange}
+          onSave={handleSaveFormattingConfig}
+          saving={savingSettings}
+          saveSuccess={saveSettingsSuccess}
+          onSwitchToPreview={() => setActiveTabMode('preview')}
+        />
       )}
 
       {/* MODE 5: DOCUMENT PREVIEW */}

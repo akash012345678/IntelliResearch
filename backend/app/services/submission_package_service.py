@@ -45,9 +45,13 @@ class SubmissionPackageService:
             zip_file.writestr("paper/manuscript.md", md_export.get("content", ""))
             zip_file.writestr("paper/manuscript.json", manuscript_res.model_dump_json(indent=2))
 
+            from app.services.academic_document_service import AcademicDocumentService
+            doc_config = AcademicDocumentService.get_document_settings(db, project_id)
+            config_dict = doc_config.model_dump()
+
             # 2. /paper/ academic_thesis.docx
             try:
-                docx_bytes = AcademicDocxEngine.generate_docx(manuscript_res, project, papers, results_summary)
+                docx_bytes = AcademicDocxEngine.generate_docx(manuscript_res, project, papers, results_summary, config=config_dict)
                 zip_file.writestr("paper/academic_thesis.docx", docx_bytes)
             except Exception as e:
                 logger.error(f"Error generating DOCX for zip package: {e}", exc_info=True)
@@ -65,6 +69,7 @@ class SubmissionPackageService:
                     experiments=project.experiments or [],
                     results_analysis=results_summary.model_dump() if hasattr(results_summary, "model_dump") else {},
                     manuscript=manuscript_res,
+                    config=doc_config,
                     db=db
                 )
                 pdf_bytes = pdf_engine.generate_pdf()

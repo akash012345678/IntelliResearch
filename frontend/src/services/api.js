@@ -230,6 +230,8 @@ export const apiService = {
   validateManuscriptText: (projectId) => apiClient.post(`/projects/${projectId}/academic-manuscript/validate`),
 
   // PHASE 8 PART 3 — ACADEMIC DOCUMENT FORMATTING, FIGURES, TABLES & SUBMISSION PACKAGE APIs
+  getDocumentSettings: (projectId) => apiClient.get(`/projects/${projectId}/academic-document/settings`),
+  saveDocumentSettings: (projectId, config) => apiClient.post(`/projects/${projectId}/academic-document/settings`, config),
   validateAcademicDocument: (projectId) => apiClient.get(`/projects/${projectId}/academic-document/validate`),
   getDocumentPreview: (projectId, config) => apiClient.post(`/projects/${projectId}/academic-document/preview`, config),
   downloadSubmissionPackage: (projectId) => apiClient.get(`/projects/${projectId}/submission-package`, { responseType: 'blob' }),

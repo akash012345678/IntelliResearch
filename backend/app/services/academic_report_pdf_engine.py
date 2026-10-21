@@ -46,23 +46,111 @@ class AcademicReportPdfEngine:
 
     def __init__(
         self,
-        report_content: Dict[str, Any],
-        db: Optional[Any] = None
+        report_content: Optional[Dict[str, Any]] = None,
+        db: Optional[Any] = None,
+        config: Optional[Any] = None,
+        report: Optional[Any] = None,
+        project: Optional[Any] = None,
+        papers: Optional[List[Any]] = None,
+        proposal: Optional[Any] = None,
+        plan: Optional[Any] = None,
+        experiments: Optional[List[Any]] = None,
+        results_analysis: Optional[Dict[str, Any]] = None,
+        manuscript: Optional[Any] = None,
+        **kwargs
     ):
         self.doc = fitz.open()
         self.db = db
-        self.content = report_content
-        self.meta = report_content.get("meta", {})
 
-        # Page Dimensions & Margins (A4 = 595.28 x 841.89 pt)
-        # Margins: Left = 1.25 in (90 pt), Right = 1.0 in (523.28 pt), Top = 1.0 in (72 pt), Bottom = 1.0 in (769.89 pt)
-        self.page_width = 595.28
-        self.page_height = 841.89
-        self.margin_left = 90.0
-        self.margin_right = 523.28
-        self.margin_top = 72.0
-        self.margin_bottom = 769.89
-        self.printable_width = self.margin_right - self.margin_left  # 433.28 pt
+        # 1. Adapt and build report content if not directly provided
+        proj = project or report
+        if report_content is None or not isinstance(report_content, dict):
+            if db and proj and hasattr(proj, "id"):
+                from app.services.academic_report_content_builder import AcademicReportContentBuilder
+                report_content = AcademicReportContentBuilder.build_report_content(db=db, project_id=proj.id)
+            else:
+                report_content = {}
+
+        self.content = report_content
+        self.meta = self.content.get("meta", {})
+
+        # If manuscript title exists, ensure it is represented
+        if manuscript and hasattr(manuscript, "title") and manuscript.title:
+            self.meta["manuscript_title"] = manuscript.title
+            if not self.meta.get("project_name") or self.meta.get("project_name") == "Research Project":
+                self.meta["project_name"] = manuscript.title
+
+        # 2. Extract and resolve DocumentFormatConfig
+        cfg: Dict[str, Any] = {}
+        if config is not None:
+            if hasattr(config, "model_dump"):
+                cfg = config.model_dump()
+            elif isinstance(config, dict):
+                cfg = config
+        else:
+            # Fallback to DB stored settings
+            project_id = self.meta.get("project_id") or (getattr(proj, "id", None) if proj else None)
+            if db and project_id:
+                try:
+                    from app.services.academic_document_service import AcademicDocumentService
+                    saved_cfg = AcademicDocumentService.get_document_settings(db, int(project_id))
+                    cfg = saved_cfg.model_dump()
+                except Exception as e:
+                    logger.debug(f"Could not load saved document settings: {e}")
+
+        self.config = cfg
+
+        # 3. Apply Student & Institutional Metadata
+        if cfg.get("student_name"):
+            self.meta["author_name"] = cfg["student_name"]
+        if cfg.get("register_number"):
+            self.meta["register_number"] = cfg["register_number"]
+        if cfg.get("institution"):
+            self.meta["institution_name"] = cfg["institution"]
+        if cfg.get("department"):
+            self.meta["department_name"] = cfg["department"]
+        if cfg.get("academic_year"):
+            self.meta["academic_year"] = cfg["academic_year"]
+        if cfg.get("profile"):
+            self.meta["profile"] = cfg["profile"]
+
+        # 4. Page Dimensions & Margins
+        # A4 = 595.28 x 841.89 pt | LETTER = 612.0 x 792.0 pt
+        if cfg.get("page_size") == "LETTER":
+            self.page_width = 612.0
+            self.page_height = 792.0
+        else:
+            self.page_width = 595.28
+            self.page_height = 841.89
+
+        if cfg.get("margins") == "NARROW":
+            self.margin_left = 54.0
+            self.margin_right = self.page_width - 54.0
+            self.margin_top = 54.0
+            self.margin_bottom = self.page_height - 54.0
+        else:
+            self.margin_left = 90.0
+            self.margin_right = self.page_width - 72.0
+            self.margin_top = 72.0
+            self.margin_bottom = self.page_height - 72.0
+
+        self.printable_width = self.margin_right - self.margin_left
+
+        # 5. Typography & Line Spacing
+        font_family = cfg.get("font_family", "Times New Roman")
+        if font_family in ["Arial", "Calibri"]:
+            self.font_regular = "Helvetica"
+            self.font_bold = "Helvetica-Bold"
+            self.font_italic = "Helvetica-Oblique"
+            self.font_bolditalic = "Helvetica-BoldOblique"
+        else:
+            self.font_regular = FONT_REGULAR
+            self.font_bold = FONT_BOLD
+            self.font_italic = FONT_ITALIC
+            self.font_bolditalic = FONT_BOLDITALIC
+
+        self.line_spacing_factor = float(cfg.get("line_spacing") or 1.5)
+        self.body_line_spacing = self.line_spacing_factor * 11.0
 
         self.current_page: Optional[fitz.Page] = None
         self.y = self.margin_top
@@ -351,75 +439,100 @@ class AcademicReportPdfEngine:
         papers = self.content.get("papers", [])
         appendices = self.content.get("appendices", {})
 
-        proj_name = meta.get("project_name", "Research Project")
+        proj_name = meta.get("manuscript_title") or meta.get("project_name", "Research Project")
         proj_id_str = f"#{meta.get('project_id', 1)}"
-        author_name = meta.get("author_name", "Not Provided")
-        guide_name = meta.get("guide_name", "Not Provided")
-        institution_name = meta.get("institution_name", "IntelliResearch Academic Platform")
-        department_name = meta.get("department_name", "Department of Computer Science & Engineering")
-        academic_year = meta.get("academic_year", "2026")
+        author_name = meta.get("author_name") or self.config.get("student_name") or "Not Provided"
+        register_number = meta.get("register_number") or self.config.get("register_number")
+        guide_name = meta.get("guide_name") or self.config.get("guide_name") or "Not Provided"
+        institution_name = meta.get("institution_name") or self.config.get("institution") or "IntelliResearch Academic Platform"
+        department_name = meta.get("department_name") or self.config.get("department") or "Department of Computer Science & Engineering"
+        academic_year = meta.get("academic_year") or self.config.get("academic_year") or "2025-2026"
+        profile = meta.get("profile") or self.config.get("profile", "COLLEGE_PROJECT")
+
+        profile_header = (
+            "A COLLEGE PROJECT REPORT" if profile == "COLLEGE_PROJECT" else
+            ("AN ACADEMIC RESEARCH PAPER" if profile == "RESEARCH_PAPER" else "A UNIVERSITY THESIS REPORT")
+        )
 
         # -------------------------------------------------------------
         # PASS 1: FRONT MATTER PAGE 1 — TITLE PAGE
         # -------------------------------------------------------------
         self.new_page()
-        self.current_page.draw_rect(fitz.Rect(36, 36, 559, 805), color=(0, 0, 0), width=1.5)
-        self.current_page.draw_rect(fitz.Rect(40, 40, 555, 801), color=(0.4, 0.4, 0.4), width=0.5)
+        self.current_page.draw_rect(fitz.Rect(36, 36, self.page_width - 36, self.page_height - 36), color=(0, 0, 0), width=1.5)
+        self.current_page.draw_rect(fitz.Rect(40, 40, self.page_width - 40, self.page_height - 40), color=(0.4, 0.4, 0.4), width=0.5)
 
-        self.y = 90
-        rect_t = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 60)
-        self.current_page.insert_textbox(rect_t, proj_name.upper(), fontsize=18, fontname=FONT_BOLD, color=(0, 0, 0), align=1)
-        self.y += 70
+        self.y = 70
+        title_len = len(proj_name)
+        title_fontsize = 15.0 if title_len < 60 else (13.5 if title_len < 100 else 12.0)
+        title_box_h = 45.0 if title_len < 60 else (75.0 if title_len < 100 else 90.0)
+        rect_t = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + title_box_h)
+        self.current_page.insert_textbox(rect_t, proj_name.upper(), fontsize=title_fontsize, fontname=self.font_bold, color=(0, 0, 0), align=1)
+        self.y += title_box_h + 10
 
         if meta.get("project_desc"):
-            rect_sub = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 35)
-            self.current_page.insert_textbox(rect_sub, f"Domain Focus: {meta.get('project_desc')}", fontsize=12, fontname=FONT_ITALIC, color=(0.2, 0.2, 0.2), align=1)
-            self.y += 45
+            rect_sub = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 24)
+            self.current_page.insert_textbox(rect_sub, f"Domain Focus: {meta.get('project_desc')}", fontsize=10.5, fontname=self.font_italic, color=(0.2, 0.2, 0.2), align=1)
+            self.y += 28
 
-        rect_sub2 = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 20)
-        self.current_page.insert_textbox(rect_sub2, "A PROJECT / RESEARCH REPORT", fontsize=12, fontname=FONT_BOLD, color=(0, 0, 0), align=1)
-        self.y += 35
+        rect_sub2 = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 24)
+        self.current_page.insert_textbox(rect_sub2, profile_header, fontsize=12, fontname=self.font_bold, color=(0, 0, 0), align=1)
+        self.y += 28
 
-        rect_sub3 = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 16)
-        self.current_page.insert_textbox(rect_sub3, "Submitted by", fontsize=11, fontname=FONT_ITALIC, color=(0, 0, 0), align=1)
+        rect_sub3 = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 20)
+        self.current_page.insert_textbox(rect_sub3, "Submitted by", fontsize=10.5, fontname=self.font_italic, color=(0, 0, 0), align=1)
         self.y += 22
 
-        rect_auth = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 18)
-        self.current_page.insert_textbox(rect_auth, author_name, fontsize=12, fontname=FONT_BOLD, color=(0, 0, 0), align=1)
-        self.y += 35
+        rect_auth = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 24)
+        self.current_page.insert_textbox(rect_auth, author_name, fontsize=13, fontname=self.font_bold, color=(0, 0, 0), align=1)
+        self.y += 24
 
-        rect_sub4 = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 16)
-        self.current_page.insert_textbox(rect_sub4, "Under the Guidance of", fontsize=11, fontname=FONT_ITALIC, color=(0, 0, 0), align=1)
-        self.y += 22
+        if register_number:
+            rect_reg = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 20)
+            self.current_page.insert_textbox(rect_reg, f"Register / Roll Number: {register_number}", fontsize=10.5, fontname=self.font_regular, color=(0.1, 0.1, 0.1), align=1)
+            self.y += 22
 
-        rect_gde = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 18)
-        self.current_page.insert_textbox(rect_gde, guide_name, fontsize=12, fontname=FONT_BOLD, color=(0, 0, 0), align=1)
-        self.y += 45
+        rect_sub4 = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 20)
+        self.current_page.insert_textbox(rect_sub4, "Under the Guidance of", fontsize=10.5, fontname=self.font_italic, color=(0, 0, 0), align=1)
+        self.y += 20
 
-        meta_rect = fitz.Rect(90, self.y, 523.28, self.y + 150)
+        rect_gde = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + 22)
+        self.current_page.insert_textbox(rect_gde, guide_name, fontsize=11.5, fontname=self.font_bold, color=(0, 0, 0), align=1)
+        self.y += 28
+
+        box_height = 155 if register_number else 135
+        meta_rect = fitz.Rect(self.margin_left, self.y, self.margin_right, self.y + box_height)
         self.current_page.draw_rect(meta_rect, color=(0.2, 0.2, 0.2), fill=(0.98, 0.98, 0.98), width=0.8)
 
-        m_y = self.y + 15
-        self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Department:           {department_name}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0); m_y += 22
-        self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Institution:          {institution_name}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0); m_y += 22
-        self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Academic Year:        {academic_year}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0); m_y += 22
-        self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Research Project ID:  {proj_id_str}", fontsize=11, fontname=FONT_BOLD, color=(0, 0, 0), align=0); m_y += 22
+        m_y = self.y + 12
+        inner_l = self.margin_left + 15
+        inner_r = self.margin_right - 15
+        self.current_page.insert_textbox(fitz.Rect(inner_l, m_y, inner_r, m_y + 18), f"Department:           {department_name}", fontsize=10.5, fontname=self.font_regular, color=(0, 0, 0), align=0); m_y += 20
+        self.current_page.insert_textbox(fitz.Rect(inner_l, m_y, inner_r, m_y + 18), f"Institution:          {institution_name}", fontsize=10.5, fontname=self.font_regular, color=(0, 0, 0), align=0); m_y += 20
+        if register_number:
+            self.current_page.insert_textbox(fitz.Rect(inner_l, m_y, inner_r, m_y + 18), f"Register / Roll No:   {register_number}", fontsize=10.5, fontname=self.font_bold, color=(0, 0, 0), align=0); m_y += 20
+        self.current_page.insert_textbox(fitz.Rect(inner_l, m_y, inner_r, m_y + 18), f"Academic Year:        {academic_year}", fontsize=10.5, fontname=self.font_regular, color=(0, 0, 0), align=0); m_y += 20
+        self.current_page.insert_textbox(fitz.Rect(inner_l, m_y, inner_r, m_y + 18), f"Academic Profile:     {profile.replace('_', ' ').title()}", fontsize=10.5, fontname=self.font_regular, color=(0, 0, 0), align=0); m_y += 20
+        self.current_page.insert_textbox(fitz.Rect(inner_l, m_y, inner_r, m_y + 18), f"Research Project ID:  {proj_id_str}", fontsize=10.5, fontname=self.font_bold, color=(0, 0, 0), align=0); m_y += 20
         timestamp = datetime.now(timezone.utc).strftime("%B %d, %Y")
-        self.current_page.insert_textbox(fitz.Rect(105, m_y, 505, m_y + 20), f"Date of Generation:   {timestamp}", fontsize=11, fontname=FONT_REGULAR, color=(0, 0, 0), align=0)
+        self.current_page.insert_textbox(fitz.Rect(inner_l, m_y, inner_r, m_y + 18), f"Date of Generation:   {timestamp}", fontsize=10.5, fontname=self.font_regular, color=(0, 0, 0), align=0)
 
         # -------------------------------------------------------------
         # FRONT MATTER PAGE 2 — CERTIFICATE, DECLARATION, ACKNOWLEDGEMENT, ABSTRACT
         # -------------------------------------------------------------
         self.new_page()
         self.draw_section_header("i.", "Certificate of Supervision")
+        cert_roll = f" (Register / Roll No: {register_number})" if register_number else ""
         if guide_name != "Not Provided":
             self.draw_paragraph(
-                f"This is to certify that the research report titled '{proj_name}' submitted by {author_name} "
+                f"This is to certify that the research report titled '{proj_name}' submitted by {author_name}{cert_roll} "
                 f"represents an evidence-grounded academic study carried out under the supervision of {guide_name} "
                 f"at {institution_name} in partial fulfillment of the requirements for the academic program."
             )
         else:
-            self.draw_paragraph("Certificate details not provided in project data.")
+            self.draw_paragraph(
+                f"This is to certify that this research report submitted by {author_name}{cert_roll} at {institution_name} "
+                f"represents an evidence-grounded academic study prepared for academic degree evaluation."
+            )
         self.y += 12
 
         self.draw_section_header("ii.", "Academic Declaration")

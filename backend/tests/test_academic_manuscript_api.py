@@ -9,7 +9,7 @@ if str(backend_dir) not in sys.path:
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.database.session import Base, get_db
+from app.database.session import Base, get_db, init_db
 from app.main import app
 
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_fixture.db"
@@ -30,7 +30,7 @@ client = TestClient(app)
 class TestAcademicManuscriptAPI(unittest.TestCase):
 
     def setUp(self):
-        Base.metadata.create_all(bind=engine)
+        init_db(target_engine=engine)
 
     def test_01_get_project_manuscript(self):
         """Test GET /api/projects/1/academic-manuscript returns 44-section manuscript."""

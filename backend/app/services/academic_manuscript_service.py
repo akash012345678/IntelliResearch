@@ -1070,9 +1070,21 @@ class AcademicManuscriptService:
         )
 
     @classmethod
-    def export_manuscript(cls, db: Session, project_id: int, export_format: str = "markdown") -> Dict[str, Any]:
+    def export_manuscript(cls, db: Session, project_id: int, export_format: str = "markdown", config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         manuscript_res = cls.get_or_generate_manuscript(db, project_id)
         sections = manuscript_res.sections
+
+        if not config:
+            try:
+                from app.services.academic_document_service import AcademicDocumentService
+                config = AcademicDocumentService.get_document_settings(db, project_id).model_dump()
+            except Exception:
+                config = {}
+
+        student_name = config.get("student_name")
+        register_number = config.get("register_number")
+        institution = config.get("institution")
+        profile = config.get("profile", "COLLEGE_PROJECT")
 
         if export_format.lower() == "json":
             return {
@@ -1081,10 +1093,29 @@ class AcademicManuscriptService:
                 "status": manuscript_res.status,
                 "completeness": manuscript_res.completeness.model_dump(),
                 "acronyms": manuscript_res.acronyms,
+                "formatting_settings": config,
+                "student_name": student_name,
+                "register_number": register_number,
+                "institution": institution,
+                "profile": profile,
                 "sections": [s.model_dump() for s in sections]
             }
 
         md_content = f"# {manuscript_res.title}\n\n"
+        if profile:
+            profile_label = "College Project Report" if profile == "COLLEGE_PROJECT" else (
+                "Academic Research Paper" if profile == "RESEARCH_PAPER" else "University Thesis Style"
+            )
+            md_content += f"**Academic Profile:** {profile_label}  \n"
+        if student_name:
+            md_content += f"**Submitted By:** {student_name}  \n"
+        if register_number:
+            md_content += f"**Register / Roll Number:** {register_number}  \n"
+        if institution:
+            md_content += f"**Institution:** {institution}  \n"
+        if student_name or register_number or institution or profile:
+            md_content += "\n"
+
         md_content += f"*Academic Manuscript Draft — Grounded in IntelliResearch Evidence*\n"
         md_content += f"*Completeness Score: {manuscript_res.completeness.overall_percentage}% ({manuscript_res.completeness.rating_label})*\n"
         md_content += f"*Status: {manuscript_res.status}*\n\n"
@@ -1357,6 +1388,13 @@ class AcademicManuscriptService:
                 if re.search(rf"\b{ac_code}\b", full_text):
                     acronyms[ac_code] = ac_full
 
+        fmt_settings = getattr(manuscript, "formatting_settings", None) or getattr(project, "formatting_settings", None)
+        if isinstance(fmt_settings, str):
+            try:
+                fmt_settings = json.loads(fmt_settings)
+            except Exception:
+                fmt_settings = None
+
         return ManuscriptGenerateResponse(
             project_id=project.id,
             project_name=project.name,
@@ -1367,7 +1405,8 @@ class AcademicManuscriptService:
             completeness=completeness,
             sections=sections,
             available_versions=all_versions,
-            acronyms=acronyms
+            acronyms=acronyms,
+            formatting_settings=fmt_settings
         )
 
     @classmethod

@@ -78,6 +78,28 @@ def init_db(target_engine=None) -> None:
                         conn.execute(text("ALTER TABLE proposal_versions ADD COLUMN is_restored INTEGER DEFAULT 0"))
                     else:
                         conn.execute(text("ALTER TABLE proposal_versions ADD COLUMN is_restored BOOLEAN DEFAULT FALSE"))
+
+        if "research_manuscripts" in tables:
+            manu_cols = [c["name"] for c in inspector.get_columns("research_manuscripts")]
+            db_type = eng.dialect.name
+            with eng.begin() as conn:
+                if "formatting_settings" not in manu_cols:
+                    if db_type == "sqlite":
+                        conn.execute(text("ALTER TABLE research_manuscripts ADD COLUMN formatting_settings TEXT NULL"))
+                    else:
+                        conn.execute(text("ALTER TABLE research_manuscripts ADD COLUMN formatting_settings JSON NULL"))
+                    logger.info("Successfully added column 'formatting_settings' to 'research_manuscripts'.")
+
+        if "research_projects" in tables:
+            proj_cols = [c["name"] for c in inspector.get_columns("research_projects")]
+            db_type = eng.dialect.name
+            with eng.begin() as conn:
+                if "formatting_settings" not in proj_cols:
+                    if db_type == "sqlite":
+                        conn.execute(text("ALTER TABLE research_projects ADD COLUMN formatting_settings TEXT NULL"))
+                    else:
+                        conn.execute(text("ALTER TABLE research_projects ADD COLUMN formatting_settings JSON NULL"))
+                    logger.info("Successfully added column 'formatting_settings' to 'research_projects'.")
     except Exception as e:
         logger.error(f"Failed to check or execute database migrations: {e}")
 

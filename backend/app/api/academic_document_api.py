@@ -45,6 +45,55 @@ def validate_academic_document(
         )
 
 
+@router.get(
+    "/{project_id}/academic-document/settings",
+    response_model=DocumentFormatConfig,
+    status_code=status.HTTP_200_OK
+)
+def get_academic_document_settings(
+    project_id: int = Path(..., description="ID of the research project"),
+    db: Session = Depends(get_db)
+):
+    """
+    Get saved academic document formatting settings (profile, page size, margins, font family, line spacing, student metadata).
+    """
+    try:
+        return AcademicDocumentService.get_document_settings(db, project_id)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching document settings for project {project_id}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to fetch document settings: {str(e)}"
+        )
+
+
+@router.post(
+    "/{project_id}/academic-document/settings",
+    response_model=DocumentFormatConfig,
+    status_code=status.HTTP_200_OK
+)
+def save_academic_document_settings(
+    project_id: int = Path(..., description="ID of the research project"),
+    config: DocumentFormatConfig = Body(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Save academic document formatting settings (profile, page size, margins, font family, line spacing, student metadata).
+    """
+    try:
+        return AcademicDocumentService.save_document_settings(db, project_id, config)
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error saving document settings for project {project_id}: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save document settings: {str(e)}"
+        )
+
+
 @router.post(
     "/{project_id}/academic-document/preview",
     response_model=DocumentPreviewResponse,

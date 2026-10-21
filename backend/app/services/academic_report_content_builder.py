@@ -198,6 +198,32 @@ class AcademicReportContentBuilder:
         institution_name = getattr(project, "institution", None) or "IntelliResearch Academic Platform"
         department_name = getattr(project, "department", None) or "Department of Computer Science & Engineering"
         academic_year = getattr(project, "academic_year", None) or "2026"
+        register_number = getattr(project, "register_number", None)
+        profile = "COLLEGE_PROJECT"
+
+        # Check and overlay saved formatting settings
+        try:
+            from app.models.project_model import ResearchManuscript
+            import json
+            manu_rec = db.query(ResearchManuscript).filter(ResearchManuscript.project_id == project_id).first()
+            raw_fmt = (manu_rec.formatting_settings if manu_rec else None) or getattr(project, "formatting_settings", None)
+            if isinstance(raw_fmt, str):
+                raw_fmt = json.loads(raw_fmt)
+            if isinstance(raw_fmt, dict):
+                if raw_fmt.get("student_name"):
+                    author_name = raw_fmt["student_name"]
+                if raw_fmt.get("register_number"):
+                    register_number = raw_fmt["register_number"]
+                if raw_fmt.get("institution"):
+                    institution_name = raw_fmt["institution"]
+                if raw_fmt.get("department"):
+                    department_name = raw_fmt["department"]
+                if raw_fmt.get("academic_year"):
+                    academic_year = raw_fmt["academic_year"]
+                if raw_fmt.get("profile"):
+                    profile = raw_fmt["profile"]
+        except Exception as e:
+            logger.debug(f"Could not load formatting settings in builder: {e}")
 
         abstract_text = (
             proposal_data.get("abstract")
@@ -391,6 +417,8 @@ class AcademicReportContentBuilder:
                 "project_name": proj_name,
                 "project_desc": proj_desc,
                 "author_name": author_name,
+                "register_number": register_number,
+                "profile": profile,
                 "guide_name": guide_name,
                 "institution_name": institution_name,
                 "department_name": department_name,

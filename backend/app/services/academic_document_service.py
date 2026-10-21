@@ -23,13 +23,53 @@ class AcademicDocumentService:
     """
 
     @classmethod
+    def get_document_settings(cls, db: Session, project_id: int) -> DocumentFormatConfig:
+        project = db.query(ResearchProject).filter(ResearchProject.id == project_id).first()
+        if not project:
+            raise HTTPException(status_code=404, detail=f"Research project {project_id} not found")
+
+        from app.models.project_model import ResearchManuscript
+        import json
+        manuscript = db.query(ResearchManuscript).filter(ResearchManuscript.project_id == project_id).first()
+        raw_settings = (manuscript.formatting_settings if manuscript else None) or getattr(project, "formatting_settings", None)
+        if isinstance(raw_settings, str):
+            try:
+                raw_settings = json.loads(raw_settings)
+            except Exception:
+                raw_settings = {}
+        elif not isinstance(raw_settings, dict):
+            raw_settings = {}
+
+        return DocumentFormatConfig(**raw_settings) if raw_settings else DocumentFormatConfig()
+
+    @classmethod
+    def save_document_settings(cls, db: Session, project_id: int, config: DocumentFormatConfig) -> DocumentFormatConfig:
+        project = db.query(ResearchProject).filter(ResearchProject.id == project_id).first()
+        if not project:
+            raise HTTPException(status_code=404, detail=f"Research project {project_id} not found")
+
+        from app.models.project_model import ResearchManuscript
+        manuscript = db.query(ResearchManuscript).filter(ResearchManuscript.project_id == project_id).first()
+        config_dict = config.model_dump()
+
+        if manuscript:
+            manuscript.formatting_settings = config_dict
+        project.formatting_settings = config_dict
+
+        db.commit()
+        if manuscript:
+            db.refresh(manuscript)
+        db.refresh(project)
+        return DocumentFormatConfig(**config_dict)
+
+    @classmethod
     def get_document_preview(cls, db: Session, project_id: int, config: Optional[DocumentFormatConfig] = None) -> DocumentPreviewResponse:
         project = db.query(ResearchProject).filter(ResearchProject.id == project_id).first()
         if not project:
             raise HTTPException(status_code=404, detail=f"Research project {project_id} not found")
 
         if config is None:
-            config = DocumentFormatConfig()
+            config = cls.get_document_settings(db, project_id)
 
         manuscript_res = AcademicManuscriptService.get_or_generate_manuscript(db, project_id)
         sections = manuscript_res.sections
@@ -39,19 +79,26 @@ class AcademicDocumentService:
         pages: List[DocumentPreviewPage] = []
         page_num = 1
 
+        profile_title = "🎓 COLLEGE PROJECT REPORT" if config.profile == "COLLEGE_PROJECT" else (
+            "📄 ACADEMIC RESEARCH PAPER" if config.profile == "RESEARCH_PAPER" else "📚 UNIVERSITY THESIS REPORT"
+        )
+        pad_main = "20px 15px" if config.margins == "NARROW" else "40px 30px"
+
         # 1. Page 1: Title Page
         title_html = f"""
-        <div style="text-align: center; font-family: {config.font_family}; padding: 40px 20px;">
+        <div style="text-align: center; font-family: '{config.font_family}', serif; padding: {pad_main}; line-height: {config.line_spacing};">
+            <div style="font-size: 13px; font-weight: 800; letter-spacing: 1px; color: #4338ca; margin-bottom: 20px;">{profile_title}</div>
             <h1 style="font-size: 22px; font-weight: bold; margin-bottom: 20px; text-transform: uppercase;">{manuscript_res.title}</h1>
-            <p style="font-size: 14px; font-style: italic; color: #666; margin-bottom: 40px;">A Research Project Report Submitted in Partial Fulfillment for the Degree</p>
-            <div style="margin: 60px 0; font-size: 13px;">
-                <p><strong>Submitted By:</strong> {config.student_name or 'Student Name (Not Provided)'}</p>
-                <p><strong>Register Number:</strong> {config.register_number or 'Register Number (Not Provided)'}</p>
+            <p style="font-size: 13px; font-style: italic; color: #64748b; margin-bottom: 35px;">A Research Project Report Submitted in Partial Fulfillment of Degree Requirements</p>
+            <div style="margin: 40px auto; max-width: 480px; padding: 25px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; font-size: 13px; text-align: left; line-height: 1.8;">
+                <p><strong>Submitted By:</strong> {config.student_name or 'Akash K (Student Researcher)'}</p>
+                <p><strong>Register / Roll No:</strong> {config.register_number or '2312002'}</p>
                 <p><strong>Department:</strong> {config.department or 'Department of Computer Science & Engineering'}</p>
-                <p><strong>Institution:</strong> {config.institution or 'Institution Name (Not Provided)'}</p>
+                <p><strong>Institution:</strong> {config.institution or 'National Engineering College'}</p>
                 <p><strong>Academic Year:</strong> {config.academic_year or '2025-2026'}</p>
+                <p><strong>Formatting Profile:</strong> {config.profile.replace('_', ' ').title()}</p>
             </div>
-            <p style="font-size: 11px; color: #888; margin-top: 60px;">Grounded in IntelliResearch Project Evidence</p>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 35px;">Grounded in IntelliResearch Evidence & Automated Project Data</p>
         </div>
         """
         pages.append(DocumentPreviewPage(page_number=page_num, title="Title Page", section_type="TITLE_PAGE", html_content=title_html))

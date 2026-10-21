@@ -53,14 +53,29 @@ export default function AcademicDocumentPreview({ previewData }) {
 
       {/* PAGE SIMULATOR CANVAS */}
       <div className="p-8 bg-slate-950 rounded-3xl border border-slate-800 flex justify-center">
-        <div className="w-full max-w-3xl bg-white text-slate-900 p-10 rounded-2xl shadow-2xl min-h-[700px] border border-slate-300 font-serif">
+        <div
+          className={`w-full max-w-3xl bg-white text-slate-900 rounded-2xl shadow-2xl min-h-[700px] border border-slate-300 ${
+            previewData?.config?.margins === 'NARROW' ? 'p-6 sm:p-8' : 'p-8 sm:p-12'
+          }`}
+          style={{
+            fontFamily: previewData?.config?.font_family ? `"${previewData.config.font_family}", serif` : 'serif',
+            lineHeight: previewData?.config?.line_spacing || 1.5
+          }}
+        >
           <div className="flex items-center justify-between border-b border-slate-200 pb-2 text-[10px] text-slate-500 font-sans uppercase font-bold mb-6">
             <span>{previewData.project_name}</span>
+            <span className="px-2 py-0.5 rounded bg-slate-100 text-indigo-700 font-mono text-[9px]">
+              {previewData?.config?.profile ? previewData.config.profile.replace('_', ' ') : 'ACADEMIC DELIVERABLE'}
+            </span>
             <span>{activePage.title}</span>
           </div>
 
           <div
-            className="prose max-w-none text-slate-800 leading-relaxed text-sm"
+            className="prose max-w-none text-slate-800 text-sm"
+            style={{
+              fontFamily: previewData?.config?.font_family ? `"${previewData.config.font_family}", serif` : 'inherit',
+              lineHeight: previewData?.config?.line_spacing || 1.5
+            }}
             dangerouslySetInnerHTML={{ __html: activePage.html_content }}
           />
 

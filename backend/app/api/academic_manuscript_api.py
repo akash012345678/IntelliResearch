@@ -220,6 +220,11 @@ def export_academic_manuscript(
         papers = [assoc.paper for assoc in assoc_papers if assoc.paper]
         results_summary = ResearchResultsAnalysisService.get_project_results_analysis(db, project_id)
 
+        # Retrieve project formatting configuration
+        from app.services.academic_document_service import AcademicDocumentService
+        doc_config = AcademicDocumentService.get_document_settings(db, project_id)
+        config_dict = doc_config.model_dump()
+
         if fmt == "pdf":
             proposal = project.proposals[-1] if project.proposals else None
             plan = project.saved_directions[0] if project.saved_directions else None
@@ -232,6 +237,7 @@ def export_academic_manuscript(
                 experiments=project.experiments or [],
                 results_analysis=results_summary.model_dump() if hasattr(results_summary, "model_dump") else {},
                 manuscript=manuscript_res,
+                config=doc_config,
                 db=db
             )
             pdf_bytes = pdf_engine.generate_pdf()
@@ -241,14 +247,14 @@ def export_academic_manuscript(
                 headers={"Content-Disposition": f"attachment; filename=Academic_Manuscript_Project_{project_id}.pdf"}
             )
         elif fmt == "docx":
-            docx_bytes = AcademicDocxEngine.generate_docx(manuscript_res, project, papers, results_summary)
+            docx_bytes = AcademicDocxEngine.generate_docx(manuscript_res, project, papers, results_summary, config=config_dict)
             return Response(
                 content=docx_bytes,
                 media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 headers={"Content-Disposition": f"attachment; filename=Academic_Manuscript_Project_{project_id}.docx"}
             )
         else:
-            return AcademicManuscriptService.export_manuscript(db, project_id, fmt)
+            return AcademicManuscriptService.export_manuscript(db, project_id, fmt, config=config_dict)
     except HTTPException:
         raise
     except Exception as e:

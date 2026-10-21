@@ -9,7 +9,7 @@ if str(backend_dir) not in sys.path:
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.database.session import Base, get_db
+from app.database.session import Base, get_db, init_db
 from app.main import app
 
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///./test_fixture.db"
@@ -30,7 +30,7 @@ client = TestClient(app)
 class TestAcademicDocumentAPI(unittest.TestCase):
 
     def setUp(self):
-        Base.metadata.create_all(bind=engine)
+        init_db(target_engine=engine)
 
     def test_01_validate_academic_document(self):
         """Test GET /api/projects/1/academic-document/validate returns document validation data."""
@@ -58,3 +58,31 @@ class TestAcademicDocumentAPI(unittest.TestCase):
         """Test GET /api/projects/1/submission-package returns zip file response."""
         response = client.get("/api/projects/1/submission-package")
         self.assertIn(response.status_code, [200, 404])
+
+    def test_04_get_and_save_document_settings(self):
+        """Test GET & POST /api/projects/{id}/academic-document/settings."""
+        # 1. Fetch default settings
+        get_res = client.get("/api/projects/1/academic-document/settings")
+        self.assertIn(get_res.status_code, [200, 404])
+
+        # 2. Save custom settings
+        payload = {
+            "profile": "COLLEGE_PROJECT",
+            "page_size": "LETTER",
+            "margins": "NARROW",
+            "font_family": "Calibri",
+            "font_size": 12,
+            "line_spacing": 1.15,
+            "student_name": "Akash K",
+            "register_number": "2312002",
+            "institution": "National Engineering College"
+        }
+        post_res = client.post("/api/projects/1/academic-document/settings", json=payload)
+        self.assertIn(post_res.status_code, [200, 404])
+        if post_res.status_code == 200:
+            saved = post_res.json()
+            self.assertEqual(saved["student_name"], "Akash K")
+            self.assertEqual(saved["register_number"], "2312002")
+            self.assertEqual(saved["institution"], "National Engineering College")
+            self.assertEqual(saved["font_family"], "Calibri")
+            self.assertEqual(saved["line_spacing"], 1.15)

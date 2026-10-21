@@ -11,6 +11,7 @@ class ResearchProject(Base):
     name = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
     status = Column(String(50), nullable=False, default="ACTIVE")
+    formatting_settings = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
@@ -127,6 +128,7 @@ class ResearchManuscript(Base):
     project_id = Column(Integer, ForeignKey("research_projects.id", ondelete="CASCADE"), nullable=False, index=True)
     title = Column(String(255), nullable=False)
     status = Column(String(50), nullable=False, default="DRAFT")  # 'DRAFT' | 'REVISED' | 'COMPLETE'
+    formatting_settings = Column(JSON, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 

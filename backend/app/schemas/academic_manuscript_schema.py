@@ -64,6 +64,7 @@ class ManuscriptGenerateResponse(BaseModel):
     sections: List[ManuscriptSectionItem] = Field(default_factory=list)
     available_versions: List[ManuscriptVersionItem] = Field(default_factory=list)
     acronyms: Dict[str, str] = Field(default_factory=dict)
+    formatting_settings: Optional[Dict[str, Any]] = None
     academic_integrity_notice: str = (
         "IntelliResearch generates a structured academic paper grounded in your project evidence. "
         "Strict Zero-Fabrication Rule: Unexecuted experiments and unavailable metadata are explicitly marked as MISSING. "
